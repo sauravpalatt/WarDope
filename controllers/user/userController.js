@@ -18,4 +18,22 @@ const loadHomePage = async(req,res)=>{
     }
 }
 
-module.exports={loadHomePage,pageNotFound}
+const signUpLoader = async(req,res)=>{
+ try {
+    return res.render("signup")
+ } catch (error) {
+    console.log("Sign up page load error",error)
+    res.status(404).send("Sign up page not rendered")
+ }
+}
+
+const logInLoader = async(req,res)=>{
+    try {
+        return res.render("login")
+    } catch (error) {
+        console.log("Log In Error",error)
+        res.status(404).send("Log in Page not Found")
+    }
+}
+
+module.exports={loadHomePage,pageNotFound,signUpLoader,logInLoader}
