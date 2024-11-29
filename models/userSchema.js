@@ -18,9 +18,10 @@ const userSchema = new Schema({
         sparse:true,
         default:null
     },
-    googleID:{
-        type:String,
-        unique:true
+    googleID: {
+        type: String,
+        unique: true,
+        sparse: true
     },
     password:{
         type:String,
@@ -51,10 +52,12 @@ const userSchema = new Schema({
         default:Date.now
     },
     referalCode:{
-        type:String
+        type:String,
+        // required:true
     },
     redeemed:{
         type:Boolean,
+        // required:true
     },
     redeemedUsers:[{
         type:Schema.Types.ObjectId,

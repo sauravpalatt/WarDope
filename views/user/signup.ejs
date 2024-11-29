@@ -58,6 +58,13 @@
         max-width: 100%;
         height: auto;
       }
+
+      .error-msg{
+        color: red;
+        font-size: 0.70 rem;
+        display: none;
+      }
+
       .social-btns {
         display: flex;
         flex-direction: column;
@@ -108,51 +115,61 @@
               <div class="signup-form">
                 <h3 class="card-title text-center">Sign Up</h3>
 
-                <form method="post" action="/signup">
+                <form id="signUpForm" method="post" action="/signup">
                   <div class="form-group">
                     <label for="name">Full Name</label>
                     <input
                       type="text"
                       class="form-control"
+                      name="name"
                       id="name"
                       placeholder="Enter Name"
                     />
+                    <div id="error1" class="error-msg"></div>
                   </div>
                   <div class="form-group">
                     <label for="email">Email address</label>
                     <input
                       type="email"
                       class="form-control"
+                      name="email"
                       id="email"
                       placeholder="Enter email"
                     />
+                    <div id="error2" class="error-msg"></div>
                   </div>
                   <div class="form-group">
                     <label for="phone">Phone Number</label>
                     <input
                       type="text"
                       class="form-control"
+                      name="phone"
                       id="phone"
                       placeholder="Enter phone number"
                     />
+                    <div id="error3" class="error-msg"></div>
                   </div>
                   <div class="form-group">
                     <label for="password">Password</label>
                     <input
                       type="password"
                       class="form-control"
+                      name="password"
                       id="password"
                       placeholder="Password"
                     />
+                    <div id="error4" class="error-msg"></div>
                   </div>
                   <div class="form-group">
                     <label for="confirm-password">Confirm Password</label>
                     <input
                       type="password"
                       class="form-control"
+                      name="cPassword"
                       id="confirm-password"
                       placeholder="Confirm Password"
                     />
+                    <div id="error5" class="error-msg"></div>
                   </div>
                   <div
                     class="d-flex justify-content-between align-items-center"
@@ -164,13 +181,13 @@
                       <p>or sign up with</p>
                     </div>
                     <div class="social-btns">
-                      <button type="button" class="btn btn-outline-danger">
+                      <a href="/auth/google" class="btn btn-outline-danger">
                         <img
                           src="img/google.jpg"
                           alt="Google Logo"
                           style="width: 24px; height: 24px"
                         />
-                      </button>
+                      </a>
                     </div>
                   </div>
                 </form>
@@ -191,6 +208,131 @@
       </div>
     </div>
     <div class="spacer"></div>
+
+    <script>
+        const nameid = document.getElementById("name")
+        const phoneid = document.getElementById("phone")
+        const emailid = document.getElementById("email")
+        const pwdid = document.getElementById("password")
+        const cf_pwdid = document.getElementById("confirm-password")
+        const error1 = document.getElementById("error1")
+        const error2 = document.getElementById("error2")
+        const error3 = document.getElementById("error3")
+        const error4 = document.getElementById("error4")
+        const error5 = document.getElementById("error5")
+        const errmsg = document.getElementsByClassName("error-msg")
+        const signUpForm = document.getElementById("signUpForm")
+
+        function nameValidateChecking(e){
+
+          const nameVal= nameid.value
+          const namePattern = /^[A-Za-z\s]+$/
+
+          if(nameVal.trim()===""){
+            error1.style.display="block"
+            error1.innerHTML="Please enter a valid name"
+          }else if(!namePattern.test(nameVal)){
+            error1.style.display="block"
+            error1.innerHTML = "Name can only contain alphabets and spaces"
+          }else{
+            error1.style.display="none"
+            error1.innerHTML=""
+          }
+         }
+
+         function emailValidateChecking(e){
+
+          const emailVal= emailid.value
+          const emailPattern = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/
+
+          if(emailVal.trim()===""){
+            error2.style.display="block"
+            error2.innerHTML="Email cannot be a blank field"
+          }else if(!emailPattern.test(emailVal)){
+            error2.style.display="block"
+            error2.innerHTML="Invalid format"
+          }else{
+            error2.style.display="none"
+            error2.innerHTML=""
+          }
+         }
+
+         function phoneValidateChecking(e){
+
+          const phoneVal=phoneid.value
+          if(phoneVal.trim()===""){
+            error3.style.display = "block"
+            error3.innerHTML = "Enter valid phone number"
+          }else if(phoneVal.length!=10){
+            error3.style.display = "block"
+            error3.innerHTML = "Digit count mismatch"
+          }else{
+            error3.style.display="none"
+            error3.innerHTML=""
+          }
+         }
+
+         function passValidateChecking(e){
+          const passVal=pwdid.value
+          const cPassVal=cf_pwdid.value
+          const alpha=/[A-Za-z]/
+          const digit=/\d/
+
+          if(passVal.length<8){
+            error4.style.display = "block"
+            error4.innerHTML = "Password too short (atleast 8 chars)"
+          }else if(!alpha.test(passVal) && !digit.test(passVal)){
+            error4.style.display = "block"
+            error4.innerHTML = "Password should be contain both numbers and alphabets"
+          }else{
+            error4.style.display="none"
+            error4.innerHTML=""
+          }
+
+          if(passVal!==cPassVal){
+            error5.style.display = "block"
+            error5 .innerHTML = "Passwords are in mismatch"
+          }
+          
+         }
+
+        document.addEventListener("DOMContentLoaded",function(){
+          signUpForm.addEventListener("submit",function(e){
+            
+            nameValidateChecking()
+            emailValidateChecking()
+            phoneValidateChecking()
+            passValidateChecking()
+
+            if(
+              !nameid ||
+              !phoneid ||
+              !emailid ||
+              !pwdid ||
+              !cf_pwdid ||
+              !error1 ||
+              !error2 ||
+              !error3 ||
+              !error4 ||
+              !error5 ||
+              !signUpForm
+            ){
+              console.error("One or more elements not found !!!")
+            }
+
+            if(
+              error1.innerHTML ||
+              error2.innerHTML ||
+              error3.innerHTML ||
+              error4.innerHTML ||
+              error5.innerHTML 
+            ){
+              e.preventDefault()  
+            }
+          })
+        })
+    </script>
+
     <%- include("../partials/user/footer") %>
   </body>
 </html>
