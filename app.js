@@ -10,6 +10,7 @@ db()
 
 app.use(express.json())
 app.use(express.urlencoded({extended:true}))
+
 app.use(session({
    secret:process.env.SESSION_SECRET, //DOUBT ON THIS ONE
    resave:false,
@@ -20,6 +21,7 @@ app.use(session({
     maxAge:72*60*60*1000  
    } 
 }))
+
 app.use((req,res,next)=>{
     res.set("cache-control","no store")
     next()

@@ -37,44 +37,50 @@ const logInLoader = async(req,res)=>{
         if(req.session.user){
             return res.redirect("/")
         }else{
-            res.render("login")
+            return res.render("login")
         }    
         }catch (error) {
             console.log("Log In Error",error)
-            res.redirect("/pageNotFound")
+            return res.redirect("/pageNotFound")
         }
 }
 
-const login = async(req,res)=>{
+
+const login = async (req, res) => {
     try {
+        const { email, password } = req.body;
+        console.log(req.body);
+        
+        
+        const findUser = await User.findOne({ isAdmin: false, email: email });
 
-        const{email,password}=req.body
-
-        const findUser = await User.findOne({isAdmin:false,email:email})
-
-        if(!findUser){
-            return res.render("login",{message:"User does not exist"})
+        if (!findUser) {
+            console.log("User not found.");
+           return res.json({success:false,message:"User not found"})
         }
 
-        if(findUser.isBlocked){
-            return res.render("login",{message:"You are blocked by the admin"})
+        if (findUser.isBlocked) {
+            console.log("User is blocked.");
+            return res.json({success:false,message:"User is blocked by admin"})
         }
 
-        const passwordMatch = await bcrypt.compare(password,findUser.password)
-
-        if(!passwordMatch){
-          return  res.render("login",{message:"Incorrect Password"})
+        const passwordMatch = await bcrypt.compare(password, findUser.password);
+        if (!passwordMatch) {
+            console.log("Incorrect password.");
+            return res.json({success:false,message: "Incorrect Password" });
         }
 
-        req.session.user = findUser._id
-        res.redirect("/")
+        req.session.user = findUser._id;
+        console.log("Login successful. Redirecting to home page.");
+        return res.status(200).json({success:true,message:"Login successful"})
+        
+        
 
     } catch (error) {
-
-        console.error("Login Post method not functioning",error)
-        res.render("login")
+        console.error("Error during login:", error.message, error.stack);
+        res.status(500).redirect("/pagenotfound")
     }
-}
+};
 
 function generateOtp(){
     return Math.floor(100000+Math.random()*900000).toString()

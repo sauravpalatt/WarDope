@@ -18,10 +18,9 @@ const userSchema = new Schema({
         sparse:true,
         default:null
     },
-    googleID: {
+    googleId: {
         type: String,
-        unique: true,
-        sparse: true
+        sparse:true
     },
     password:{
         type:String,
@@ -47,10 +46,7 @@ const userSchema = new Schema({
         type:Schema.Types.ObjectId,
         ref:"Order"
     }],
-    createdOn:{
-        type:Date,
-        default:Date.now
-    },
+    
     referalCode:{
         type:String,
         // required:true
@@ -76,7 +72,7 @@ const userSchema = new Schema({
             default:Date.now
         }
     }]
-})
+},{timestamps:true})
 
 const User = mongoose.model("User",userSchema)
 

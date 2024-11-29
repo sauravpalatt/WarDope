@@ -12,7 +12,6 @@ passport.use(new GoogleStrategy({
 async(accessToken,refreshToken,profile,done)=>{
     try {
         let user = await User.findOne({googleId:profile.id})
-
         if(user){
             return done(null,user)
         }else{
@@ -44,5 +43,5 @@ passport.deserializeUser((id, done) => {
             done(err, null);
         });
 });
-
+ 
 module.exports = passport

@@ -8,6 +8,7 @@
       href="https://fonts.googleapis.com/css2?family=Nunito+Sans:wght@300;400;600;700;800;900&display=swap"
       rel="stylesheet"
     />
+    
     <link rel="stylesheet" href="css/bootstrap.min.css" type="text/css" />
     <link rel="stylesheet" href="css/style.css" type="text/css" />
     <style>
@@ -88,7 +89,7 @@
             <div class="card-body login-section">
               <div class="login-form">
                 <h3 class="card-title text-center">Log In</h3>
-                <form>
+                <form id="logInForm"         >
                   <div class="form-group">
                     <label for="email">Email address</label>
                     <input
@@ -96,6 +97,7 @@
                       class="form-control"
                       id="email"
                       placeholder="Enter email"
+                      name="email"
                     />
                   </div>
                   <div class="form-group">
@@ -105,6 +107,7 @@
                       class="form-control"
                       id="password"
                       placeholder="Password"
+                      name="password"
                     />
                   </div>
                   <div
@@ -141,4 +144,70 @@
     </div>
     <div class="spacer"></div>
   </body>
+<script>
+  
+  const logInForm = document.getElementById("logInForm")
+
+  logInForm.addEventListener("submit",(e)=>{
+    e.preventDefault()
+
+    // Swal.fire({
+    //             icon: "success",
+    //             title: data.message,
+    //             showConfirmButton: false,
+    //             timer: 1500,
+    //         }).then(() => {
+    //             window.location.href = "/";
+    //         });
+    const email = document.getElementById("email").value
+  const password = document.getElementById("password").value
+  fetch("/login", {
+    method: "POST",
+    headers: {
+        "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+        email: email,
+        password: password,
+    }),
+ })
+    .then((response) => {
+        if (!response.ok) {
+            return response.json().then((err) => {
+                throw new Error(err.message || "Failed to log in");
+            });
+        }
+        return response.json();
+    })
+    .then((data) => {
+        if (data.success) {
+            Swal.fire({
+                icon: "success",
+                title: data.message,
+                showConfirmButton: false,
+                timer: 1500,
+            }).then(() => {
+                window.location.href = "/";
+            });
+        } else {
+            Swal.fire({
+                icon: "error",
+                title: "Error",
+                text: data.message,
+            });
+        }
+    })
+    .catch((error) => {
+        console.error("Log in error:", error.message);
+        Swal.fire({
+            icon: "error",
+            title: "Login Failed",
+            text: error.message,
+        });
+    });
+
+  })
+
+</script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 </html>
