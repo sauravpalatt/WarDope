@@ -3,6 +3,7 @@ const User = require("../../models/userSchema")
 const env = require("dotenv").config()
 const bcrypt = require("bcrypt")
 const nodemailer = require("nodemailer")
+const mongoose = require('mongoose');
 
 const pageNotFound = async(req,res)=>{
     try {
@@ -13,15 +14,26 @@ const pageNotFound = async(req,res)=>{
     }
 }
 
-const loadHomePage = async(req,res)=>{
+const loadHomePage = async (req, res) => {
     try {
-        return res.render("home")
-        
+        const user = req.session.user;
+        console.log(`user: ${user}`)
+        if (user) {
+            
+            const userData = await User.findOne({ _id: new mongoose.Types.ObjectId(user._id) });
+            console.log(`UserData: ${typeof userData}`);
+            return res.render("home", { user: userData });
+
+        } else {
+            console.log("User session does not exist or _id is invalid");
+            return res.render("home");
+        }
     } catch (error) {
-        console.log("Home page not rendered")
-        res.status(500).send("home page error occured")
+        console.error("Home page not rendered:", error);
+        res.status(500).send("Home page error occurred");
     }
-}
+};
+
 
 const signUpLoader = async(req,res)=>{
  try {
@@ -49,8 +61,6 @@ const logInLoader = async(req,res)=>{
 const login = async (req, res) => {
     try {
         const { email, password } = req.body;
-        console.log(req.body);
-        
         
         const findUser = await User.findOne({ isAdmin: false, email: email });
 
@@ -70,21 +80,20 @@ const login = async (req, res) => {
             return res.json({success:false,message: "Incorrect Password" });
         }
 
-        req.session.user = findUser._id;
-        console.log("Login successful. Redirecting to home page.");
+        req.session.user = { _id: findUser._id };
         return res.status(200).json({success:true,message:"Login successful"})
         
-        
-
     } catch (error) {
         console.error("Error during login:", error.message, error.stack);
         res.status(500).redirect("/pagenotfound")
     }
 };
 
+
 function generateOtp(){
     return Math.floor(100000+Math.random()*900000).toString()
 }
+
 
 async function sendVerificationEmail(email,otp){ 
     try {
@@ -176,8 +185,6 @@ const verifyOtp= async(req,res)=>{
 
             await saveUserData.save()
             req.session.user = saveUserData._id;
-
-            console.log( req.session.user)
 
             res.json({success:true, redirectUrl:"/"})
         }else{

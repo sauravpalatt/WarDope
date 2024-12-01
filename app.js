@@ -12,15 +12,16 @@ app.use(express.json())
 app.use(express.urlencoded({extended:true}))
 
 app.use(session({
-   secret:process.env.SESSION_SECRET, //DOUBT ON THIS ONE
-   resave:false,
-   saveUninitialized:true,
-   cookie:{
-    secure:false,
-    httpOnly:true,
-    maxAge:72*60*60*1000  
-   } 
-}))
+    secret: process.env.SESSION_SECRET,
+    resave: false,
+    saveUninitialized: false, 
+    cookie: {
+        secure: false, 
+        httpOnly: true, 
+        maxAge: 72 * 60 * 60 * 1000 
+    }
+ }));
+
 
 app.use((req,res,next)=>{
     res.set("cache-control","no store")
