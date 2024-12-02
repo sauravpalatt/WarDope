@@ -41,17 +41,21 @@
             box-shadow: 0px 8px 16px rgba(0, 0, 0, 0.2);
             z-index: 1;
             right: 0;
+            padding: 10px 0;
+            margin-top:-10px;
         }
     
         .dropdown-content a {
             color: black;
-            padding: 12px 16px;
+            
+            padding: 2px 2px;
             text-decoration: none;
             display: block;
+            padding: 12px 16px;
         }
     
         .dropdown-content a:hover {
-            background-color: #f1f1f1;
+            background-color: #ffffff;
         }
     
         .dropdown:hover .dropdown-content {
@@ -188,13 +192,12 @@
                             <a href="contact.html" class="nav-item nav-link">Contact</a>
                         </div>
                         <div class="navbar-nav ml-auto py-0">
-                            <% if (locals.user) { %>
+                            <% if (locals.user){ %>
                                 <div class="dropdown">
-                                  <a href="#" class="sign-in-link"><%= locals.user.name %></a>
-                                  <div class="dropdown-content">
-                                    <a href="/userProfile">Profile</a>
-                                    <a href="/signout">Log Out</a>
-                                  </div>
+                                    <a href="#" class="nav-link dropdown-toggle mr-4" data-toggle="dropdown"><%= locals.user.name %></a>
+                                <div class="dropdown-menu rounded-0 m-0">
+                                    <a href="/userProfile" class="dropdown-item">Profile</a>
+                                    <a href="/logout" class="dropdown-item">Log Out</a>
                                 </div>
                               <% } else { %>
                                 <a href="/login" class="nav-item nav-link">Login</a>

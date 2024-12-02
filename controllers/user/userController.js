@@ -89,11 +89,9 @@ const login = async (req, res) => {
     }
 };
 
-
 function generateOtp(){
     return Math.floor(100000+Math.random()*900000).toString()
 }
-
 
 async function sendVerificationEmail(email,otp){ 
     try {
@@ -217,6 +215,19 @@ const resendOtp= async(req,res)=>{
     }
 }
 
+const logout=async(req,res)=>{
+
+    req.session.destroy((err)=>{
+
+        if(err){
+            console.log("Error in destroying session")
+            return res.status(500).send({message:"Session can't be destroyed"})
+        }else{
+            res.redirect("/login")
+        }
+    })
+}
+
 module.exports=
    {
     loadHomePage,
@@ -226,5 +237,6 @@ module.exports=
     logInLoader,
     verifyOtp,
     resendOtp,
-    login
+    login,
+    logout
   }
