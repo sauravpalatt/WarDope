@@ -1,0 +1,230 @@
+<%-include("../partials/admin/header")%>
+
+<section class="content-main">
+    <div class="content-header">
+      <div>
+        <h2 class="content-title card-title">Categories</h2>
+        <p>Add, edit or delete a category</p>
+      </div>
+      <div>
+        <input
+          type="text"
+          placeholder="Search Categories"
+          class="form-control bg-white"
+        />
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-body">
+        <div class="row">
+          <div class="col-md-3">
+            <form class="categProd-class" id="categoryForm">
+              <div class="mb-4">
+                <label for="product_name" class="form-label">Name</label>
+                <input
+                  type="text"
+                  placeholder="Type here"
+                  class="form-control"
+                  id="category_name"
+                />
+              </div>
+             
+              <div class="mb-4">
+                <label class="form-label">Description</label>
+                <textarea
+                  placeholder="Type here"
+                  class="form-control"
+                  id="category_decrp"
+                ></textarea>
+              </div>
+
+              <div class="d-grid">
+                <button type="submit" class="btn btn-primary">Create category</button>
+              </div>
+            </form>
+          </div>
+          <div class="col-md-9">
+            <div class="table-responsive">
+              <table class="table table-hover">
+                <thead>
+                  <tr>
+                    <th class="text-center">
+                      <div class="form-check">
+                        <input
+                          class="form-check-input"
+                          type="checkbox"
+                          value=""
+                        />
+                      </div>
+                    </th>
+                    
+                    <th>Name</th>
+                    <th>Offer</th>
+                    <th>Offer-Percentage</th>
+                    <th>Description</th>
+                    <th>Status</th>
+                    <th>Action</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <% for (let i = 0; i < data.length; i++) { %>
+                   <tr>
+                        <td class="text-center">
+                            <div class="form-check">
+                                <input
+                                    class="form-check-input"
+                                    type="checkbox"
+                                    value=""
+                                />
+                            </div>
+                        </td>
+                        
+                        <td><b><%= data[i].categoryName %></b></td>
+                        <td> 
+                          <button 
+                          type="button" 
+                          class="btn btn-primary mt-5" 
+                          data-bs-toggle="modal" 
+                          data-bs-target="#categoryOfferModal" 
+                          data-category-id="<%= data[i]._id %>">
+                          Add Offer 
+                        </button>
+                        </td>
+                        <td>
+                          <%= data[i].offer ? `${data[i].offer}% OFF` : 'No Offer' %>
+                        </td>
+                        <td><%= data[i].description %></td>
+                       <td>
+                        <% if (data[i].isActive == true) { %>
+                            <a href="/admin/inactivateCategory?id=<%= data[i]._id %>" 
+                               class="btn btn-sm btn-success rounded font-sm mt-15">Active</a>
+                        <% } else { %>
+                            <a href="/admin/activateCategory?id=<%= data[i]._id %>" 
+                               class="btn btn-sm btn-danger rounded font-sm mt-20">InActive</a>
+                        <% } %>
+                      </td>
+                      <td>
+                        <a href="/admin/editCategory?id=<%= data[i]._id %>" 
+                          class="btn btn-sm btn-success font-sm mt-15">Edit</a>
+                      </td>
+                  </tr>
+                <% } %>
+                </tbody>
+              </table>
+            </div>
+          </div>
+          <!-- .col// -->
+        </div>
+        <!-- .row // -->
+      </div>
+      <!-- card body .// -->
+    </div>
+    <!-- card .// -->
+    <div class="pagination-area mt-15 mb-50">
+      <nav aria-label="Page navigation example">
+          <ul class="pagination justify-content-start">
+              <% for(let i=1;i<=totalPages;i++){ %>
+                  <li class="page-item <%=(i===currentPage) ? 'active' :  ''  %>">
+                      <a class="page-link" href="?page=<%= i %>"><%= i %></a>
+                  </li>
+                  <% } %>
+          </ul>
+      </nav>
+  </div>
+  </section>
+
+<!-- Modal -->
+<div class="modal fade" id="categoryOfferModal" tabindex="-1" aria-labelledby="categoryOfferModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="categoryOfferModalLabel">Add Offer for Category</h5>
+        <button type="button" class="btn-close" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <form id="offerForm">
+          <!-- Category Selection -->
+         
+          <!-- Offer Percentage Input -->
+          <div class="mb-3">
+            <label for="offerPercent" class="form-label">Offer</label>
+            <input type="number" id="offerPercent" class="form-control" min="0" max="100" placeholder="Enter offer percentage" required>
+          </div>
+          <div>
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            <button type="submit" class="btn btn-primary" >Save Offer</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+   
+<script>
+  // Wait for the DOM to fully load before attaching event listeners
+  document.addEventListener('DOMContentLoaded', function() {
+    // Attach event listener to the form submission
+    const offerForm = document.getElementById('offerForm');
+    
+    offerForm.addEventListener('submit', function(e) {
+      e.preventDefault(); // Prevent the default form submission behavior
+
+      // Get the value of the offerPercent input field
+      const offerPercent = document.getElementById('offerPercent').value;
+      console.log("Offer Percent:", offerPercent); // Log the value to the console
+
+      // You can now process the offerPercent value (e.g., send it to a server, update the UI, etc.)
+    });
+  });
+</script>
+  
+<script> 
+      document.getElementById("categoryForm").addEventListener("submit", (e) => {
+      e.preventDefault()
+        const catName = document.getElementById("category_name").value;
+        const catDes = document.getElementById("category_decrp").value;
+    
+        const data = {catName, catDes};
+        
+        fetch("/admin/addcategory", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(data), 
+        })
+          .then((response) => response.json()) 
+          .then((data) =>{
+            if(data.success){
+              Swal.fire("Success", data.message, "success")
+              .then(()=>{
+                window.location.reload()
+              })
+            }else{
+              Swal.fire("Error","Something went wrong!", "error")
+            }
+          }) 
+          .catch((error) => {
+            Swal.fire("Error", error.message, "error")
+          }); 
+      });
+</script>
+
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+<script>
+  const urlParams = new URLSearchParams(window.location.search);
+   const message = urlParams.get('message');
+   const type = urlParams.get('type');
+
+   if(message && type){
+     Swal.fire({
+       icon: type,
+       title:message,
+       confirmButtonText: "OK"
+     })
+   }
+</script>
+
+  <%-include("../partials/admin/footer")%>
+

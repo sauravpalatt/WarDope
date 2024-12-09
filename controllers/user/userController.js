@@ -17,11 +17,9 @@ const pageNotFound = async(req,res)=>{
 const loadHomePage = async (req, res) => {
     try {
         const user = req.session.user;
-        console.log(`user: ${user}`)
         if (user) {
             
             const userData = await User.findOne({ _id: new mongoose.Types.ObjectId(user._id) });
-            console.log(`UserData: ${typeof userData}`);
             return res.render("home", { user: userData });
 
         } else {
@@ -56,7 +54,6 @@ const logInLoader = async(req,res)=>{
             return res.redirect("/pageNotFound")
         }
 }
-
 
 const login = async (req, res) => {
     try {
@@ -146,6 +143,7 @@ const signUp= async(req,res)=>{
 
     req.session.userOtp = otp;
     req.session.userData = {name,phone,email,password}
+    
 
     res.render("verify-otp")
     console.log("OTP Sent",otp)

@@ -151,16 +151,9 @@
   logInForm.addEventListener("submit",(e)=>{
     e.preventDefault()
 
-    // Swal.fire({
-    //             icon: "success",
-    //             title: data.message,
-    //             showConfirmButton: false,
-    //             timer: 1500,
-    //         }).then(() => {
-    //             window.location.href = "/";
-    //         });
-    const email = document.getElementById("email").value
+  const email = document.getElementById("email").value
   const password = document.getElementById("password").value
+  
   fetch("/login", {
     method: "POST",
     headers: {

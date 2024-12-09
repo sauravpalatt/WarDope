@@ -11,19 +11,15 @@ const categorySchema = new Schema({
         type:String,
         required:true,
     },
-    isListed:{
+    isActive:{
         type:Boolean,
         default:true
     },
-    categoryOffer:{
-        type:Number,
+    offer: {
+        type: Number,
         default:0
-    },
-    createdAt:{
-        type:Date,
-        default:Date.now
-    },
-})
+      }
+},{timestamps:true})
 
 const Category= mongoose.model("Category",categorySchema)
 
