@@ -123,6 +123,22 @@
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
 <script>
+    function injectImageToFileInput(imageSrc, num) {
+        const input = document.getElementById(`inputImg${num}`);
+        const reader = new FileReader();
+  
+        // Convert the image source into a File object
+        fetch(imageSrc)
+            .then(response => response.blob())
+            .then(blob => {
+                console.log(blob)
+                const file = new File([blob], 'image.jpg', { type: blob.type });
+                const dataTransfer = new DataTransfer();
+                dataTransfer.items.add(file);
+                input.files = dataTransfer.files;
+        });
+    }
+    let images = []
     let cropper1, cropper2, cropper3;
 
     function openCropper(event, modalId, imageId, previewId) {
@@ -133,7 +149,7 @@
                 const imageElement = document.getElementById(imageId);
                 imageElement.src = e.target.result;
                 document.getElementById(modalId).style.display = 'block';
-
+                
                 if (cropper1) cropper1.destroy();
                 if (cropper2) cropper2.destroy();
                 if (cropper3) cropper3.destroy();
@@ -156,6 +172,10 @@
         const preview = document.getElementById(previewId);
         preview.src = croppedImage;
         preview.style.display = 'block';
+        if(cropper1) injectImageToFileInput(preview.src, 1);
+        if(cropper2) injectImageToFileInput(preview.src, 2);
+        if(cropper3) injectImageToFileInput(preview.src, 3);
+        
 
         document.getElementById(modalId).style.display = 'none';
         document.getElementById(imageId).value = croppedImage;
@@ -176,6 +196,7 @@
         const promotionalPrice = document.getElementsByName('promotionalPrice')[0].value;
         const category = document.getElementsByName('category')[0].value;
         const images = [document.getElementById('inputImg1'), document.getElementById('inputImg2'), document.getElementById('inputImg3')];
+        console.log(images)
         let isValid = true;
 
         if (!name.trim()) {

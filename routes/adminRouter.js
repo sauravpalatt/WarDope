@@ -30,7 +30,11 @@ router.post("/editCategory/:id",adminAuth,categoryController.editCategory)
 router.get("/addProduct", adminAuth, productController.addProductInfo);
 router.post("/addProduct",upload, adminAuth, productController.addProduct);  
 router.get("/products",adminAuth,productController.productsInfo)
-
+router.post("/addProductOffer",adminAuth,productController.addProductOffer)
+router.post("/removeProductOffer",adminAuth,productController.removeProductOffer)
+router.put("/toggle-product-status/:id",adminAuth,productController.productStatus)
+router.get("/editProduct/:id",adminAuth,productController.productEditInfo)
+router.post("/editProduct/:id",upload,adminAuth, productController.productEdit)
 
 module.exports = router
 

@@ -7,6 +7,7 @@ const passport = require("./config/passport")
 const userRouter = require("./routes/userRouter")
 const adminRouter = require("./routes/adminRouter")
 const db = require ("./config/db")
+const MongoConnect = require("connect-mongo")
 db()
 
 app.use(express.json())
@@ -20,7 +21,10 @@ app.use(session({
         secure: false, 
         httpOnly: true, 
         maxAge: 72 * 60 * 60 * 1000 
-    }
+    },
+    store: new MongoConnect({
+        mongoUrl: process.env.MONGODB_URI
+    })
  }));
 
 
