@@ -24,12 +24,14 @@ const addProductInfo = async (req, res) => {
 const addProduct = async (req, res) => {
   try {
     
-    const { productName, description, regularPrice, promotionalPrice, category } = req.body;
+    const { productName, description, regularPrice, promotionalPrice, category, stock} = req.body;
     const productImages = [
       ...(req.files.image1 || []),
       ...(req.files.image2 || []),
       ...(req.files.image3 || [])
     ];
+
+   
 
     if (!productName || !description || !regularPrice || !category) {
       return res.status(400).json({ message: "All fields are required." });
@@ -67,7 +69,9 @@ const addProduct = async (req, res) => {
       regularPrice,
       promotionalPrice,
       category,
+      stock,
       images: imagePaths,
+      
     });
 
 

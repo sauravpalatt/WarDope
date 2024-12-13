@@ -3,7 +3,7 @@
 
 <head>
     <meta charset="utf-8">
-    <title>EShopper - Bootstrap Shop Template</title>
+    <title>WarDope</title>
     <meta content="width=device-width, initial-scale=1.0" name="viewport">
     <meta content="Free HTML Templates" name="keywords">
     <meta content="Free HTML Templates" name="description">
@@ -24,6 +24,72 @@
 
       <!-- Customized Bootstrap Stylesheet -->
     <link href="/css/style.css" type="text/css" rel="stylesheet">
+
+    <style>
+        .dropdown {
+            position: relative;
+            display: inline-block;
+        }
+    
+        .dropdown-content {
+            display: none;
+            position: absolute;
+            background-color: #f9f9f9;
+            min-width: 160px;
+            box-shadow: 0px 8px 16px rgba(0, 0, 0, 0.2);
+            z-index: 1;
+            right: 0;
+            padding: 10px 0;
+            margin-top:-10px;
+        }
+    
+        .dropdown-content a {
+            color: black;
+            
+            padding: 2px 2px;
+            text-decoration: none;
+            display: block;
+            padding: 12px 16px;
+        }
+    
+        .dropdown-content a:hover {
+            background-color: #ffffff;
+        }
+    
+        .dropdown:hover .dropdown-content {
+            display: block;
+        }
+    
+        .dropdown:hover .dropdown-btn {
+            background-color: #3e8e41;
+        }
+    
+        .header {
+            position: relative;
+            z-index: 500;
+        }
+
+        .zoom-container {
+        position: relative;
+        overflow: hidden;
+    }
+
+    .zoom-image {
+        width: 100%;
+        height: auto;
+        transition: transform 0.25s ease;
+    }
+
+    .magnifier {
+        /* position: absolute; */
+        border: 3px solid #000;
+        background-color: rgba(255, 255, 255, 0.5);
+        display: none;
+        pointer-events: none;
+        border-radius: 50%;
+        z-index: 100;
+    }
+    </style>
 </head>
 
 <body>
@@ -62,7 +128,9 @@
         <div class="row align-items-center py-3 px-xl-5">
             <div class="col-lg-3 d-none d-lg-block">
                 <a href="" class="text-decoration-none">
-                    <h1 class="m-0 display-5 font-weight-semi-bold"><span class="text-primary font-weight-bold border px-3 mr-1">E</span>Shopper</h1>
+                    <h1 class="m-0 display-5 font-weight-semi-bold">
+                    <span class="text-primary font-weight-bold border px-1 mr-1">W</span>ar
+                    <span class="text-primary font-weight-bold border px-1 mr-1">D</span>ope</h1>
                 </a>
             </div>
             <div class="col-lg-6 col-6 text-left">
@@ -145,9 +213,19 @@
                             <a href="contact.html" class="nav-item nav-link">Contact</a>
                         </div>
                         <div class="navbar-nav ml-auto py-0">
-                            <a href="" class="nav-item nav-link">Login</a>
-                            <a href="" class="nav-item nav-link">Register</a>
-                        </div>
+                            <% if (locals.user){ %>
+                                <div class="dropdown">
+                                    <a href="#" class="nav-link dropdown-toggle mr-4" data-toggle="dropdown"><%= locals.user.name %></a>
+                                <div class="dropdown-menu rounded-0 m-0">
+                                    <a href="/userProfile" class="dropdown-item">Profile</a>
+                                    <a href="/logout" class="dropdown-item">Log Out</a>
+                                </div>
+                              <% } else { %>
+                                <a href="/login" class="nav-item nav-link">Login</a>
+                                <a href="/signup" class="nav-item nav-link">Register</a>
+                              <% } %>
+                              </div>
+                    </div>
                     </div>
                 </nav>
             </div>

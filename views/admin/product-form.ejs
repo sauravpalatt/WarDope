@@ -44,6 +44,13 @@
                                     <span id="salePrice-error" class="error-message" style="color:red; display:none;"></span>
                                 </div>
                             </div>
+                            <div class="col-lg-4">
+                                <div class="mb-4">
+                                    <label class="form-label">Stock</label>
+                                    <input name="stock" placeholder="stock" type="text" class="form-control" />
+                                    <span id="stock-error" class="error-message" style="color:red; display:none;"></span>
+                                </div>
+                            </div>
                         </div>
                         <div class="card mb-4">
                             <div class="card-header">
@@ -61,6 +68,7 @@
                                 <span id="category-error" class="error-message" style="color:red; display:none;"></span>
                             </div>
                         </div>
+
                         <div class="card mb-4">
                             <div class="card-header">
                                 <h4>Media</h4>
@@ -74,7 +82,7 @@
                                         <div>
                                             <img id="croppingImage1" style="max-width: 100%; height: auto;" />
                                         </div>
-                                        <button type="button" onclick="cropImage('cropperModal1', 'croppingImage1', 'croppedPreview1')">Crop</button>
+                                        <button type="button" onclick="cropImage('cropperModal1', 'croppingImage1', 'croppedPreview1',1)">Crop</button>
                                         <button type="button" onclick="closeCropper('cropperModal1')">Cancel</button>
                                     </div>
                                     <img id="croppedPreview1" src="#" alt="Cropped Image 1" style="max-width: 200px; display: none;" />
@@ -88,7 +96,7 @@
                                         <div>
                                             <img id="croppingImage2" style="max-width: 100%; height: auto;" />
                                         </div>
-                                        <button type="button" onclick="cropImage('cropperModal2', 'croppingImage2', 'croppedPreview2')">Crop</button>
+                                        <button type="button" onclick="cropImage('cropperModal2', 'croppingImage2', 'croppedPreview2',2)">Crop</button>
                                         <button type="button" onclick="closeCropper('cropperModal2')">Cancel</button>
                                     </div>
                                     <img id="croppedPreview2" src="#" alt="Cropped Image 2" style="max-width: 200px; display: none;" />
@@ -102,7 +110,7 @@
                                         <div>
                                             <img id="croppingImage3" style="max-width: 100%; height: auto;" />
                                         </div>
-                                        <button type="button" onclick="cropImage('cropperModal3', 'croppingImage3', 'croppedPreview3')">Crop</button>
+                                        <button type="button" onclick="cropImage('cropperModal3', 'croppingImage3', 'croppedPreview3',3)">Crop</button>
                                         <button type="button" onclick="closeCropper('cropperModal3')">Cancel</button>
                                     </div>
                                     <img id="croppedPreview3" src="#" alt="Cropped Image 3" style="max-width: 200px; display: none;" />
@@ -125,12 +133,14 @@
 <script>
     function injectImageToFileInput(imageSrc, num) {
         const input = document.getElementById(`inputImg${num}`);
+        console.log(num, input)
         const reader = new FileReader();
   
-        // Convert the image source into a File object
+        console.log(imageSrc)
         fetch(imageSrc)
             .then(response => response.blob())
             .then(blob => {
+
                 console.log(blob)
                 const file = new File([blob], 'image.jpg', { type: blob.type });
                 const dataTransfer = new DataTransfer();
@@ -162,7 +172,7 @@
         }
     }
 
-    function cropImage(modalId, imageId, previewId) {
+    function cropImage(modalId, imageId, previewId, i) {
         let canvas;
         if (imageId === 'croppingImage1') canvas = cropper1.getCroppedCanvas();
         if (imageId === 'croppingImage2') canvas = cropper2.getCroppedCanvas();
@@ -172,10 +182,8 @@
         const preview = document.getElementById(previewId);
         preview.src = croppedImage;
         preview.style.display = 'block';
-        if(cropper1) injectImageToFileInput(preview.src, 1);
-        if(cropper2) injectImageToFileInput(preview.src, 2);
-        if(cropper3) injectImageToFileInput(preview.src, 3);
         
+        injectImageToFileInput(preview.src, i);
 
         document.getElementById(modalId).style.display = 'none';
         document.getElementById(imageId).value = croppedImage;

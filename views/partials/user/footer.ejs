@@ -85,7 +85,69 @@
 <script src="mail/contact.js"></script>
 
 <!-- Template Javascript -->
-<script src="js/main.js"></script>
+<script>
+    const zoomImages = document.querySelectorAll('.zoom-image');
+
+    zoomImages.forEach(image => {
+        image.addEventListener('mousemove', (e) => {
+            const magnifier = document.querySelector('.magnifier') || createMagnifier();
+
+            // Get the position of the mouse inside the image
+            const offsetX = e.offsetX;
+            const offsetY = e.offsetY;
+
+            const zoomContainer = image.closest('.zoom-container');
+            const zoomScale = 2; // Adjust zoom level as needed
+
+            // Set the magnifier size based on the image size
+            magnifier.style.width = `${image.offsetWidth / zoomScale}px`;
+            magnifier.style.height = `${image.offsetHeight / zoomScale}px`;
+
+            // Calculate background position for the zoom effect
+            const backgroundPositionX = -(offsetX * zoomScale - magnifier.offsetWidth / 2);
+            const backgroundPositionY = -(offsetY * zoomScale - magnifier.offsetHeight / 2);
+
+            magnifier.style.left = `${offsetX - magnifier.offsetWidth / 2}px`;
+            magnifier.style.top = `${offsetY - magnifier.offsetHeight / 2}px`;
+
+            image.style.transform = `scale(${zoomScale})`;
+            image.style.transformOrigin = `${offsetX}px ${offsetY}px`;
+
+            // Apply the background positioning for the zoom effect
+            image.style.backgroundPosition = `${backgroundPositionX}px ${backgroundPositionY}px`;
+            magnifier.style.display = 'block';
+        });
+
+        image.addEventListener('mouseleave', () => {
+            const magnifier = document.querySelector('.magnifier');
+            if (magnifier) magnifier.style.display = 'none';
+            image.style.transform = 'scale(1)';
+        });
+    });
+
+    function createMagnifier() {
+        const magnifier = document.createElement('div');
+        magnifier.classList.add('magnifier');
+        document.body.appendChild(magnifier);
+        return magnifier;
+    }
+
+    document.getElementById('increase-stock').addEventListener('click', function() {
+    let stockValue = parseInt(document.getElementById('stock-input').value);
+    stockValue++; 
+    document.getElementById('stock-input').value = stockValue;
+    });
+
+
+    document.getElementById('decrease-stock').addEventListener('click', function() {
+    let stockValue = parseInt(document.getElementById('stock-input').value);
+    if (stockValue > 0) { 
+        stockValue--; 
+        document.getElementById('stock-input').value = stockValue;
+    }
+    });
+</script>
+
 </body>
 
 </html>

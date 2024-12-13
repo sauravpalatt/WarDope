@@ -22,24 +22,28 @@ const productSchema = new Schema({
     type: Number,
     default: 0,
   },
-  images: {  // Updated to reflect multiple images
+  images: {  
     type: [String],
     required: true,
   },
-  category: {  // Added category reference
+  category: { 
     type: mongoose.Schema.Types.ObjectId,
-    ref: "Category",  // Assuming Category model exists
+    ref: "Category",  
     required: true,
   },
   isBlocked: {
     type: Boolean,
-    default: false,  // Default is false unless specified
+    default: false,  
   },
   status: {
     type: String,
     enum: ["Available", "Out Of Stock", "Discontinued"],
     default: "Available",
   },
+  stock:{
+    type: Number,
+    default:0
+  }
 }, { timestamps: true });
 
 const Product = mongoose.model("Product", productSchema);

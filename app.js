@@ -6,14 +6,13 @@ const env = require("dotenv").config()
 const passport = require("./config/passport")
 const userRouter = require("./routes/userRouter")
 const adminRouter = require("./routes/adminRouter")
-const logger = require('morgan')
 const db = require ("./config/db")
 const MongoConnect = require("connect-mongo")
 db()
 
 app.use(express.json())
 app.use(express.urlencoded({extended:true}))
-app.use(logger('common'))
+
 app.use(session({
     secret: process.env.SESSION_SECRET,
     resave: false,

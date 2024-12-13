@@ -35,7 +35,6 @@ const loadHomePage = async (req, res) => {
             return res.render("home", { user: userData, product:productData});
 
         } else {
-            console.log("User session does not exist or _id is invalid");
             return res.render("home",{ product:productData,category:categories});
         }
     } catch (error) {
@@ -237,16 +236,53 @@ const logout=async(req,res)=>{
 }
 
 const productDetailInfo = async(req,res)=>{
+   
+    try {
+        const user = req.session.user
+        const {id} = req.params;
+        const product = await Product.findById(id)
 
-const {id}=req.params
-const product = await Product.findById(id)
-console.log(id)
+        if(product){
+            const categories= await Category.find({isActive:true})
+        //     let productData = await Product.findOne({
+        //     isBlocked:false,
+        //     // category: {$in:categories.map(category=>category._id)},
+        //     // quantity:{$gt:0}
+        // })
+        return res.render("product_detail",{user,product:product})
+        }else{
+            console.log("Product does not exist...")
+        }   
+    } catch (error) {
+      console.error("ERROR IN PRODUCT DETAIL INFO",error)  
+    }
+}
 
-    if(product){
-        return res.render("product_detail")
-    }else{
-        console.log("product Detail Info not found...")   
-    }    
+const productList = async(req,res)=>{
+    try {
+        const user = req.session.user;
+
+        const categories= await Category.find({isActive:true})
+        let productData = await Product.find({
+            isBlocked:false,
+            category: {$in:categories.map(category=>category._id)},
+            // quantity:{$gt:0}
+        })
+
+        if (user) {
+            let userData = await User.findOne({ _id: new mongoose.Types.ObjectId(user._id) });
+            return res.render("product-listUser", { user: userData, product:productData});
+
+        } else {
+            return res.render("product-listUser",{ product:productData,category:categories});
+        }
+      
+        
+    } catch (error) {
+        console.error("ERROR IN PRODUCT LIST FN",error)
+        
+    }
+    
 }
 
 module.exports=
@@ -260,5 +296,6 @@ module.exports=
     resendOtp,
     login,
     logout,
-    productDetailInfo
+    productDetailInfo,
+    productList
   }
