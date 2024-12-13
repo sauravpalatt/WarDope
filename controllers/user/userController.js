@@ -1,5 +1,7 @@
 
 const User = require("../../models/userSchema")
+const Product = require("../../models/productSchema")
+const Category = require("../../models/categorySchema")
 const env = require("dotenv").config()
 const bcrypt = require("bcrypt")
 const nodemailer = require("nodemailer")
@@ -17,14 +19,24 @@ const pageNotFound = async(req,res)=>{
 const loadHomePage = async (req, res) => {
     try {
         const user = req.session.user;
+
+        const categories= await Category.find({isActive:true})
+        let productData = await Product.find({
+            isBlocked:false,
+            category: {$in:categories.map(category=>category._id)},
+            // quantity:{$gt:0}
+        })
+
+        productData.sort((a,b)=>new Date(b.createdOn)-new Date(a.createdOn))
+        productData = productData.slice(0,4)
+
         if (user) {
-            
-            const userData = await User.findOne({ _id: new mongoose.Types.ObjectId(user._id) });
-            return res.render("home", { user: userData });
+            let userData = await User.findOne({ _id: new mongoose.Types.ObjectId(user._id) });
+            return res.render("home", { user: userData, product:productData});
 
         } else {
             console.log("User session does not exist or _id is invalid");
-            return res.render("home");
+            return res.render("home",{ product:productData,category:categories});
         }
     } catch (error) {
         console.error("Home page not rendered:", error);
@@ -121,9 +133,7 @@ async function sendVerificationEmail(email,otp){
 
 const signUp= async(req,res)=>{
    try {
-
     const {name,phone,email,password,cPassword}=req.body
-
     if(password !== cPassword){
         return res.render("signup",{message:"Passwords do not match"})
     } 
@@ -226,6 +236,19 @@ const logout=async(req,res)=>{
     })
 }
 
+const productDetailInfo = async(req,res)=>{
+
+const {id}=req.params
+const product = await Product.findById(id)
+console.log(id)
+
+    if(product){
+        return res.render("product_detail")
+    }else{
+        console.log("product Detail Info not found...")   
+    }    
+}
+
 module.exports=
    {
     loadHomePage,
@@ -236,5 +259,6 @@ module.exports=
     verifyOtp,
     resendOtp,
     login,
-    logout
+    logout,
+    productDetailInfo
   }

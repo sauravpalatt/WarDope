@@ -44,7 +44,7 @@
                         <th scope="col">Promo Price</th>
                         <th scope="col">Offer</th>
                         <th scope="col">Add/Remove Offer</th>
-                        <th scope="col" class="text-center">Status</th>
+                        <th scope="col">Block/Un-Block</th>
                         <th scope="col" class="text-center">Action</th>
                     </tr>
                 </thead>
@@ -89,7 +89,7 @@
                             <button class="btn btn-primary toggle-status" 
                                     data-id="<%= data[i]._id %>" 
                                     data-status="<%= data[i].isBlocked %>">
-                              <%= data[i].isBlocked ? 'Block' : 'UnBlock' %>
+                              <%= data[i].isBlocked ? 'UnBlock' : 'Block' %>
                             </button>
                         </td>
 
@@ -217,7 +217,7 @@
             const currentStatus = this.getAttribute('data-status')==="true"; //doubt
 
             Swal.fire({
-            title:`Are you sure you want to ${currentStatus ? "Block" : "Un-Block"} this product ?`,
+            title:`Are you sure you want to ${currentStatus ? "Un-Block" : "Block"} this product ?`,
             icon:"Warning",
             showCancelButton:true,
             confirmButtonColor: '#3085d6',

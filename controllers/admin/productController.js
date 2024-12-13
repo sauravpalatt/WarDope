@@ -238,7 +238,7 @@ const productStatus = async(req,res)=>{
       product.isBlocked= isBlocked
       await product.save()
 
-      res.status(200).json({ success: true, message: `Product has been ${isBlocked ? 'Unblocked' : 'Blocked'}.` });
+      res.status(200).json({ success: true, message: `Product has been ${isBlocked ? 'Blocked' : 'Unblocked'}` });
         
   } catch (error) {
       console.error("ERROR IN PRODUCT STATUS",error)
@@ -259,8 +259,6 @@ const productEditInfo = async(req,res)=>{
     console.errror("ERROR OCCURED IN PRODUCT EDIT FUNCTION",error) 
   }
 }
-
-
 
 module.exports = {
   addProductInfo,
