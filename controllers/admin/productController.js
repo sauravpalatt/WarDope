@@ -10,9 +10,9 @@ const sharp = require("sharp");
 const addProductInfo = async (req, res) => {
   try {
     const category = await Category.find({ isActive: true });
-    
     return res.render("product-form", {
       categ: category,
+
     });
   } catch (error) {
     console.error("ERROR IN ADD-PRODUCT INFO FN", error);
@@ -190,7 +190,6 @@ const addProductOffer = async(req,res)=>{
   console.log("HEY FROM ADD PRODUCT OFFER FN")
   try {
       const {productId,percentage} = req.body
-      console.log(typeof percentage)
       const findProduct = await Product.findById(productId)
       const findCategory = await Category.findOne({_id:findProduct.category})
       if(findCategory.categoryOffer>percentage){
@@ -198,7 +197,6 @@ const addProductOffer = async(req,res)=>{
       }
       
      findProduct.promotionalPrice = Math.floor(findProduct.regularPrice * (1-percentage/100))
-     console.log(percentage)
      findProduct.productOffer = parseInt(percentage)
      await findProduct.save()
      findCategory.categoryOffer=0 //CHECK THIS LATER

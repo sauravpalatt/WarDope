@@ -35,11 +35,6 @@ const productSchema = new Schema({
     type: Boolean,
     default: false,  
   },
-  status: {
-    type: String,
-    enum: ["Available", "Out Of Stock", "Discontinued"],
-    default: "Available",
-  },
   stock:{
     type: Number,
     default:0

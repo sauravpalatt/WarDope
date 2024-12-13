@@ -239,20 +239,16 @@ const productDetailInfo = async(req,res)=>{
    
     try {
         const user = req.session.user
-        const {id} = req.params;
+        const {id} = req.params; 
         const product = await Product.findById(id)
 
         if(product){
-            const categories= await Category.find({isActive:true})
-        //     let productData = await Product.findOne({
-        //     isBlocked:false,
-        //     // category: {$in:categories.map(category=>category._id)},
-        //     // quantity:{$gt:0}
-        // })
-        return res.render("product_detail",{user,product:product})
+            // const categories= await Category.find({isActive:true})
+            return res.render("product_detail",{user,product:product})
         }else{
             console.log("Product does not exist...")
-        }   
+        } 
+          
     } catch (error) {
       console.error("ERROR IN PRODUCT DETAIL INFO",error)  
     }
@@ -271,6 +267,7 @@ const productList = async(req,res)=>{
 
         if (user) {
             let userData = await User.findOne({ _id: new mongoose.Types.ObjectId(user._id) });
+            console.log(userData)
             return res.render("product-listUser", { user: userData, product:productData});
 
         } else {
