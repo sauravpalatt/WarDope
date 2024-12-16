@@ -146,17 +146,6 @@ const editCategory = async(req,res)=>{
     }
 }
 
-// const addOffer = async(req,res)=>{
-//     try {
-//         const offer = await Category.find({})
-//     } catch (error) {
-        
-//     }
-// }
-
-
-
-
 module.exports={
     categoryInfo,
     addCategory,

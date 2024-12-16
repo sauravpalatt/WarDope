@@ -35,9 +35,23 @@ const productSchema = new Schema({
     type: Boolean,
     default: false,  
   },
-  stock:{
-    type: Number,
-    default:0
+  sizes: {
+    small: {
+      type: Number,
+      default: 0, 
+    },
+    medium: {
+      type: Number,
+      default: 0,
+    },
+    large: {
+      type: Number,
+      default: 0,
+    },
+    xLarge: {
+      type: Number,
+      default: 0,
+    },
   }
 }, { timestamps: true });
 

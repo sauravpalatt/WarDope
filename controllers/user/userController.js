@@ -24,7 +24,6 @@ const loadHomePage = async (req, res) => {
         let productData = await Product.find({
             isBlocked:false,
             category: {$in:categories.map(category=>category._id)},
-            // quantity:{$gt:0}
         })
 
         productData.sort((a,b)=>new Date(b.createdOn)-new Date(a.createdOn))
@@ -165,6 +164,113 @@ const signUp= async(req,res)=>{
    }
 }
 
+const forgPasswordInfo = async (req, res) => {
+    try {
+        
+        if (req.session.user) {
+            return res.redirect("/");
+        }
+        res.render("forgot_password");
+    } catch (error) {
+        console.error("ERROR IN PAGE FORGOT PASSWORD", error);   
+    }
+};
+
+const forgPassword = async (req, res) => {
+    try {
+      const { emailId } = req.body;
+  
+      const user = await User.findOne({ email: emailId });
+      if (!user) {
+        return res.status(404).json({ success: false, message: "Email not found in our records." });
+      }
+  
+      const otpRandom = generateOtp();
+
+      console.log(`OTP for resend: ${otpRandom}`)
+  
+      req.session.otp = otpRandom;
+      req.session.userId = user._id;
+  
+      const emailSent = await sendVerificationEmail(emailId, otpRandom);
+      if (!emailSent) {
+        return res.status(500).json({ success: false, message: "Failed to send OTP. Please try again." });
+      }
+  
+      return res.status(200).json({ success: true, message: "OTP has been sent to your email address." });
+    } catch (error) {
+      console.error("Error in Forgot Password Function:", error);
+      return res.status(500).json({ success: false, message: "Internal Server Error. Please try again later." });
+    }
+  };
+
+const verifyOtpPwd = async (req, res) => {
+    try {
+        const { otp } = req.body;
+        const otpSession = req.session.otp;
+
+        console.log(`OTP FROM REQ.BODY ${typeof otp} & OTP FROM SESSION ${typeof otpSession}`)
+
+        if (otp !== otpSession) {
+            return res.status(400).json({ success: false, message: "Invalid OTP" });
+        }
+       
+        res.status(200).json({success:true, message: "OTP Verified successfully"})
+
+    } catch (error) {
+        console.error("ERROR IN VERIFY OTP PWD", error);
+        return res.status(500).json({ success: false, message: "Internal Server Error" });
+    }
+};
+
+const changePwdInfo = async(req,res)=>{
+    try {
+        if(req.session.userId){
+         return res.render("changePassword")
+        }
+        console.log("User Not Found")
+        
+    } catch (error) {
+        console.error("ERROR IN LOADING CHANGE PWD INFO",error)  
+    }
+}
+
+  const changePwd = async (req, res) => {
+    try {
+      const { newPassword } = req.body;
+  
+      if (!newPassword) {
+        return res.status(400).json({ success: false, message: "Password is required" });
+      }
+  
+      const userId = req.session.userId;
+  
+      if (!userId) {
+        return res.status(401).json({ success: false, message: "User not authenticated" });
+      }
+  
+      const hashedPassword = await bcrypt.hash(newPassword, 10);
+  
+      const updatedUser = await User.findByIdAndUpdate(
+        userId,
+        { password: hashedPassword },
+        { new: true }
+      );
+  
+      if (!updatedUser) {
+        return res.status(404).json({ success: false, message: "User not found" });
+      }
+  
+      req.session.destroy();
+  
+      res.status(200).json({ success: true, message: "Password updated successfully" });
+
+    } catch (error) {
+      console.error("ERROR IN CHANGEPWD FUNCTION", error);
+      return res.status(500).json({ success: false, message: "Internal Server Error" });
+    }
+  };
+
 const securePassword = async (password)=>{
     try {
         const passwordHash = await bcrypt.hash(password,10)
@@ -209,7 +315,8 @@ const resendOtp= async(req,res)=>{
     }
     const otp = generateOtp()
     req.session.userOtp = otp
-
+    console.log(`RESEND OTP: ${req.session.userOtp}`)
+    
     const emailSent = await sendVerificationEmail(email,otp)
     if(emailSent){
         res.status(200).json({success:true,message:"OTP Resend Successfully"})
@@ -274,7 +381,6 @@ const productList = async(req,res)=>{
             return res.render("product-listUser",{ product:productData,category:categories});
         }
       
-        
     } catch (error) {
         console.error("ERROR IN PRODUCT LIST FN",error)
         
@@ -294,5 +400,10 @@ module.exports=
     login,
     logout,
     productDetailInfo,
-    productList
+    productList,
+    forgPasswordInfo,
+    forgPassword,
+    changePwdInfo,
+    changePwd,
+    verifyOtpPwd
   }

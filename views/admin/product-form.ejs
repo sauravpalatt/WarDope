@@ -44,13 +44,6 @@
                                     <span id="salePrice-error" class="error-message" style="color:red; display:none;"></span>
                                 </div>
                             </div>
-                            <div class="col-lg-4">
-                                <div class="mb-4">
-                                    <label class="form-label">Stock</label>
-                                    <input name="stock" placeholder="stock" type="text" class="form-control" />
-                                    <span id="stock-error" class="error-message" style="color:red; display:none;"></span>
-                                </div>
-                            </div>
                         </div>
                         <div class="card mb-4">
                             <div class="card-header">
@@ -66,6 +59,27 @@
                                     <% } %>
                                 </select>
                                 <span id="category-error" class="error-message" style="color:red; display:none;"></span>
+                            </div> 
+                            <div class="card-body">
+                                <label for="size" class="form-label">Stock for Sizes:</label>
+                                <div class="row">
+                                    <div class="col-md-3 mb-3">
+                                        <label for="stockSmall" class="form-label">Small (S):</label>
+                                        <input name="stockSmall" type="number" placeholder="S" class="form-control" id="stockSmall" />
+                                    </div>
+                                    <div class="col-md-3 mb-3">
+                                        <label for="stockMedium" class="form-label">Medium (M):</label>
+                                        <input name="stockMedium" type="number" placeholder="M" class="form-control" id="stockMedium" />
+                                    </div>
+                                    <div class="col-md-3 mb-3">
+                                        <label for="stockLarge" class="form-label">Large (L):</label>
+                                        <input name="stockLarge" type="number" placeholder="L" class="form-control" id="stockLarge" />
+                                    </div>
+                                    <div class="col-md-3 mb-3">
+                                        <label for="stockXLarge" class="form-label">X-Large (XL):</label>
+                                        <input name="stockXLarge" type="number" placeholder="XL" class="form-control" id="stockXLarge" />
+                                    </div>
+                                </div>
                             </div>
                         </div>
                         
@@ -204,7 +218,10 @@
         const promotionalPrice = document.getElementsByName('promotionalPrice')[0].value;
         const category = document.getElementsByName('category')[0].value;
         const images = [document.getElementById('inputImg1'), document.getElementById('inputImg2'), document.getElementById('inputImg3')];
+        const stock = [document.getElementById("stockSmall"),document.getElementById("stockMedium"),document.getElementById("stockLarge"),document.getElementById("stockXLarge")]
         let isValid = true;
+
+
 
         if (!name.trim()) {
             displayErrorMessage('productName-error', 'Please enter a product name.');
@@ -270,13 +287,12 @@
     for (let [key, value] of formData.entries()) {
         console.log(`${key}: ${value}`);
     }
-
+    
     const response = await fetch('/admin/addProduct', {
         method: 'POST',
         body: formData
     });
 
-    
     if (response.ok) {
         Swal.fire({
             icon: "success", 

@@ -6,13 +6,11 @@ const path = require("path");
 const sharp = require("sharp");
 
 
-
 const addProductInfo = async (req, res) => {
   try {
     const category = await Category.find({ isActive: true });
     return res.render("product-form", {
       categ: category,
-
     });
   } catch (error) {
     console.error("ERROR IN ADD-PRODUCT INFO FN", error);
@@ -20,18 +18,24 @@ const addProductInfo = async (req, res) => {
   }
 };
 
-
 const addProduct = async (req, res) => {
   try {
     
-    const { productName, description, regularPrice, promotionalPrice, category, stock} = req.body;
-    const productImages = [
-      ...(req.files.image1 || []),
-      ...(req.files.image2 || []),
-      ...(req.files.image3 || [])
-    ];
+    const { productName,
+            description,
+            regularPrice, 
+            promotionalPrice, 
+            category,
+            stockSmall,
+            stockMedium,
+            stockXLarge,
+            stockLarge} = req.body;
 
-   
+    const productImages = [
+      ...(req.files.image1),
+      ...(req.files.image2),
+      ...(req.files.image3)
+    ];
 
     if (!productName || !description || !regularPrice || !category) {
       return res.status(400).json({ message: "All fields are required." });
@@ -44,7 +48,7 @@ const addProduct = async (req, res) => {
     if (!productImages || productImages.length === 0) {
       return res.status(400).json({ message: "At least one image is required." });
     }
-   
+    
     const allowedTypes = ['image/jpeg', 'image/png','image/jpg'];
     const imagePaths = [];
     
@@ -69,11 +73,14 @@ const addProduct = async (req, res) => {
       regularPrice,
       promotionalPrice,
       category,
-      stock,
+      sizes:{
+        small:stockSmall,
+        medium:stockMedium,
+        large:stockLarge,
+        xLarge:stockXLarge
+      },
       images: imagePaths,
-      
     });
-
 
     await newProduct.save();
     return res.status(200).json({ message: "Product added successfully!" });
@@ -99,7 +106,7 @@ const productEdit = async (req, res) => {
       productName: data.productName,
       _id: { $ne: productId }
     });
-
+    
     if (existingProduct) {
       return res.status(400).json({ success: false, message: "Another product with the same name already exists!" });
     }
@@ -199,7 +206,7 @@ const addProductOffer = async(req,res)=>{
      findProduct.promotionalPrice = Math.floor(findProduct.regularPrice * (1-percentage/100))
      findProduct.productOffer = parseInt(percentage)
      await findProduct.save()
-     findCategory.categoryOffer=0 //CHECK THIS LATER
+     findCategory.categoryOffer=0 
      await findCategory.save()
      res.json({status:true})
 

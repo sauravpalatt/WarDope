@@ -3,7 +3,6 @@ const bcrypt = require("bcrypt")
 const env = require("dotenv").config()
 const User = require("../../models/userSchema")
 
-
 const pageerror = (req,res)=>{
    res.render("page-error")
 }
