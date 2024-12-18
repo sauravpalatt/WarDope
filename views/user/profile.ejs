@@ -1,0 +1,120 @@
+<%-include ("../partials/user/header")%>
+
+<form id="profileForm" class="p-4 border rounded bg-light">
+    <div class="form-group">
+        <label for="name">Full Name</label>
+        <input type="text" id="name" name="name" class="form-control" 
+               value="<%= user.name %>" placeholder="Enter your full name" required>
+    </div>
+    <div class="form-group">
+        <label for="email">Email Address</label>
+        <input type="email" id="email" name="email" class="form-control" 
+               value="<%= user.email %>" placeholder="Enter your email" required readonly>
+    </div>
+    <div class="form-group">
+        <label for="password">Password</label>
+        <input type="text" id="oldPassword" name="oldPassword" class="form-control" placeholder="Enter your password">
+    </div>
+    <div class="form-group">
+        <label for="password">New Password</label>
+        <input type="text" id="newPassword" name="newPassword" class="form-control" placeholder="Enter new password">
+    </div>
+    <button type="submit" class="btn btn-primary btn-small">Save Changes</button>
+</form>
+
+
+
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    const form = document.getElementById('profileForm');
+
+    form.addEventListener('submit', async (event) => {
+        event.preventDefault(); // Prevent default form submission
+
+        const name = document.getElementById('name').value.trim();
+        const email = document.getElementById('email').value.trim();
+        const oldPassword = document.getElementById('oldPassword').value.trim();
+        const newPassword = document.getElementById('newPassword').value.trim()
+    
+        // Validation
+        if (!name) {
+            return Swal.fire({
+                icon: "error",
+                title: "Validation Error",
+                text: "Name is required!",
+            });
+        }
+        if (!email) {
+            return Swal.fire({
+                icon: "error",
+                title: "Validation Error",
+                text: "Email is required!",
+            });
+        }
+
+        const updatedProfile = { name, email };
+        
+        
+            if (newPassword && !oldPassword || oldPassword && !newPassword) {
+                return Swal.fire({
+                    icon: "error",
+                    title: "Validation Error",
+                    text: "One or more Password fileds missing !",
+                    toast: true,
+                    position: 'top-end',
+                    timer: 1000,
+                    showConfirmButton:false
+                });
+
+            }else{
+                    updatedProfile.oldPassword = oldPassword;
+                    updatedProfile.newPassword = newPassword;
+            }
+
+            
+        try {
+            const response = await fetch("/userProfile", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify(updatedProfile),
+            });
+
+            const result = await response.json();
+
+            if (response.ok) {
+                Swal.fire({
+                    icon: "success",
+                    title: "Profile Updated",
+                    text: result.message,
+                    toast: true,            
+                    position: 'top-end',
+                    timer: 3000,            
+                    timerProgressBar: true, 
+                    showConfirmButton:false
+                });
+                
+                setTimeout(() => window.location.reload(), 1500);
+            } else {
+                Swal.fire({
+                    icon: "error",
+                    title: "Update Failed",
+                    text: result.message || "An error occurred!",
+                    toast: true,            
+                    position: 'top-end',
+                    timer: 3000,            
+                    timerProgressBar: true, 
+                    showConfirmButton:false
+                });
+            }
+        } catch (error) {
+           console.error("ERROR OCCURED IN FRONT END USER-PROFILE",error)
+        }
+    });
+});
+</script>
+
+<%-include ("../partials/user/footer")%>

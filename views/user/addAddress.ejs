@@ -1,0 +1,205 @@
+<%- include ("../partials/user/header") %>
+
+<h3 class="m-5">Add New Address</h3>
+
+<form id="addressForm" class="p-4 border rounded bg-light m-5">
+    
+    <div class="form-group">
+        <label>Address Title</label>
+        <div>
+            <input type="radio" id="home" name="title" value="Home" required>
+            <label class="mr-5" for="home">Home</label>
+            <input type="radio" id="office" name="title" value="Office">
+            <label for="office">Office</label>
+        </div>
+    </div>
+
+    
+    <div class="form-group">
+        <label for="street">Street Address</label>
+        <input type="text" id="street" name="street" class="form-control" placeholder="Street" required>
+    </div>
+
+    
+    <div class="form-group">
+        <label for="city">City</label>
+        <input type="text" id="city" name="city" class="form-control" placeholder="City" required>
+    </div>
+
+    
+    <div class="form-group">
+        <label for="state">State</label>
+        <input type="text" id="state" name="state" class="form-control" placeholder="State" required>
+    </div>
+
+    <div class="form-group">
+        <label for="Pincode">Pincode</label>
+        <input type="text" id="pinCode" name="pinCode" class="form-control" placeholder="Pincode" required>
+    </div>
+
+    
+    <div class="form-group">
+        <label for="country">Country</label>
+        <input type="text" id="country" name="country" class="form-control" placeholder="Country" required>
+    </div>
+
+    
+    <button type="button" id="submitButton" class="btn btn-primary btn-small">Add Address</button>
+</form>
+
+<%- include ("../partials/user/footer") %>
+
+
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+<script>
+    const submitButton = document.getElementById("submitButton");
+
+    submitButton.addEventListener("click", async (e) => {
+        e.preventDefault();
+
+        const title = document.querySelector('input[name="title"]:checked')?.value || ""; 
+        const street = document.getElementById("street").value;
+        const city = document.getElementById("city").value;
+        const state = document.getElementById("state").value;
+        const pinCode = document.getElementById("pinCode").value;
+        const country = document.getElementById("country").value;
+
+        if (!title) {
+            Swal.fire({
+                title: "Validation Error",
+                text: "Please select an address title (Home/Office).",
+                icon: "warning",
+                toast: true,
+                position: "top-end",
+                timer: 3000,
+                timerProgressBar: true,
+                showConfirmButton: false
+            });
+            return;
+}
+    if (!street) {
+        Swal.fire({
+            title: "Validation Error",
+            text: "Street address cannot be empty.",
+            icon: "warning",
+            toast: true,
+            position: "top-end",
+            timer: 3000,
+            timerProgressBar: true,
+            showConfirmButton: false
+        });
+        return;
+    }
+    if (!city) {
+        Swal.fire({
+            title: "Validation Error",
+            text: "City cannot be empty.",
+            icon: "warning",
+            toast: true,
+            position: "top-end",
+            timer: 3000,
+            timerProgressBar: true,
+            showConfirmButton: false
+        });
+        return;
+    }
+    if (!state) {
+        Swal.fire({
+            title: "Validation Error",
+            text: "State cannot be empty.",
+            icon: "warning",
+            toast: true,
+            position: "top-end",
+            timer: 3000,
+            timerProgressBar: true,
+            showConfirmButton: false
+        });
+        return;
+    }
+    if (!pinCode || !/^\d{6}$/.test(pinCode)) {
+        Swal.fire({
+            title: "Validation Error",
+            text: "Please enter a valid 6-digit pincode.",
+            icon: "warning",
+            toast: true,
+            position: "top-end",
+            timer: 3000,
+            timerProgressBar: true,
+            showConfirmButton: false
+        });
+        return;
+    }
+    if (!country) {
+        Swal.fire({
+            title: "Validation Error",
+            text: "Country cannot be empty.",
+            icon: "warning",
+            toast: true,
+            position: "top-end",
+            timer: 3000,
+            timerProgressBar: true,
+            showConfirmButton: false
+        });
+        return;
+    }
+
+
+        const addressData = {
+            title,
+            street,
+            city,
+            state,
+            pinCode,
+            country
+        };
+
+        try {         
+        const response = await fetch("/addAddress", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify(addressData)
+        });
+
+        const result = await response.json();
+        if (response.ok) {
+            // Success Toast
+            Swal.fire({
+                toast: true,
+                position: 'top-end',
+                icon: 'success',
+                title: 'Address added successfully!',
+                showConfirmButton: false,
+                timer: 3000
+            });
+
+            document.getElementById("addressForm").reset(); 
+        } else {
+            // Error Toast
+            Swal.fire({
+                toast: true,
+                position: 'top-end',
+                icon: 'error',
+                title: result.message || "Error adding address",
+                showConfirmButton: false,
+                timer: 3000
+            });
+        }
+    } catch (error) {
+        console.error("Error:", error);
+
+        // Error Toast for failed request
+        Swal.fire({
+            toast: true,
+            position: 'top-end',
+            icon: 'error',
+            title: "Failed to add address. Please try again.",
+            showConfirmButton: false,
+            timer: 3000
+        });
+    }
+    });
+
+</script>

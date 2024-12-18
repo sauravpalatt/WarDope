@@ -1,5 +1,8 @@
 const express = require("express")
 const userController = require("../controllers/user/userController")
+const profileController = require("../controllers/user/profileController")
+const addressController = require("../controllers/user/addressController")
+
 const router=express.Router()
 const passport = require("passport")
 
@@ -23,5 +26,18 @@ router.get("/auth/google/callback",passport.authenticate("google",{failureRedire
 })
 router.get("/productDetail/:id",userController.productDetailInfo)
 router.get("/productList",userController.productList)
+
+//profile 
+router.get("/userProfile",profileController.userProfileInfo)
+router.post("/userProfile",profileController.userProfile)
+
+//address
+router.get("/address",addressController.addressPageInfo)
+router.get("/addAddress",addressController.addAddressInfo)
+router.post("/addAddress",addressController.addAddress)
+router.get("/editAddressInfo/:id",addressController.editAddressInfo)
+router.put("/editAddress/:id",addressController.editAddress)
+router.delete("/deleteAddress/:id",addressController.deleteAddress)
+
 
 module.exports=router

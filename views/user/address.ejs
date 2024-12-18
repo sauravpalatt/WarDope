@@ -1,0 +1,92 @@
+<%- include ("../partials/user/header") %>
+
+<h2 class="m-5">Your Addresses</h2>
+
+<!-- If there are addresses, display them in a column layout -->
+<div class="container ml-5">
+    <div class="row">
+        <% if (addresses && addresses.length > 0) { %>
+            <% addresses.forEach((address, index) => { %>
+                <div class="col-md-6 mb-4">
+                    <div class="card border-light shadow-sm">
+                        <div class="card-body">
+                            <h5 class="card-title"><strong><%= address.title %></strong></h5>
+                            <p class="card-text">
+                                <%= address.street %> <br>
+                                <%= address.city %> <br> 
+                                <%= address.state %><br> 
+                                <%= address.pinCode %><br>
+                                <%= address.country %>
+                            </p>
+                            <!-- Edit and Delete buttons for each address -->
+                            <a href="/editAddressInfo/<%= address._id %>" class="btn btn-primary btn-sm mr-2">Edit</a>
+
+                            <!-- Delete button with SweetAlert confirmation -->
+                            <button class="btn btn-danger btn-sm" onclick="confirmDelete('<%= address._id %>')">Delete</button>
+                        </div>
+                    </div>
+                </div>
+            <% }) %>
+        <% } else { %>
+            <div class="col-12">
+                <p class="m-5">No addresses found.</p>
+            </div>
+        <% } %>
+    </div>
+</div>
+
+<!-- Button to add a new address -->
+<a href="/addAddress" class="btn btn-md ml-5 rounded-4" 
+style="background-color: #D19C97; color: #1c1c1c;">Add New Address</a>
+
+<!-- Include SweetAlert JS CDN -->
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+<script>
+    // Function to confirm address deletion
+    function confirmDelete(addressId) {
+    Swal.fire({
+        title: 'Are you sure?',
+        text: "This address will be deleted permanently!",
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#d33',
+        cancelButtonColor: '#3085d6',
+        confirmButtonText: 'Yes, delete it!',
+        cancelButtonText: 'Cancel'
+    }).then((result) => {
+        if (result.isConfirmed) {
+
+            fetch(`/deleteAddress/${addressId}`, {
+                method: 'DELETE',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    
+                    Swal.fire(
+                        'Deleted!',
+                        'Your address has been deleted.',
+                        'success'
+                    ).then(() => {
+                        
+                        location.reload();
+                    });
+                } else {
+                    
+                    Swal.fire('Error!', 'Something went wrong. Please try again.', 'error');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                Swal.fire('Error!', 'There was an issue with the request.', 'error');
+            });
+        }
+    });
+}
+</script>
+
+<%- include ("../partials/user/footer") %>

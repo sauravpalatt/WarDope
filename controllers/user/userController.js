@@ -388,6 +388,8 @@ const productList = async(req,res)=>{
     
 }
 
+
+
 module.exports=
    {
     loadHomePage,

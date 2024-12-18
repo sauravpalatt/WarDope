@@ -17,6 +17,12 @@ const userSchema = new Schema({
         sparse:true,
         default:null
     },
+    addresses: [
+        {
+        type: Schema.Types.ObjectId,
+        ref: 'Address' 
+        }
+    ],
     googleId: {
         type: String,
         sparse:true
