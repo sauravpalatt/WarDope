@@ -1,5 +1,48 @@
 <%-include("../partials/admin/header")  %>
 
+<style>
+
+    #sizeNstockData {
+        width: 100%;
+        border-collapse: collapse; /* Removes double borders */
+        margin: 20px 0;
+        font-size: 16px;
+        text-align: center;
+        }
+    
+        #sizeNstockData thead tr {
+            background-color: #f4f4f4;
+            color: #333;
+            font-weight: bold;
+            border-bottom: 2px solid #ddd;
+        }
+    
+        #sizeNstockData th, #sizeNstockData td {
+            padding: 12px 15px;
+            border: 1px solid #ddd; /* Adds subtle borders */
+        }
+    
+        #sizeNstockData tbody tr:nth-child(even) {
+            background-color: #f9f9f9; /* Zebra-striping effect */
+        }
+    
+        #sizeNstockData tbody tr:hover {
+            background-color: #f1f1f1; /* Highlight row on hover */
+            cursor: pointer; /* Optional: changes cursor style */
+        }
+    
+        #sizeNstockData th {
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+    
+        #sizeNstockData td {
+            font-size: 14px;
+            color: #555;
+        }
+    
+    </style>
+
 <section class="content-main">
   <div class="row">
       <div class="col-9">
@@ -58,6 +101,30 @@
                               <span id="category-error" class="error-message" style="color:red; display:none;"></span>
                           </div>
                       </div>
+
+                       <!-- Size and Stock Section -->
+                       <div class="card mb-4">
+                        <div class="card-header">
+                          <h4>Product Sizes & Stock</h4>
+                        </div>
+                        <div class="card-body">
+                          <label class="form-label">Add Product Variants (Size & Stock)</label>
+                          <div id="variant-container">
+                            <div class="variant-group mb-3">
+                              <div class="row">
+                                <div class="col-lg-6">
+                                  <input name="variantSize" id="variantSize" type="text" placeholder="Size (e.g., S, M, L)" class="form-control" />
+                                </div>
+                                <div class="col-lg-6">
+                                  <input name="variantStock" id="variantStock" type="number" placeholder="Stock Quantity" class="form-control" />
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                          <button type="button" id="addVariantBtn" class="btn btn-light">Add More Sizes</button>
+                        </div>
+                     </div>
+
                       <div class="card mb-4">
                           <div class="card-header"
                           id="media">
@@ -122,6 +189,24 @@
                           </div>
                       </div>
                       <button type="submit" class="btn btn-primary">Update</button>
+
+                      <table id="sizeNstockData">
+                        <% for(let i=0;i<product.length;i++) {%>
+                        <thead>
+                            <tr>
+                                <th>Size</th>
+                                <th>Qty</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tableBody"> 
+                            <tr>
+                                <td><%= product.variants[i].size %></td>
+                                <td><%= product.variants[i].stock  %></td>
+                            </tr>
+                       </tbody> 
+                       <% } %>
+                    </table>
+
                   </form>
               </div>
           </div>
@@ -234,6 +319,36 @@ function validateForm() {
 
     return isValid;
 }
+
+const array =[]
+    document.getElementById("addVariantBtn").addEventListener("click",(e)=>{
+        e.preventDefault()
+    
+        console.log("BUTTON IS CLICKED !!!")
+    
+        const size = document.getElementById("variantSize").value
+        const stock = Number(document.getElementById("variantStock").value)
+    
+        let variant = {size,stock}
+    
+        array.push(variant)
+    
+       //Display Table Of Size & Qty
+        const tableBody = document.getElementById("tableBody")
+        tableBody.innerHTML=''
+
+        array.map((val)=>{
+            const value = `
+            <tr>
+            <td>${val.size}</td>
+            <td>${val.stock}</td>
+            <td><button class="btn btn-danger btn-sm" onclick="deleteItem(this)">Delete</button></td>
+            </tr>        
+            `
+            tableBody.innerHTML += value 
+        })  
+    })
+
 
 const form = document.getElementById('productUpdateForm');
 

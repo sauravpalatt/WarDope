@@ -35,24 +35,18 @@ const productSchema = new Schema({
     type: Boolean,
     default: false,  
   },
-  sizes: {
-    small: {
-      type: Number,
-      default: 0, 
+  variants: [  
+    {
+      size: {
+        type: String,
+        required: true, 
+      },
+      stock: {
+        type: Number,
+        required: true, 
+      },
     },
-    medium: {
-      type: Number,
-      default: 0,
-    },
-    large: {
-      type: Number,
-      default: 0,
-    },
-    xLarge: {
-      type: Number,
-      default: 0,
-    },
-  }
+  ],
 }, { timestamps: true });
 
 const Product = mongoose.model("Product", productSchema);

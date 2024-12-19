@@ -12,7 +12,6 @@ const categoryInfo = async (req, res) => {
         const limit = 3; 
         const skip = (page - 1) * limit;
 
-        
         const categoryData = await Category.find({
             $or: [
                 { categoryName: { $regex: ".*" + search + ".*", $options: "i" } },

@@ -26,10 +26,9 @@ const addProduct = async (req, res) => {
             regularPrice, 
             promotionalPrice, 
             category,
-            stockSmall,
-            stockMedium,
-            stockXLarge,
-            stockLarge} = req.body;
+           } = req.body;
+
+    const variant = JSON.parse(req.body.variant)
 
     const productImages = [
       ...(req.files.image1),
@@ -73,12 +72,7 @@ const addProduct = async (req, res) => {
       regularPrice,
       promotionalPrice,
       category,
-      sizes:{
-        small:stockSmall,
-        medium:stockMedium,
-        large:stockLarge,
-        xLarge:stockXLarge
-      },
+      variants:variant,
       images: imagePaths,
     });
 
@@ -149,6 +143,7 @@ const productEdit = async (req, res) => {
       category: data.category,
       regularPrice: data.regularPrice,
       promotionalPrice: data.promotionalPrice,
+      variants:variant,
       images: imagePaths
     };
 

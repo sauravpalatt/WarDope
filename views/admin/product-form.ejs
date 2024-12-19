@@ -1,5 +1,48 @@
 <%-include("../partials/admin/header")  %>
 
+<style>
+
+#sizeNstockData {
+    width: 100%;
+    border-collapse: collapse; /* Removes double borders */
+    margin: 20px 0;
+    font-size: 16px;
+    text-align: center;
+    }
+
+    #sizeNstockData thead tr {
+        background-color: #f4f4f4;
+        color: #333;
+        font-weight: bold;
+        border-bottom: 2px solid #ddd;
+    }
+
+    #sizeNstockData th, #sizeNstockData td {
+        padding: 12px 15px;
+        border: 1px solid #ddd; /* Adds subtle borders */
+    }
+
+    #sizeNstockData tbody tr:nth-child(even) {
+        background-color: #f9f9f9; /* Zebra-striping effect */
+    }
+
+    #sizeNstockData tbody tr:hover {
+        background-color: #f1f1f1; /* Highlight row on hover */
+        cursor: pointer; /* Optional: changes cursor style */
+    }
+
+    #sizeNstockData th {
+        text-transform: uppercase;
+        letter-spacing: 1px;
+    }
+
+    #sizeNstockData td {
+        font-size: 14px;
+        color: #555;
+    }
+
+</style>
+
 <section class="content-main">
     <div class="row">
         <div class="col-9">
@@ -60,26 +103,28 @@
                                 </select>
                                 <span id="category-error" class="error-message" style="color:red; display:none;"></span>
                             </div> 
+                        </div>
+
+                        <!-- Size and Stock Section -->
+                        <div class="card mb-4">
+                            <div class="card-header">
+                              <h4>Product Sizes & Stock</h4>
+                            </div>
                             <div class="card-body">
-                                <label for="size" class="form-label">Stock for Sizes:</label>
-                                <div class="row">
-                                    <div class="col-md-3 mb-3">
-                                        <label for="stockSmall" class="form-label">Small (S):</label>
-                                        <input name="stockSmall" type="number" placeholder="S" class="form-control" id="stockSmall" />
+                              <label class="form-label">Add Product Variants (Size & Stock)</label>
+                              <div id="variant-container">
+                                <div class="variant-group mb-3">
+                                  <div class="row">
+                                    <div class="col-lg-6">
+                                      <input name="variantSize" id="variantSize" type="text" placeholder="Size (e.g., S, M, L)" class="form-control" />
                                     </div>
-                                    <div class="col-md-3 mb-3">
-                                        <label for="stockMedium" class="form-label">Medium (M):</label>
-                                        <input name="stockMedium" type="number" placeholder="M" class="form-control" id="stockMedium" />
+                                    <div class="col-lg-6">
+                                      <input name="variantStock" id="variantStock" type="number" placeholder="Stock Quantity" class="form-control" />
                                     </div>
-                                    <div class="col-md-3 mb-3">
-                                        <label for="stockLarge" class="form-label">Large (L):</label>
-                                        <input name="stockLarge" type="number" placeholder="L" class="form-control" id="stockLarge" />
-                                    </div>
-                                    <div class="col-md-3 mb-3">
-                                        <label for="stockXLarge" class="form-label">X-Large (XL):</label>
-                                        <input name="stockXLarge" type="number" placeholder="XL" class="form-control" id="stockXLarge" />
-                                    </div>
+                                  </div>
                                 </div>
+                              </div>
+                              <button type="button" id="addVariantBtn" class="btn btn-light">Add More Sizes</button>
                             </div>
                         </div>
                         
@@ -134,6 +179,19 @@
                             </div>
                         </div>
                         <button type="submit" class="btn btn-primary">Submit</button>
+
+                        <table id="sizeNstockData">
+                            <thead>
+                                <tr>
+                                    <th>Size</th>
+                                    <th>Qty</th>
+                                    <th>Remove</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tableBody">
+                                         
+                           </tbody> 
+                        </table>
                     </form>
                 </div>
             </div>
@@ -218,10 +276,7 @@
         const promotionalPrice = document.getElementsByName('promotionalPrice')[0].value;
         const category = document.getElementsByName('category')[0].value;
         const images = [document.getElementById('inputImg1'), document.getElementById('inputImg2'), document.getElementById('inputImg3')];
-        const stock = [document.getElementById("stockSmall"),document.getElementById("stockMedium"),document.getElementById("stockLarge"),document.getElementById("stockXLarge")]
         let isValid = true;
-
-
 
         if (!name.trim()) {
             displayErrorMessage('productName-error', 'Please enter a product name.');
@@ -275,6 +330,35 @@
         });
     }
 
+    const array =[]
+    document.getElementById("addVariantBtn").addEventListener("click",(e)=>{
+        e.preventDefault()
+    
+        console.log("BUTTON IS CLICKED !!!")
+    
+        const size = document.getElementById("variantSize").value
+        const stock = Number(document.getElementById("variantStock").value)
+    
+        let variant = {size,stock}
+    
+        array.push(variant)
+    
+       //Display Table Of Size & Qty
+        const tableBody = document.getElementById("tableBody")
+        tableBody.innerHTML=''
+
+        array.map((val)=>{
+            const value = `
+            <tr>
+            <td>${val.size}</td>
+            <td>${val.stock}</td>
+            <td><button class="btn btn-danger btn-sm" onclick="deleteItem(this)">Delete</button></td>
+            </tr>        
+            `
+            tableBody.innerHTML += value 
+        })  
+    })
+
     // Form submission handling with fetch
     document.getElementById("productAddForm").addEventListener("submit", async (e) => {
     e.preventDefault();
@@ -283,7 +367,8 @@
 
     const formData = new FormData(e.target);
 
-    // Log all form data
+    formData.append("variant",JSON.stringify(array))
+
     for (let [key, value] of formData.entries()) {
         console.log(`${key}: ${value}`);
     }
@@ -305,6 +390,10 @@
         console.error("Error adding product:", errorMessage.message || "Unknown error");
     }
 });
+
 </script>
+
+
+
 
 <%-include("../partials/admin/footer") %>

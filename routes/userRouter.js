@@ -2,6 +2,8 @@ const express = require("express")
 const userController = require("../controllers/user/userController")
 const profileController = require("../controllers/user/profileController")
 const addressController = require("../controllers/user/addressController")
+const cartController = require("../controllers/user/orders&cartController")
+const {userAuth}= require("../middleware/auth")
 
 const router=express.Router()
 const passport = require("passport")
@@ -38,6 +40,13 @@ router.post("/addAddress",addressController.addAddress)
 router.get("/editAddressInfo/:id",addressController.editAddressInfo)
 router.put("/editAddress/:id",addressController.editAddress)
 router.delete("/deleteAddress/:id",addressController.deleteAddress)
+
+//cart
+router.get("/cart",cartController.cartList)
+router.get("/addToCart/:productId",cartController.addToCart)
+
+
+
 
 
 module.exports=router
