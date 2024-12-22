@@ -12,7 +12,7 @@
                         <th>Size</th>
                         <th>Quantity</th>
                         <th>Total</th>
-                        <th>Remove</th>
+                        <th>Remove</th> > 
                     </tr>
                 </thead>
                 <tbody class="align-middle">
@@ -65,67 +65,67 @@
             </table>
         </div>
 
-        <!-- Cart Summary Section -->
-        <div class="col-lg-4">
-            <form class="mb-5" action="/cart/apply-coupon" method="POST">
-                <div class="input-group">
-                    <input type="text" name="couponCode" class="form-control p-4" placeholder="Coupon Code">
-                    <div class="input-group-append">
-                        <button class="btn btn-primary">Apply Coupon</button>
-                    </div>
-                </div>
-            </form>
-            <div class="card border-secondary mb-5">
-                <div class="card-header bg-secondary border-0">
-                    <h4 class="font-weight-semi-bold m-0">Cart Summary</h4>
-                </div>
-                <div class="card-body">
-                    <div class="d-flex justify-content-between mb-3 pt-1">
-                        <h6 class="font-weight-medium">Subtotal</h6>
-                        <h6 class="font-weight-medium"></h6>
-                    </div>
-                    <div class="d-flex justify-content-between">
-                        <h6 class="font-weight-medium">Shipping</h6>
-                        <h6 class="font-weight-medium"></h6>
-                    </div>
-                </div>
-                <div class="card-footer border-secondary bg-transparent">
-                    <div class="d-flex justify-content-between mt-2">
-                        <h5 class="font-weight-bold">Total</h5>
-                        <h5 class="font-weight-bold"></h5>
-                    </div>
-                    <a href="/checkout" class="btn btn-block btn-primary my-3 py-3">Proceed To Checkout</a>
-                </div>
+        
+    <div class="col-lg-4">
+    <form class="mb-5" action="/cart/apply-coupon" method="POST">
+        <div class="input-group">
+            <input type="text" name="couponCode" class="form-control p-4" placeholder="Coupon Code">
+            <div class="input-group-append">
+                <button class="btn btn-primary">Apply Coupon</button>
             </div>
         </div>
+    </form>
+    <div class="card border-secondary mb-5">
+    <div class="card-header bg-secondary border-0">
+        <h4 class="font-weight-semi-bold m-0">Cart Summary</h4>
     </div>
+    <div class="card-body">
+        <div class="d-flex justify-content-between mb-3 pt-1">
+            <h6 class="font-weight-medium">Subtotal</h6>
+            <h6 class="font-weight-medium cart-summary-subtotal">$<%= totalPrice %>.00</h6>
+        </div>
+        <div class="d-flex justify-content-between">
+            <h6 class="font-weight-medium">Shipping</h6>
+            <h6 class="font-weight-medium cart-summary-shipping">
+                $<%= totalPrice > 1000 ? 500 : 150 %>.00
+            </h6>
+        </div>
+        <div class="d-flex justify-content-between mt-2">
+            <h5 class="font-weight-bold">Total</h5>
+            <h5 class="font-weight-bold cart-summary-total">
+                $<%= totalPrice > 1000 ? totalPrice + 500 : totalPrice + 150 %>.00
+            </h5>
+        </div>
+    </div>
+    <div class="card-footer border-secondary bg-transparent">
+        <a href="/checkout" class="btn btn-block btn-primary my-3 py-3">Proceed To Checkout</a>
+    </div>
+</div>
 </div>
 
 <script>
   document.addEventListener('DOMContentLoaded', function() {
-    // Handle increase and decrease buttons
     const plusButtons = document.querySelectorAll('.btn-plus');
     const minusButtons = document.querySelectorAll('.btn-minus');
-    
-    // Function to update quantity
+    const subtotalElement = document.querySelector('.cart-summary-subtotal');
+    const shippingElement = document.querySelector('.cart-summary-shipping');
+    const totalElement = document.querySelector('.cart-summary-total');
+
     function updateQuantity(itemId, action) {
       const quantityInput = document.getElementById(`quantity-${itemId}`);
       const itemTotal = document.getElementById(`item-total-${itemId}`);
       let quantity = parseInt(quantityInput.value);
-      
+
       if (action === 'increase' && quantity < 10) {
         quantity++;
-        console.log(`+: ${quantity}`);
       } else if (action === 'decrease' && quantity > 1) {
         quantity--;
-        console.log(`-: ${quantity}`);
       }
-      
-      // Update the quantity in the input field
+
+      // Update quantity in the input field
       quantityInput.value = quantity;
-      console.log(`QTY INPUT VALUE: ${quantityInput.value}`);
-      
-      // Fetch the updated total price for the item
+
+      // Fetch API to update quantity in the database
       fetch(`/cart/update/${itemId}`, {
         method: 'POST',
         headers: {
@@ -133,29 +133,33 @@
         },
         body: JSON.stringify({ quantity }),
       })
-      .then(response => response.json())
-      .then(data => {
-        console.log(`QTY WORKING ? : ${data}`);
-        
-        itemTotal.textContent = `$${(data.quantity * data.productPrice).toFixed(2)}`;
-        
-        // Optionally, you can update the cart's total price in the UI
-        document.getElementById('cart-total').textContent = `$${data.cartTotal.toFixed(2)}`;
-        
-        // Reload the page to reflect updated data
-        location.reload();  // Reload the page after updating the cart
-      })
-      .catch(error => console.error('Error updating cart:', error));
+        .then(response => response.json())
+        .then(data => {
+          console.log(`QTY WORKING ? : ${data.quantity}`);
+          
+          // Update individual item total
+          itemTotal.textContent = `$${(data.quantity * data.productPrice).toFixed(2)}`;
+          
+          // Update cart summary
+          subtotalElement.textContent = `$${data.cartSubtotal.toFixed(2)}`;
+          
+          // Update shipping
+          const shippingCost = data.cartSubtotal > 1000 ? 500 : 150;
+          shippingElement.textContent = `$${shippingCost.toFixed(2)}`;
+          
+          // Update total
+          totalElement.textContent = `$${(data.cartSubtotal + shippingCost).toFixed(2)}`;
+        })
+        .catch(error => console.error('Error updating cart:', error));
     }
-    
-    // Add event listeners for increase and decrease buttons
+
     plusButtons.forEach(button => {
       button.addEventListener('click', function() {
         const itemId = button.getAttribute('data-item-id');
         updateQuantity(itemId, 'increase');
       });
     });
-    
+
     minusButtons.forEach(button => {
       button.addEventListener('click', function() {
         const itemId = button.getAttribute('data-item-id');
@@ -163,6 +167,8 @@
       });
     });
   });
-  </script>
+</script>
+
+
   
 <%- include ("../partials/user/footer") %>
