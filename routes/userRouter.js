@@ -42,11 +42,9 @@ router.put("/editAddress/:id",addressController.editAddress)
 router.delete("/deleteAddress/:id",addressController.deleteAddress)
 
 //cart
+router.post("/cart/add",userAuth,cartController.addToCart)
 router.get("/cart",cartController.cartList)
-router.get("/addToCart/:productId",cartController.addToCart)
-
-
-
+router.post("/cart/update/:itemId",userAuth,cartController.updateCartQty)
 
 
 module.exports=router

@@ -8,8 +8,8 @@
                 <thead class="bg-secondary text-dark">
                     <tr>
                         <th>Products</th>
-                        <th>Size</th>
                         <th>Price</th>
+                        <th>Size</th>
                         <th>Quantity</th>
                         <th>Total</th>
                         <th>Remove</th>
@@ -17,42 +17,51 @@
                 </thead>
                 <tbody class="align-middle">
                     <% if (cartItems && cartItems.length > 0) { %>
-                        <% cartItems.forEach(item => { %>
-                            <tr>
-                                <td class="align-middle">
-                                    <img src="<%= item.product.images[0] %>" alt="" style="width: 50px;"> 
-                                    <%= item.product.productName %>
-                                </td>
-                                <td class="align-middle">$<%= item.product.regularPrice %></td>
-                                <td class="align-middle">
-                                    <div class="input-group quantity mx-auto" style="width: 100px;">
-                                        <div class="input-group-btn">
-                                            <a href="/cart/decrease/<%= item._id %>" class="btn btn-sm btn-primary btn-minus">
-                                                <i class="fa fa-minus"></i>
-                                            </a>
-                                        </div>
-                                        <input type="text" class="form-control form-control-sm bg-secondary text-center" value="<%= item.quantity %>" readonly>
-                                        <div class="input-group-btn">
-                                            <a href="/cart/increase/<%= item._id %>" class="btn btn-sm btn-primary btn-plus">
-                                                <i class="fa fa-plus"></i>
-                                            </a>
-                                        </div>
-                                    </div>
-                                </td>
-                                <td class="align-middle">$<%= item.product.regularPrice * item.quantity %></td>
-                                <td class="align-middle">
-                                    <a href="/cart/remove/<%= item._id %>" class="btn btn-sm btn-primary">
-                                        <i class="fa fa-times"></i>
-                                    </a>
-                                </td>
-                            </tr>
-                        <% }); %>
-                    <% } else { %>
+                      <% cartItems.forEach((item) => { %>
                         <tr>
-                            <td colspan="5" class="text-center">Your cart is empty.</td>
+                          <td class="align-middle">
+                            <img src="<%= item.product.images[0] %>" alt="" style="width: 50px;">
+                            <%= item.product.productName %>
+                          </td>
+                          <td class="align-middle">$<%= item.product.regularPrice %></td>
+                          <td class="align-middle"><%= item.size %></td>
+                          <td class="align-middle">
+                            <div class="input-group quantity mx-auto" style="width: 100px;">
+                              <div class="input-group-btn">
+                                <button class="btn btn-sm btn-primary btn-plus" data-item-id="<%= item._id %>" data-action="increase">
+                                  <i class="fa fa-plus"></i>
+                                </button>
+                              </div>
+                              <input
+                                type="text"
+                                id="quantity-<%= item._id %>"
+                                class="form-control form-control-sm bg-secondary text-center"
+                                value="<%= item.quantity %>"
+                                min="1"
+                                max="10"
+                                readonly
+                              />
+                              <div class="input-group-btn">
+                                <button class="btn btn-sm btn-primary btn-minus" data-item-id="<%= item._id %>" data-action="decrease">
+                                  <i class="fa fa-minus"></i>
+                                </button>
+                              </div>
+                            </div>
+                          </td>
+                          <td class="align-middle" id="item-total-<%= item._id %>">$<%= item.quantity * item.product.regularPrice %></td>
+                          <td class="align-middle">
+                            <a href="/cart/remove/<%= item._id %>" class="btn btn-sm btn-primary">
+                              <i class="fa fa-times"></i>
+                            </a>
+                          </td>
                         </tr>
+                      <% }); %>
+                    <% } else { %>
+                      <tr>
+                        <td colspan="6" class="text-center">Your cart is empty.</td>
+                      </tr>
                     <% } %>
-                </tbody>
+                  </tbody>
             </table>
         </div>
 
@@ -92,4 +101,68 @@
     </div>
 </div>
 
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    // Handle increase and decrease buttons
+    const plusButtons = document.querySelectorAll('.btn-plus');
+    const minusButtons = document.querySelectorAll('.btn-minus');
+    
+    // Function to update quantity
+    function updateQuantity(itemId, action) {
+      const quantityInput = document.getElementById(`quantity-${itemId}`);
+      const itemTotal = document.getElementById(`item-total-${itemId}`);
+      let quantity = parseInt(quantityInput.value);
+      
+      if (action === 'increase' && quantity < 10) {
+        quantity++;
+        console.log(`+: ${quantity}`);
+      } else if (action === 'decrease' && quantity > 1) {
+        quantity--;
+        console.log(`-: ${quantity}`);
+      }
+      
+      // Update the quantity in the input field
+      quantityInput.value = quantity;
+      console.log(`QTY INPUT VALUE: ${quantityInput.value}`);
+      
+      // Fetch the updated total price for the item
+      fetch(`/cart/update/${itemId}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ quantity }),
+      })
+      .then(response => response.json())
+      .then(data => {
+        console.log(`QTY WORKING ? : ${data}`);
+        
+        itemTotal.textContent = `$${(data.quantity * data.productPrice).toFixed(2)}`;
+        
+        // Optionally, you can update the cart's total price in the UI
+        document.getElementById('cart-total').textContent = `$${data.cartTotal.toFixed(2)}`;
+        
+        // Reload the page to reflect updated data
+        location.reload();  // Reload the page after updating the cart
+      })
+      .catch(error => console.error('Error updating cart:', error));
+    }
+    
+    // Add event listeners for increase and decrease buttons
+    plusButtons.forEach(button => {
+      button.addEventListener('click', function() {
+        const itemId = button.getAttribute('data-item-id');
+        updateQuantity(itemId, 'increase');
+      });
+    });
+    
+    minusButtons.forEach(button => {
+      button.addEventListener('click', function() {
+        const itemId = button.getAttribute('data-item-id');
+        updateQuantity(itemId, 'decrease');
+      });
+    });
+  });
+  </script>
+  
 <%- include ("../partials/user/footer") %>

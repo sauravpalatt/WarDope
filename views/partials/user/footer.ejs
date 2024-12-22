@@ -131,20 +131,7 @@
         return magnifier;
     }
 
-    document.getElementById('increase-stock').addEventListener('click', function() {
-    let stockValue = parseInt(document.getElementById('stock-input').value);
-    stockValue++; 
-    document.getElementById('stock-input').value = stockValue;
-    });
-
-
-    document.getElementById('decrease-stock').addEventListener('click', function() {
-    let stockValue = parseInt(document.getElementById('stock-input').value);
-    if (stockValue > 0) { 
-        stockValue--; 
-        document.getElementById('stock-input').value = stockValue;
-    }
-    });
+   
 </script>
 
 </body>

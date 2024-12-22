@@ -89,7 +89,6 @@ const productEdit = async (req, res) => {
   try {
     const productId = req.params.id;
 
-    
     const product = await Product.findById(productId);
     if (!product) return res.status(404).json({ success: false, message: "Product not found" });
 
@@ -143,7 +142,7 @@ const productEdit = async (req, res) => {
       category: data.category,
       regularPrice: data.regularPrice,
       promotionalPrice: data.promotionalPrice,
-      variants:variant,
+      variants:data.variant,
       images: imagePaths
     };
 
@@ -264,6 +263,21 @@ const productEditInfo = async(req,res)=>{
   }
 }
 
+const deleteSize = async(req,res)=>{
+  try {
+    const sizeId = req.params.id
+    
+    if(sizeId){
+      await Product.updateOne({"variants._id":sizeId},{$pull:{variants:{_id:sizeId}}})
+      return res.status(200).json({success:true,message:"Size deleted successfully"})
+    }
+      res.status(404).json({success:false,message:"Size Id Not found !!!"})
+    
+  } catch (error) {
+      console.error("ERROR IN PRODUCT DELETE FUNCTION",error)   
+  }
+}
+
 module.exports = {
   addProductInfo,
   addProduct,
@@ -272,5 +286,6 @@ module.exports = {
   removeProductOffer,
   productStatus,
   productEditInfo,
-  productEdit
+  productEdit,
+  deleteSize
 };

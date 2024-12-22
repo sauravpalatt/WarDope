@@ -350,7 +350,7 @@ const productDetailInfo = async(req,res)=>{
         const product = await Product.findById(id)
 
         if(product){
-            // const categories= await Category.find({isActive:true})
+           
             return res.render("product_detail",{user,product:product})
         }else{
             console.log("Product does not exist...")
@@ -374,9 +374,7 @@ const productList = async(req,res)=>{
 
         if (user) {
             let userData = await User.findOne({ _id: new mongoose.Types.ObjectId(user._id) });
-            console.log(userData)
             return res.render("product-listUser", { user: userData, product:productData});
-
         } else {
             return res.render("product-listUser",{ product:productData,category:categories});
         }
@@ -384,11 +382,8 @@ const productList = async(req,res)=>{
     } catch (error) {
         console.error("ERROR IN PRODUCT LIST FN",error)
         
-    }
-    
+    }   
 }
-
-
 
 module.exports=
    {

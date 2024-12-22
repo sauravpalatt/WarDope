@@ -137,7 +137,6 @@
                                   <input id="inputImg1" name="image1" class="form-control" type="file" onchange="openCropper(event, 'cropperModal1', 'croppingImage1', 'croppedPreview1')" />
                                   <% if (product.images[0]) { %>
                                   <img src="/<%= product.images[0] %>"  style="max-width: 200px;" />
-                                  <% console.log(product.images[0]) %>
                                   <% } %>
                                   <div id="cropperModal1" style="display: none;">
                                       <div>
@@ -191,22 +190,25 @@
                       <button type="submit" class="btn btn-primary">Update</button>
 
                       <table id="sizeNstockData">
-                        <% for(let i=0;i<product.length;i++) {%>
                         <thead>
                             <tr>
                                 <th>Size</th>
                                 <th>Qty</th>
+                                <th>Delete</th>
                             </tr>
                         </thead>
                         <tbody id="tableBody"> 
+                            <% product.variants.forEach((variant, index) => { %>
                             <tr>
-                                <td><%= product.variants[i].size %></td>
-                                <td><%= product.variants[i].stock  %></td>
+                                <td><%= variant.size %></td>
+                                <td><%= variant.stock %></td>
+                                <!-- <td><button type="button" class="btn btn-danger btn-sm delete-variant" data-index="<%= index %>">Delete</button></td> -->
+                                <td><button type="button" class="btn btn-danger btn-sm delete-variant" onclick="deleteSize('<%=variant._id %>')">Delete</button></td>
                             </tr>
+                            <% }) %>
                        </tbody> 
-                       <% } %>
+                       
                     </table>
-
                   </form>
               </div>
           </div>
@@ -216,8 +218,48 @@
 
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
-<script>
 
+<script>
+   async function deleteSize(id){
+    try {
+   const response = await fetch(`/admin/deleteSize/${id}`,{
+        method: "DELETE"
+    })
+
+    const result = await response.json()
+
+    if(response.ok){
+        Swal.fire({
+            icon:"Success",
+            title: "Deleted",
+            text: result.message || "Size Deleted"
+        })
+        .then(()=>{
+            window.location.reload()
+        })
+    }else{
+        Swal.fire({
+            icon: "error",
+            title: "Error",
+            text : result.message || "Error in delete function"
+        })
+    }
+      
+        
+    } catch (error) {
+
+        console.error("ERROR IN DELETE SIZE FN",error)
+        Swal.fire({
+            icon: "error",
+            title: "error",
+            text: error.message
+        })
+    }
+    }
+</script>
+
+
+<script>
 function injectImageToFileInput(imageSrc, num) {
         const input = document.getElementById(`inputImg${num}`);
         const reader = new FileReader();
@@ -284,7 +326,7 @@ function injectImageToFileInput(imageSrc, num) {
     }
 
 //////////
-
+const array =[]
 function validateForm() {
     let isValid = true;
 
@@ -320,11 +362,9 @@ function validateForm() {
     return isValid;
 }
 
-const array =[]
+    // const array =[]
     document.getElementById("addVariantBtn").addEventListener("click",(e)=>{
         e.preventDefault()
-    
-        console.log("BUTTON IS CLICKED !!!")
     
         const size = document.getElementById("variantSize").value
         const stock = Number(document.getElementById("variantStock").value)
@@ -342,14 +382,14 @@ const array =[]
             <tr>
             <td>${val.size}</td>
             <td>${val.stock}</td>
-            <td><button class="btn btn-danger btn-sm" onclick="deleteItem(this)">Delete</button></td>
+            <td><button class="btn btn-danger btn-sm" onclick="deleteItem(index)">Delete</button></td>
             </tr>        
             `
             tableBody.innerHTML += value 
         })  
     })
 
-
+  
 const form = document.getElementById('productUpdateForm');
 
 form.addEventListener('submit', async (e) => {
@@ -379,7 +419,7 @@ if (response.ok) {
         timer: 2000,
     });
 
-    window.location.reload(); 
+    // window.location.reload(); 
 
 } else {
     
@@ -400,6 +440,8 @@ if (response.ok) {
 });
 
 </script>
+
+
 
 <%-include("../partials/admin/footer")  %>
 
