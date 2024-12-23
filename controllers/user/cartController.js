@@ -1,6 +1,7 @@
 const Cart = require("../../models/cartSchema")
 const Product = require("../../models/productSchema")
 const User = require("../../models/userSchema")
+const Order = require("../../models/orderSchema")
 
 
 const cartList = async(req,res)=>{
@@ -132,22 +133,101 @@ const updateCartQty = async (req, res) => {
         cartSubtotal,
         cartTotal
       });
-      
+
     } catch (error) {
       console.error('Error updating cart:', error);
       res.status(500).json({ message: 'Error updating cart', error: error.message });
     }
   };
 
-
-
+  const deleteCartItem = async (req, res) => {
+    try {
+      const { itemId } = req.params; // Cart item ID
+      const userId = req.session.user._id; // User ID from session
   
+      // Find the user's cart
+      const cart = await Cart.findOne({ user: userId }).populate('items.product');
+      if (!cart) {
+        return res.status(404).json({ message: "Cart not found" });
+      }
+  
+      // Find the cart item to delete
+      const cartItemIndex = cart.items.findIndex(item => item._id.toString() === itemId);
+      if (cartItemIndex === -1) {
+        return res.status(404).json({ message: "Item not found in cart" });
+      }
+  
+      // Remove the cart item
+      cart.items.splice(cartItemIndex, 1);
+      await cart.save();
+  
+      // Recalculate cart subtotal
+      const cartSubtotal = cart.items.reduce(
+        (sum, item) => sum + item.quantity * item.product.regularPrice,
+        0
+      );
+  
+      // Determine shipping cost
+      const shippingCost = cartSubtotal > 1000 ? 500 : 150;
+  
+      // Calculate total
+      const cartTotal = cartSubtotal + shippingCost;
+  
+      res.json({
+        message: "Item removed successfully",
+        cartSubtotal,
+        shippingCost,
+        cartTotal,
+      });
+    } catch (error) {
+      console.error("Error deleting cart item:", error);
+      res.status(500).json({ message: "Error deleting cart item", error: error.message });
+    }
+  };
 
+  const placeOrder = async (req,res)=>{
+   try {
+    const { cartItems, totalPrice, addressId, deliveryType } = req.body;
+
+    if (!cartItems || cartItems.length === 0) {
+        return res.status(400).json({ error: 'Cart items cannot be empty' });
+    }
+
+    if (!totalPrice || totalPrice <= 0) {
+        return res.status(400).json({ error: 'Total price must be greater than 0' });
+    }
+
+    if (!addressId) {
+        return res.status(400).json({ error: 'Address ID is required' });
+    }
+
+    if (!deliveryType) {
+        return res.status(400).json({ error: 'Delivery type is required' });
+    }
+
+      const order = new Order({
+          cartItems,
+          totalPrice,
+          addressId,
+          deliveryType,
+      });
+
+      await order.save();
+
+    res.status(200).json({ message: 'Order placed successfully!' });
+
+   } catch (error) {
+      console.error("ERROR IN PLACE ORDER Fn",error)
+   }
+
+}
 
 module.exports = {
     addToCart,
     cartList,
-    updateCartQty
+    updateCartQty,
+    deleteCartItem,
+    placeOrder
 }
 
 

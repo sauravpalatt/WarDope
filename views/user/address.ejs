@@ -72,11 +72,9 @@ style="background-color: #D19C97; color: #1c1c1c;">Add New Address</a>
                         'Your address has been deleted.',
                         'success'
                     ).then(() => {
-                        
                         location.reload();
                     });
                 } else {
-                    
                     Swal.fire('Error!', 'Something went wrong. Please try again.', 'error');
                 }
             })
