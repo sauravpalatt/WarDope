@@ -412,17 +412,20 @@ document.getElementById("placeOrderIdBtn").addEventListener("click", function ()
     
     const cartItems = [];
 
-        const cartItemsElements = document.querySelectorAll(".cartItemsElements"); // Use a class or tag to identify items.
+    const cartItemsElements = document.querySelectorAll(".cartItemsElements tr"); // Select tr elements inside tbody
 
         if (cartItemsElements.length > 0) {
             cartItemsElements.forEach(item => {
                 const productNameElement = item.querySelector("[name='itemName']");
                 const priceElement = item.querySelector("[name='itemPrice']");
                 const quantityElement = item.querySelector("[name='itemQty']");
+                
 
                 const productName = productNameElement ? productNameElement.innerText : '';
                 const price = priceElement ? Number(priceElement.innerText.replace('$', '').trim()) : 0;
                 const quantity = quantityElement ? Number(quantityElement.innerText.replace('$', '').trim()) : 0;
+
+                console.log(`prd name: ${productName}`,`prd price: ${price}`,`prdQty: ${quantity}`)
 
 
                 cartItems.push({ productName, price, quantity });
@@ -454,7 +457,6 @@ document.getElementById("placeOrderIdBtn").addEventListener("click", function ()
         console.log("No payment method selected");
     }
 
- 
     const cartData = {
         cartItems,
         totalPrice,

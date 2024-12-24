@@ -101,13 +101,14 @@
         <div class="ml-3">
           <label class="mr-2">Size:</label>
           <% product.variants.forEach(variant => { %>
-          <div class="form-check form-check-inline">
+          <div class="form-check form-check-inline" 
+            style="<%= variant.stock === 0 ? 'display: none;' : '' %>">
             <input class="form-check-input" type="radio" name="size"
-            id="size-<%= variant.size %>" value="<%= variant.size %>" <%=
-            variant.stock === 0 ? 'disabled' : '' %> >
+              id="size-<%= variant.size %>" value="<%= variant.size %>" 
+              data-stock="<%= variant.stock %>">
             <label class="form-check-label" for="size-<%= variant.size %>">
-              <%= variant.size.toUpperCase() %></label
-            >
+              <%= variant.size.toUpperCase() %>
+            </label>
           </div>
           <% }) %>
           <div id="stock-info">
@@ -322,21 +323,21 @@ document
 
   let selectedSize = 0 ;
   document.addEventListener("DOMContentLoaded", () => {
-    const radios = Array.from(document.getElementsByName("size"));
-    const stockInfo = document.getElementById("stock-info");
+  const radios = Array.from(document.getElementsByName("size"));
+  const stockInfo = document.getElementById("stock-info");
 
-    radios.forEach((radio) => {
-      radio.addEventListener("change", () => {
-        selectedSize = radio.value;
-        
-        const isOutOfStock = radio.disabled;
-        const message = isOutOfStock
-          ? `${radio.value}: Out of stock.`
-          : `${radio.value}: In Stock`;
-        stockInfo.innerHTML = `<p>${message}</p>`;
-      });
+  radios.forEach((radio) => {
+    radio.addEventListener("change", () => {
+      const stockCount = radio.getAttribute("data-stock");
+      const size = radio.value.toUpperCase();
+      
+      const message = `${size}: <span class="stock-count">${stockCount} in stock</span>.`;
+      stockInfo.innerHTML = `<p>${message}</p>`;
     });
   });
+});
+
+
 
   async function addToCart() {
     const productId = "<%= product._id %>"; 
@@ -359,44 +360,53 @@ document
 
     try {
       const response = await fetch('/cart/add', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          productId,
-          size: selectedSize,
-          quantity,
+  method: 'POST',
+  headers: {
+    'Content-Type': 'application/json',
+  },
+  body: JSON.stringify({
+    productId,
+    size: selectedSize,
+    quantity,
+  }),
+});
 
-        }),
-      });
+if (response.ok) {
+  const result = await response.json(); 
 
-      const result = await response.json();
-      
-      if (response.ok) {
-        Swal.fire({
-          icon: 'success',
-          title: 'Added to Cart',
-          text: result.message || "Product added to cart successfully!",
-          toast: true,
-          position: 'top-end',
-          timer: 3000,
-          timerProgressBar: true,
-          showConfirmButton: false
-        });
-      } else {
-        Swal.fire({
-          icon: 'error',
-          title: 'Error',
-          text: 'Failed to add product to cart.',
-          toast: true,
-          position: 'top-end',
-          timer: 3000,
-          timerProgressBar: true,
-          showConfirmButton: false
-        });
-      }
-    } catch (error) {
+  if (result.type === 'warning') {
+    Swal.fire({
+      icon: 'warning',
+      title: 'Reminder',
+      text: result.message || "This product is already in your cart with the selected size.",
+      toast: true,
+      position: 'top-end',
+      timer: 1000,
+      showConfirmButton: false,
+    });
+  } else {
+    Swal.fire({
+    icon: 'success',
+    title: 'Added to Cart',
+    text: result.message || "Product added to cart successfully!",
+    toast: true,
+    position: 'top-end',
+    timer: 3000,  
+    timerProgressBar: true,
+    showConfirmButton: false,
+  }).then(() => {
+    window.location.href = '/cart'; 
+  });
+  }
+} else {
+  const error = await response.json();
+  Swal.fire({
+    icon: 'error',
+    title: 'Error',
+    text: error.message || "Failed to add product to cart.",
+  });
+}
+  } catch (error) {
       console.error("Error adding product to cart:", error);
       Swal.fire({
         icon: 'error',

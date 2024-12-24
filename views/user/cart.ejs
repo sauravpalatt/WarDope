@@ -15,11 +15,11 @@
                         <th>Remove</th> > 
                     </tr>
                 </thead>
-                <tbody class="align-middle">
+                <tbody>
                     <% if (cartItems && cartItems.length > 0) { %>
                       <% cartItems.forEach((item) => { %>
                         <tr>
-                          <td class="align-middle">
+                          <td style="text-align: left;">
                             <img src="<%= item.product.images[0] %>" alt="" style="width: 50px;">
                             <%= item.product.productName %>
                           </td>
@@ -81,27 +81,15 @@
     </div>
     <div class="card-body">
         <div class="d-flex justify-content-between mb-3 pt-1">
-            <h6 class="font-weight-medium">Subtotal</h6>
-            <h6 class="font-weight-medium cart-summary-subtotal">$<%= totalPrice %>.00</h6>
-        </div>
-        <div class="d-flex justify-content-between">
-            <h6 class="font-weight-medium">Shipping</h6>
-            <h6 class="font-weight-medium cart-summary-shipping">
-                $<%= totalPrice > 1000 ? 500 : 150 %>.00
-            </h6>
-        </div>
-        <div class="d-flex justify-content-between mt-2">
-            <h5 class="font-weight-bold">Total</h5>
-            <h5 class="font-weight-bold cart-summary-total">
-                $<%= totalPrice > 1000 ? totalPrice + 500 : totalPrice + 150 %>.00
-            </h5>
+            <h5 class="font-weight-medium">Total</h5>
+            <h5 class="font-weight-medium cart-summary-subtotal">$<%= totalPrice %>.00</h5>
         </div>
     </div>
-    <div class="card-footer border-secondary bg-transparent">
-        <a href="/checkout" class="btn btn-block btn-primary my-3 py-3">Proceed To Checkout</a>
+      <div class="card-footer border-secondary bg-transparent">
+          <a href="/checkout" class="btn btn-block btn-primary my-3 py-3">Proceed To Checkout</a>
+      </div>
     </div>
-</div>
-</div>
+    </div>
 
 <script>
   document.addEventListener('DOMContentLoaded', function() {
@@ -122,10 +110,8 @@
         quantity--;
       }
 
-      // Update quantity in the input field
       quantityInput.value = quantity;
 
-      // Fetch API to update quantity in the database
       fetch(`/cart/update/${itemId}`, {
         method: 'POST',
         headers: {
@@ -135,19 +121,14 @@
       })
         .then(response => response.json())
         .then(data => {
-          console.log(`QTY WORKING ? : ${data.quantity}`);
-          
-          // Update individual item total
+
           itemTotal.textContent = `$${(data.quantity * data.productPrice).toFixed(2)}`;
           
-          // Update cart summary
           subtotalElement.textContent = `$${data.cartSubtotal.toFixed(2)}`;
           
-          // Update shipping
           const shippingCost = data.cartSubtotal > 1000 ? 500 : 150;
           shippingElement.textContent = `$${shippingCost.toFixed(2)}`;
           
-          // Update total
           totalElement.textContent = `$${(data.cartSubtotal + shippingCost).toFixed(2)}`;
         })
         .catch(error => console.error('Error updating cart:', error));
@@ -174,9 +155,7 @@
   document.addEventListener('DOMContentLoaded', function () {
     const removeButtons = document.querySelectorAll('.btn-remove');
     const subtotalElement = document.querySelector('.cart-summary-subtotal');
-    const shippingElement = document.querySelector('.cart-summary-shipping');
-    const totalElement = document.querySelector('.cart-summary-total');
-
+    
     function removeCartItem(itemId) {
       fetch(`/cart/remove/${itemId}`, {
         method: 'DELETE',
@@ -192,18 +171,13 @@
               showConfirmButton: false,
             });
 
-            // Remove the item's row from the table
             const itemRow = document.querySelector(`[data-item-id="${itemId}"]`).closest('tr');
             itemRow.remove();
 
-            // Update cart summary
             subtotalElement.textContent = `$${data.cartSubtotal.toFixed(2)}`;
-            shippingElement.textContent = `$${data.shippingCost.toFixed(2)}`;
-            totalElement.textContent = `$${data.cartTotal.toFixed(2)}`;
 
-            // If no items are left, show the empty cart message
             const cartTableBody = document.querySelector('tbody.align-middle');
-            if (!cartTableBody.querySelector('tr')) {
+            if (cartTableBody && !cartTableBody.querySelector('tr')) {
               cartTableBody.innerHTML = `<tr>
                 <td colspan="6" class="text-center">Your cart is empty.</td>
               </tr>`;
@@ -245,8 +219,7 @@
         });
       });
     });
-  });
+});
 </script>
-
   
 <%- include ("../partials/user/footer") %>

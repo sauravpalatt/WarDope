@@ -1,0 +1,90 @@
+<%- include("../partials/user/header") %>
+
+<div class="container mt-5">
+    <h2 class="text-center mb-4">Order Details</h2>
+
+    <!-- Order Summary Section -->
+    <div class="card mb-4">
+        <div class="card-body">
+            <h4 class="card-title">Order Summary</h4>
+            <p><strong>Order ID:</strong> <%= order.orderId %></p>
+            <p><strong>Order Date:</strong> <%= new Date(order.createdAt).toLocaleDateString() %></p>
+            <p><strong>Status:</strong> <span class="badge rounded-pill bg-info text-dark"><%= order.status %></span></p>
+            <p><strong>Total Price:</strong> ₹<%= order.totalPrice %></p>
+        </div>
+    </div>
+
+    <!-- Shipping Address Section -->
+    <div class="card mb-4">
+        <div class="card-body">
+            <h4 class="card-title">Shipping Address</h4>
+                    <p>
+                        <strong>Name:</strong> <%= address.title %><br>
+                        <strong>Address:</strong> <%= address.street %>, <%= address.city %>, <%= address.state %> - <%= address.pinCode %>
+                    </p>
+        </div>
+    </div>
+
+    <!-- Cart Items Section -->
+    <div class="card">
+        <div class="card-body">
+            <h4 class="card-title">Items Ordered</h4>
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Product</th>
+                        <th>Quantity</th>
+                        <th>Price</th>
+                        <th>Subtotal</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <% order.cartItems.forEach(item => { %>
+                        <tr>
+                            <td><%= item.productName %></td>
+                            <td><%= item.quantity %></td>
+                            <td>₹<%= item.price %></td>
+                            <td>₹<%= item.quantity * item.price %></td>
+                        </tr>
+                    <% }); %>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Cancel Order Button -->
+    <% if (order.status !== 'Cancelled') { %>
+        <div class="text-center mt-4">
+            <button class="btn btn-danger" onclick="cancelOrder('<%= order.orderId %>')">Cancel Order</button>
+        </div>
+    <% } else { %>
+        <div class="text-center mt-4">
+            <span class="badge bg-danger">Order Cancelled</span>
+        </div>
+    <% } %>
+</div>
+
+<script>
+    async function cancelOrder(orderId) {
+  try {
+    const response = await fetch(`/orders/cancel/${orderId}`, {
+      method: 'PUT',  
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
+
+    const data = await response.json();
+    
+    if (response.ok) {
+      alert(data.message);  
+    } else {
+      alert(data.message);  
+    }
+  } catch (error) {
+    console.error("Error in canceling order:", error);
+  }
+}
+</script>
+
+<%- include("../partials/user/footer") %>
