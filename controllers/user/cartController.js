@@ -28,8 +28,8 @@ const cartList = async(req,res)=>{
 
         res.render("cart",{
             user:userData,
-            cartItems : cart.items,
-            totalPrice : cart. totalPrice
+            cartItems : cart?.items,
+            totalPrice : cart?.totalPrice
         })
 
     } catch (error) {
@@ -224,6 +224,7 @@ const updateCartQty = async (req, res) => {
       order = generateOrderId(order);
 
       await order.save();
+      await Cart.deleteOne({user:userId})
 
     res.status(200).json({ message: 'Order placed successfully!' });
 

@@ -361,29 +361,46 @@ const productDetailInfo = async(req,res)=>{
     }
 }
 
-const productList = async(req,res)=>{
+const productList = async (req, res) => {
     try {
         const user = req.session.user;
 
-        const categories= await Category.find({isActive:true})
-        let productData = await Product.find({
-            isBlocked:false,
-            category: {$in:categories.map(category=>category._id)},
-            // quantity:{$gt:0}
-        })
+        // Fetch categories
+        const categories = await Category.find({ isActive: true });
 
+        // Get sorting option from query string
+        let sortOption = req.query.sort;
+        let sortCriteria = {};
+
+        // Apply sorting based on query parameter
+        if (sortOption === 'latest') {
+            sortCriteria = { createdAt: -1 };  // Sort by creation date (descending)
+        } else if (sortOption === 'lowToHigh') {
+            sortCriteria = { promotionalPrice: 1 };  // Sort by promotional price (ascending)
+        } else if (sortOption === 'highToLow') {
+            sortCriteria = { promotionalPrice: -1 };  // Sort by promotional price (descending)
+        }
+
+        // Find products with the appropriate sorting
+        let productData = await Product.find({
+            isBlocked: false,
+            category: { $in: categories.map(category => category._id) },
+        }).sort(sortCriteria);  // Apply sorting criteria
+
+        // Render the page based on user login status
         if (user) {
             let userData = await User.findOne({ _id: new mongoose.Types.ObjectId(user._id) });
-            return res.render("product-listUser", { user: userData, product:productData});
+            return res.render("product-listUser", { user: userData, product: productData });
         } else {
-            return res.render("product-listUser",{ product:productData,category:categories});
+            return res.render("product-listUser", { product: productData, category: categories });
         }
-      
+
     } catch (error) {
-        console.error("ERROR IN PRODUCT LIST FN",error)
-        
-    }   
-}
+        console.error("ERROR IN PRODUCT LIST FN", error);
+        res.status(500).send('Server Error');
+    }
+};
+
 
 module.exports=
    {
