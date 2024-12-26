@@ -52,7 +52,8 @@ router.delete("/cart/remove/:itemId",userAuth,cartController.deleteCartItem)
 //order
 router.post("/placeOrder",userAuth,cartController.placeOrder)
 router.get("/orders",userAuth,cartController.ordersList)
-router.get("/order-details/:orderId",userAuth,cartController.orderDetail)
-router.put("/orders/cancel/:orderId",userAuth,cartController.cancelOrder)
+router.get("/orderDetail/:orderId",userAuth,cartController.orderDetail)
+router.put("/order/cancel/:orderId",userAuth,cartController.cancelOrder)
+router.post("/order/return/:orderId",userAuth,cartController.returnProduct)
 
 module.exports=router

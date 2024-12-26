@@ -1,0 +1,42 @@
+<%-include("../partials/admin/header")%>
+
+<div class="card-body">
+    <div class="table-responsive">
+        <table class="table table-hover">
+            <thead>
+                <tr>
+                    <th>Order-Id</th>
+                    <th scope="col">Name</th>
+                    <th scope="col">Email</th>
+                    <th scope="col">Total</th>
+                    <th scope="col">Status</th>
+                    <th scope="col">Date</th>
+                    <th class="text-center" scope="col" class="text-end">Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                <% orders.forEach(order => { %>
+                    <tr>
+                        <td><%= order.orderId %></td>
+                        <td><b><%= order.userId.name %></b></td>
+                        <td><%= order.userId.email %></td>
+                        <td>₹<%= order.totalPrice %></td>
+                        <td>
+                        <span class="badge rounded-pill 
+                        <%= order.status === 'shipped' ? 'bg-info' : '' %>
+                        <%= order.status === 'pending' ? 'bg-warning' : '' %>
+                        <%= order.status === 'delivered' ? 'bg-success' : '' %>
+                        <%= order.status === 'canceled' ? 'bg-danger' : '' %>">
+                        <%= order.status %>
+                        </span>
+                        </td>
+                        <td><%= order.formattedDate %></td>
+                        <td class="text-end">
+                            <a href="/admin/orderDetail/<%= order.orderId %>" class="btn btn-md rounded font-sm">Detail</a>
+                            <!-- dropdown //end -->
+                        </td>
+                    </tr>
+                <%  }); %>
+            </tbody>    
+
+<%-include("../partials/admin/footer")%>

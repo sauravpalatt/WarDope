@@ -53,38 +53,155 @@
     </div>
 
     <!-- Cancel Order Button -->
-    <% if (order.status !== 'Cancelled') { %>
-        <div class="text-center mt-4">
-            <button class="btn btn-danger" onclick="cancelOrder('<%= order.orderId %>')">Cancel Order</button>
-        </div>
-    <% } else { %>
-        <div class="text-center mt-4">
-            <span class="badge bg-danger">Order Cancelled</span>
-        </div>
-    <% } %>
+
+    <% if(order.status === 'pending') { %>
+        <button id="cancelOrderBtn" class="btn btn-danger mt-3">Cancel Order</button>
+    <%  } %>
+
+    <!-- Request Return Button -->
+
+    <% if(order.status === 'delivered') { %>
+        <button id="requestReturnBtn"class="btn btn-warning mt-3">Request Return</button>
+     <% } %>   
+
 </div>
 
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
 <script>
-    async function cancelOrder(orderId) {
-  try {
-    const response = await fetch(`/orders/cancel/${orderId}`, {
-      method: 'PUT',  
-      headers: {
-        'Content-Type': 'application/json',
-      },
+    const cancelOrderBtn = document.getElementById("cancelOrderBtn");
+
+        cancelOrderBtn.addEventListener("click", async (e) => {
+            e.preventDefault();
+
+            const orderId = "<%= order.orderId %>";
+
+            const result = await Swal.fire({
+                title: "Are you sure?",
+                text: "Do you really want to cancel this order?",
+                icon: "warning",
+                showCancelButton: true,
+                confirmButtonText: "Yes, cancel it!",
+                cancelButtonText: "No, keep it"
+            });
+
+            if (result.isConfirmed) {
+                try {
+                    const response = await fetch(`/order/cancel/${orderId}`, {
+                        method: 'PUT',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                    });
+
+                    const data = await response.json();
+
+                    if (response.ok) {
+                        Swal.fire({
+                            icon: "success",
+                            text: data.message || "Order cancelled successfully",
+                            toast: true,
+                            position: "top-end",
+                            showConfirmButton: false,
+                            timer: 1000,
+                            timerProgressBar: false
+                        });
+                        setTimeout(() => location.reload(), 1500);
+                    } else {
+                        Swal.fire({
+                            icon: "error",
+                            title: "Oops...",
+                            text: data.message || "Something went wrong.",
+                            confirmButtonText: "Try Again"
+                        });
+                    }
+                } catch (error) {
+                    console.error("Error in canceling order:", error);
+                    Swal.fire({
+                        icon: "error",
+                        title: "Error",
+                        text: "An error occurred while canceling the order. Please try again.",
+                        confirmButtonText: "Close"
+                    });
+                }
+            } else {
+                Swal.fire({
+                    icon: "info",
+                    title: "Cancelled",
+                    text: "Order cancellation was aborted.",
+                    confirmButtonText: "OK"
+                });
+            }
+        });
+</script>
+
+
+<script>
+
+document.getElementById("requestReturnBtn").addEventListener("click", async () => {
+
+    const orderId = "<%= order.orderId %>";
+
+    const confirmation = await Swal.fire({
+        title: "Request Product Return?",
+        text: "Do you want to request a return for this order?",
+        icon: "warning",
+        showCancelButton: true,
+        confirmButtonText: "Yes, request return!",
+        cancelButtonText: "No, cancel",
     });
 
-    const data = await response.json();
-    
-    if (response.ok) {
-      alert(data.message);  
-    } else {
-      alert(data.message);  
+    if (!confirmation.isConfirmed) {
+        await Swal.fire({
+            icon: "info",
+            title: "Cancelled",
+            text: "Return request was aborted.",
+            confirmButtonText: "OK",
+        });
+        return;
     }
-  } catch (error) {
-    console.error("Error in canceling order:", error);
-  }
-}
+
+    try {
+        const response = await fetch(`/order/return/${orderId}`, {
+            method: "POST", 
+            headers: {
+                "Content-Type": "application/json",
+            },
+        });
+
+        const data = await response.json();
+
+        if (response.ok) {
+            await Swal.fire({
+                icon: "success",
+                text: data.message || "Return request submitted successfully",
+                toast: true,
+                position: "top-end",
+                showConfirmButton: false,
+                timer: 1000,
+                timerProgressBar: false,
+            });
+            setTimeout(() => location.reload(), 1500);
+        } else {
+            await Swal.fire({
+                icon: "error",
+                title: "Oops...",
+                text: data.message || "Failed to request return.",
+                confirmButtonText: "Try Again",
+            });
+        }
+    } catch (error) {
+        console.error("Error in requesting return:", error);
+        await Swal.fire({
+            icon: "error",
+            title: "Error",
+            text: "An error occurred while requesting the return. Please try again.",
+            confirmButtonText: "Close",
+        });
+    }
+});
 </script>
+
+
 
 <%- include("../partials/user/footer") %>

@@ -10,11 +10,12 @@ const cartList = async(req,res)=>{
     try {
         const user = req.session.user
         const userId = user._id
-        const userData = await User.findById(userId)
-       
-        if(!user){
-           return console.log("user not found in cart")
+      
+        if(!userId || !user){
+          return console.log("User not found in cart")
         }
+
+        const userData = await User.findById(userId)
 
         const cart = await Cart.findOne({ user: userId }).populate('items.product');
 
@@ -33,7 +34,7 @@ const cartList = async(req,res)=>{
         })
 
     } catch (error) {
-        console.error("ERROR IN CART LIST FN",error)
+        console.error(`ERROR IN CART LIST FN: ${error}`)
     }
 }
 
@@ -267,8 +268,7 @@ const orderDetail = async(req,res)=>{
       const order = await Order.findOne({orderId:orderId})
 
       const addressId = order.addressId;
-      console.log('Address ID:', addressId);
-      
+
       if(!order){
         return console.log("order in db not found")
       }
@@ -286,8 +286,6 @@ const orderDetail = async(req,res)=>{
       
       const address = addressDoc.addresses[0];  // Get the matched address object
 
-      console.log(`Address: ${JSON.stringify(address)}`);
-
       res.render("orderDetail",{
         order,
         user,
@@ -300,7 +298,9 @@ const orderDetail = async(req,res)=>{
 }
 
 const cancelOrder = async (req, res) => {
+ 
   try {
+   
     const { orderId } = req.params;  
     const userId = req.session.user._id;  
 
@@ -315,7 +315,9 @@ const cancelOrder = async (req, res) => {
     }
 
     order.status = "canceled";
+    
     await order.save();
+
     return res.status(200).json({ message: "Order has been successfully canceled" });
     
   } catch (error) {
@@ -324,7 +326,29 @@ const cancelOrder = async (req, res) => {
   }
 };
 
+const returnProduct = async (req,res)=>{
+  const { orderId } = req.params
+  try {
+    const order = await Order.findOne({orderId:orderId});
 
+    if (!order) {
+      return res.status(404).json({ message: 'Order not found' });
+    }
+
+    if (order.status !== 'delivered') {
+      return res.status(400).json({ message: 'Return can only be requested for delivered orders.' });
+    }
+
+    order.status = 'return requested'
+    await order.save();
+
+    res.status(200).json({ message: 'Return request submitted successfully.' });
+
+  } catch (error) {
+     console.error('Error processing return request:', error);
+     res.status(500).json({ message: 'Internal Server Error.' });
+  }
+}
 
 module.exports = {
     addToCart,
@@ -334,7 +358,8 @@ module.exports = {
     placeOrder,
     ordersList,
     orderDetail,
-    cancelOrder
+    cancelOrder,
+    returnProduct
 }
 
 

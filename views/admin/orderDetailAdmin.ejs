@@ -1,0 +1,171 @@
+
+<%- include("../partials/admin/header") %>
+
+<div class="container mt-5">
+    <h2 class="text-center mb-4">Order Details</h2>
+
+    <!-- Order Summary Section -->
+    <div class="card mb-4">
+        <div class="card-body">
+            <h4 class="card-title">Order Summary</h4>
+            <p><strong>Order ID:</strong> <%= order.orderId %></p>
+            <p><strong>Order Date:</strong> <%= new Date(order.createdAt).toLocaleDateString() %></p>
+            <p><strong>Status:</strong> 
+                <span class="badge rounded-pill bg-info text-dark">
+                    <%= order.status %>
+                </span>
+            </p>
+
+            <div class="mb-3">
+                <label for="status" class="form-label">Update Order Status</label>
+                <% if (order.status === 'canceled') { %>
+                  <p class="text-danger">Order is Cancelled. Status updates are not allowed.</p>
+                <% } else { %>
+                  <select class="form-select" id="orderStatus" name="status">
+                    <option value="pending" <%= order.status === 'pending' ? 'selected' : '' %>>Pending</option>
+                    <option value="shipped" <%= order.status === 'shipped' ? 'selected' : '' %>>Shipped</option>
+                    <option value="delivered" <%= order.status === 'delivered' ? 'selected' : '' %>>Delivered</option>
+                  </select>
+                  <button id="updateStatusBtn" class="btn btn-primary mt-2">Update Status</button>
+                <% } %>
+              </div>
+              
+              <!-- Return Request Actions -->
+              <% if (order.status === 'return requested') { %>
+                <button id="approveReturnBtn" class="btn btn-success" onclick="handleReturnAction('<%= order._id %>', 'approve')">Approve Return</button>
+                <button id="denyReturnBtn" class="btn btn-danger" onclick="handleReturnAction('<%= order._id %>','deny')">Deny Return</button>
+              <% } %>
+        </div>
+    </div>
+
+    <!-- Shipping Address Section -->
+    <div class="card mb-4">
+        <div class="card-body">
+            <h4 class="card-title">Shipping Address</h4>
+            <p>
+                <strong>Name:</strong> <%= address.title %><br>
+                <strong>Address:</strong> <%= address.street %>, <%= address.city %>, <%= address.state %> - <%= address.pinCode %>
+            </p>
+        </div>
+    </div>
+
+    <!-- Cart Items Section -->
+    <div class="card mb-4">
+        <div class="card-body">
+            <h4 class="card-title">Items Ordered</h4>
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Product</th>
+                        <th>Quantity</th>
+                        <th>Price</th>
+                        <th>Subtotal</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <% order.cartItems.forEach(item => { %>
+                        <tr>
+                            <td><%= item.productName %></td>
+                            <td><%= item.quantity %></td>
+                            <td>₹<%= item.price %></td>
+                            <td>₹<%= item.quantity * item.price %></td>
+                        </tr>
+                    <% }); %>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+<script>
+    document.getElementById('updateStatusBtn').addEventListener("click",async(e)=>{
+        e.preventDefault()
+
+        const orderId = "<%= order.orderId %>"
+
+        const status = document.getElementById("orderStatus").value
+
+        if(status === "<%= order.status %>") return;
+
+        try {
+        
+        const response = await fetch(`/admin/order/status/${orderId}`, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({ status: status })
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+            throw new Error(data.message || 'Error updating order status');
+        }
+
+        Swal.fire({
+            title: 'Success!',
+            text: data.message,
+            icon: 'success',
+            confirmButtonText: 'OK'
+        }).then(() => {
+            location.reload(); 
+        });
+
+    } catch (error) {
+        console.error('Error:', error);
+        Swal.fire({
+            title: 'Failed!',
+            text: error.message,
+            icon: 'error',
+            confirmButtonText: 'Try Again'
+        });
+    }
+  });
+    
+</script>
+
+<script>
+    async function handleReturnAction(orderId,action){
+        const url = `/admin/order/return/${action}/${orderId}`
+        try {
+            const response = await fetch(url,{
+                method: "POST"
+            })
+
+            const data = await response.json()
+
+            if(response.ok){
+                Swal.fire({
+                    icon: "success",
+                    title: "Success !!!",
+                    text : `${action === 'approve' ? 'Approved' : 'Denied'} Successfully`,
+                    showConfirmButtton : "OK"
+                }).then(() => {
+               location.reload(); 
+               });
+            } else {
+            Swal.fire({
+                icon: "error",
+                title: "Error!",
+                text: data.message || "Something went wrong.",
+                confirmButtonText: "Try Again"
+            });
+           } 
+        } catch (error) {
+            console.error("Error in return action:", error);
+            Swal.fire({
+                icon: "error",
+                title: "Error!",
+                text: "An error occurred. Please try again.",
+                confirmButtonText: "Close"
+            });
+        }
+    }    
+    
+    
+</script>
+
+<%- include("../partials/admin/footer") %>

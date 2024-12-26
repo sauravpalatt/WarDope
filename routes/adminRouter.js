@@ -38,7 +38,11 @@ router.post("/editProduct/:id",upload,adminAuth, productController.productEdit)
 router.delete("/deleteSize/:id",adminAuth,productController.deleteSize)
 
 //Order Mgt
-// router.get("/orderList",adminAuth,productController.orderListInfo)
+router.get("/orderlist",adminAuth,productController.orderListInfo)
+router.get("/orderDetail/:orderId",adminAuth,productController.orderDetailInfo)
+router.post("/order/status/:orderId",adminAuth,productController.orderStatus)
+router.post("/order/return/approve/:orderId", adminController.approveReturn);
+router.post("/order/return/deny/:orderId", adminController.denyReturn);
 
 module.exports = router
 

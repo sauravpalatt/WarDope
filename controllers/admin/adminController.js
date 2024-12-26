@@ -2,6 +2,7 @@ const mongoose = require("mongoose")
 const bcrypt = require("bcrypt")
 const env = require("dotenv").config()
 const User = require("../../models/userSchema")
+const Order = require("../../models/orderSchema")
 
 const pageerror = (req,res)=>{
    res.render("page-error")
@@ -66,11 +67,60 @@ const adminLogout = (req,res)=>{
     })
 }
 
+const approveReturn = async(req,res)=>{
+    const { orderId } = req.params
+
+    try {
+      const order = await Order.findById(orderId)
+      
+      if (!order) {
+        return res.status(404).json({ message: "Order not found" });
+      }
+
+      if (order.status !== "return requested") {
+        return res.status(400).json({ message: "Cannot approve return for this order." });
+      }
+
+       order.status = "return approved"
+       await order.save();
+
+       res.status(200).json({ message: "Return approved successfully." })
+
+    } catch (error) {
+        console.error("ERROR IN APPROVE RETURN FN: ",error)
+    }
+}
+
+const denyReturn = async(req,res)=>{
+    const {orderId} = req.params
+    try {
+        const order = await Order.findById(orderId)
+
+        if(!order){
+            return res.status(404).json({ message: "Order not found" })
+        }
+
+        if (order.status !== "return requested") {
+            return res.status(400).json({ message: "Cannot approve return for this order." });
+        }
+
+        order.status = "return denied";
+        await order.save();
+
+        res.status(200).json({ message: "Return denied successfully." })
+
+    } catch (error) {
+        console.error("ERROR IN DENY RETURN FN",error)
+    }
+}
+
 module.exports={
     loadLogin,
     login,
     loadDashboard,
     pageerror,
-    adminLogout
+    adminLogout,
+    approveReturn,
+    denyReturn
 }
 

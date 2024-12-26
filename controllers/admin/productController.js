@@ -4,6 +4,8 @@ const User = require("../../models/userSchema");
 const fs = require("fs");
 const path = require("path");
 const sharp = require("sharp");
+const Order = require("../../models/orderSchema");
+const Address = require("../../models/addressSchema")
 
 
 const addProductInfo = async (req, res) => {
@@ -279,6 +281,95 @@ const deleteSize = async(req,res)=>{
   }
 }
 
+const orderListInfo = async(req,res)=>{
+  try {
+    const orders = await Order.find()
+    .populate("userId","name email")
+
+    orders.forEach(order => {
+      const date = new Date(order.createdAt);
+      order.formattedDate = date.toLocaleDateString('en-GB'); // Format: DD/MM/YYYY
+  });
+
+  res.render("orderlistAdmin",{orders})
+  } catch (error) {
+    console.error(`ERROR FETCHING ORDER LIST INFO:${error}`)
+    
+  }
+}
+
+const orderDetailInfo = async (req, res) => {
+  try {
+    const { orderId } = req.params;  
+
+    const order = await Order.findOne({ orderId }).populate('userId');  
+
+    if (!order) {
+      return console.log("Order not found in the database");
+    }
+
+    const addressId = order.addressId; 
+
+    console.log(`addressId  : ${addressId}`)
+
+    const userId = order.userId;  
+
+    const addressDoc = await Address.findOne({
+      userId: userId,  
+      "addresses._id": addressId
+    }, {
+      "addresses.$": 1  
+    });
+
+    if (!addressDoc) {
+      return console.log("Address not found for this user");
+    }
+
+    const address = addressDoc.addresses[0];  
+
+    res.render("orderDetailAdmin", {
+      order, 
+      address   
+    });
+
+  } catch (error) {
+    console.error("Error in fetching order details:", error);
+    res.status(500).send("Internal Server Error");
+  }
+};
+
+const orderStatus = async(req,res)=>{
+  const { orderId } = req.params
+ 
+  const { status } = req.body
+ 
+  try {
+    const order = await Order.findOne({orderId:orderId})
+
+    if(!order){
+      return res.status(400).json({success:false,message:"Order not found !!!"})
+    }
+
+    if(order.status === 'canceled'){
+      return res.status(400).json({success:false,message:"Order status cannot be changed for cancelled product"})
+    }
+
+    if(order.status === status){
+      return res.status(400).json({success:false,message:"Order status is already set to this value"})
+    }
+
+    order.status = status
+
+    await order.save()
+
+    res.status(200).json({success:true,message: 'Order status updated successfully' });
+
+  } catch (error) {
+    console.error('Error updating order status:', error);
+    res.status(500).json({success:false,message:'Internal Server Error' });
+  }
+}
+
 module.exports = {
   addProductInfo,
   addProduct,
@@ -288,5 +379,8 @@ module.exports = {
   productStatus,
   productEditInfo,
   productEdit,
-  deleteSize
+  deleteSize,
+  orderListInfo,
+  orderDetailInfo,
+  orderStatus
 };

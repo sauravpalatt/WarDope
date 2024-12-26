@@ -14,8 +14,9 @@ const orderSchema = new mongoose.Schema({
     totalPrice: { type: Number, required: true },
     addressId: { type: mongoose.Schema.Types.ObjectId, ref: 'Address', required: true },
     deliveryType: { type: String, required: true },
-    status: { type: String, enum: ['pending', 'shipped', 'delivered', 'canceled'], default: 'pending' },
+    status: { type: String, enum: ['pending', 'shipped', 'delivered', 'canceled', 'return requested', 'return approved', 'return denied'], default: 'pending' },
     createdAt: { type: Date, default: Date.now },
+    updatedAt: { type: Date, default: Date.now }
 });
 
 const Order = mongoose.model('Order', orderSchema);
