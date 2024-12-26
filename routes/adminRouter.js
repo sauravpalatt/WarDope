@@ -37,6 +37,9 @@ router.get("/editProduct/:id",adminAuth,productController.productEditInfo)
 router.post("/editProduct/:id",upload,adminAuth, productController.productEdit)
 router.delete("/deleteSize/:id",adminAuth,productController.deleteSize)
 
+//Order Mgt
+// router.get("/orderList",adminAuth,productController.orderListInfo)
+
 module.exports = router
 
 

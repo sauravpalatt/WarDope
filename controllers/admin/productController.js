@@ -148,7 +148,8 @@ const productEdit = async (req, res) => {
 
     const updatedProduct = await Product.findByIdAndUpdate(productId, updateFields, { new: true });
 
-    res.status(200).json({ success: true, message: "Product updated successfully!", updatedProduct });
+    console.log("exiting from here")
+  res.status(200).json({ success: true, message: "Product updated successfully!" });
 
   } catch (error) {
     console.error("Error in productEdit function:", error);

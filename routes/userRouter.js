@@ -20,7 +20,7 @@ router.post("/verifyOtpPwd",userController.verifyOtpPwd)
 router.get("/changePasswordInfo",userController.changePwdInfo)
 router.post("/changePassword",userController.changePwd)
 router.get("/pagenotfound",userController.pageNotFound)
-router.post("/verifyOtp",userController.verifyOtp)
+router.post("/verify-otp",userController.verifyOtp)
 router.post("/resend-otp",userController.resendOtp)
 router.get("/auth/google",passport.authenticate("google",{scope:["profile","email"], prompt: 'select_account'}))
 router.get("/auth/google/callback",passport.authenticate("google",{failureRedirect:"/signup"}),(req,res)=>{

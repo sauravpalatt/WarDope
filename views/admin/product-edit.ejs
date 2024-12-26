@@ -235,6 +235,7 @@
     }
 </script>
 
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
 <script>
 function injectImageToFileInput(imageSrc, num) {
@@ -302,8 +303,10 @@ function injectImageToFileInput(imageSrc, num) {
         if (cropper3) cropper3.destroy();
     }
 
-//////////
-const array =[]
+</script>
+
+<script>
+
 function validateForm() {
     let isValid = true;
 
@@ -337,9 +340,9 @@ function validateForm() {
     }
 
     return isValid;
-}
+  }
 
-    // const array =[]
+    const array =[]
     document.getElementById("addVariantBtn").addEventListener("click",(e)=>{
         e.preventDefault()
     
@@ -350,7 +353,6 @@ function validateForm() {
     
         array.push(variant)
     
-       //Display Table Of Size & Qty
         const tableBody = document.getElementById("tableBody")
         tableBody.innerHTML=''
 
@@ -365,8 +367,11 @@ function validateForm() {
             tableBody.innerHTML += value 
         })  
     })
+     
+</script>
 
-  
+<script>
+
 const form = document.getElementById('productUpdateForm');
 
 form.addEventListener('submit', async (e) => {
@@ -374,51 +379,40 @@ form.addEventListener('submit', async (e) => {
 
     if (!validateForm()) 
         return;
-    
+
     const formData = new FormData(form);
 
-    console.log(`FROM FORM EDIT add event listner : ${formData}`)
-  
     try {
-    const response = await fetch(form.action, {
-    method: 'POST',
-    body: formData,
-});
+        const response = await fetch(form.action, {
+            method: 'POST',
+            body: formData,
+        });
 
-if (response.ok) {
-    
-    const result = await response.json();
+        const data = await response.json();
+         console.log(`DATA: ${data}`)
 
-    Swal.fire({
-        icon: "success",
-        title: 'Product updated successfully!',
-        confirmButtonText: "OK", 
-        timer: 2000,
-    });
-
-    // window.location.reload(); 
-
-} else {
-    
-    const errorData = await response.json();
-
-    Swal.fire({
-        icon: "error",
-        title: 'Error updating product',
-        text: errorData.message || 'Something went wrong!',
-        confirmButtonText: "OK",
-    });
-    }
+        if (data.success) {
+            Swal.fire({
+                title: 'Success!',
+                text: data.message, // Ensure `data.message` contains the success text
+                icon: 'success',
+            });
+        } else {
+            Swal.fire({
+                title: 'Error!',
+                text: data.error || 'Something went wrong!',
+                icon: 'error',
+            });
+        }
     } catch (error) {
-        console.log("ENTERS CATCH BLOCK")
-        alert('An error occurred while updating the product. Please try again.');
-        console.error(error);
+        Swal.fire({
+            title: 'Error!',
+            text: error.message || 'Unable to process the request.',
+            icon: 'error',
+        });
     }
 });
-
 </script>
-
-
 
 <%-include("../partials/admin/footer")  %>
 

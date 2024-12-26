@@ -29,17 +29,17 @@ const userProfile = async(req,res)=>{
     try {
         const {name,email,oldPassword,newPassword} = req.body
 
-
         const user = await User.findOne({email})
 
         if(user){
-
-        const isPasswordMatch = await bcrypt.compare(oldPassword, user.password);
+            
+            if(oldPassword && newPassword){
+                const isPasswordMatch = await bcrypt.compare(oldPassword, user.password);
 
             if (!isPasswordMatch) {
                 return res.status(400).json({
                     success: false,
-                    message: "Password Mismatch or Empty fields",
+                    message: "Old Password is incorrect !!!",
                 });
             }
 
@@ -47,23 +47,14 @@ const userProfile = async(req,res)=>{
             const hashedPassword = await bcrypt.hash(newPassword, salt); 
             user.password = hashedPassword; 
 
-            user.name = name,
-            user.address = address
+            }
 
+            user.name = name
             await user.save()
             
             return res.status(200).json({success:true,message:"Profile Updated successfully..."})
-
-        }else{
-
-           const newUser = new User({name,email,password})
-           await newUser.save()
-           return res.status(200).json({success:true,message:"Profile Created successfully..."})
-
         }
-
     } catch (error) {
-
         console.error("ERROR IN USER PROFILE FN",error)
     }
 }
