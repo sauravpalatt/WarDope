@@ -84,10 +84,30 @@
         e.preventDefault()
 
         const orderId = "<%= order.orderId %>"
-
+        const currentStatus = "<%= order.status %>"
         const status = document.getElementById("orderStatus").value
 
-        if(status === "<%= order.status %>") return;
+        if ((currentStatus === "shipped" || currentStatus === "delivered") && status === "pending") {
+            Swal.fire({
+                title: 'Oops',
+                text: `Cannot change the status from ${currentStatus} to pending.`,
+                icon: 'warning',
+                confirmButtonText: 'OK'
+            });
+            return;
+
+        } else if((currentStatus === "delivered") && status === "shipped"){
+            Swal.fire({
+                title: 'Oops',
+                text: `Cannot change the status from ${currentStatus} to shipped.`,
+                icon: 'warning',
+                confirmButtonText: 'OK'
+            });
+            return;
+        }
+
+        
+        if(status === currentStatus) return;
 
         try {
         

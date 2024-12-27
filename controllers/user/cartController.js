@@ -8,10 +8,10 @@ const Address = require("../../models/addressSchema")
 
 const cartList = async(req,res)=>{
     try {
-        const user = req.session.user
-        const userId = user._id
+        const userId = req.session.user
+        
       
-        if(!userId || !user){
+        if(!userId){
           return console.log("User not found in cart")
         }
 
@@ -20,7 +20,7 @@ const cartList = async(req,res)=>{
         const cart = await Cart.findOne({ user: userId }).populate('items.product');
 
         if(!cart || cart.length == 0){
-            res.render("cart",{
+            return res.render("cart",{
                 user:userData,
                 cartItems : [],
                 totalPrice : 0

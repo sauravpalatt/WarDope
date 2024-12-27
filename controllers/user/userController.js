@@ -20,6 +20,7 @@ const loadHomePage = async (req, res) => {
     try {
         const user = req.session.user;
 
+
         const categories= await Category.find({isActive:true})
         let productData = await Product.find({
             isBlocked:false,
@@ -30,7 +31,8 @@ const loadHomePage = async (req, res) => {
         productData = productData.slice(0,4)
 
         if (user) {
-            let userData = await User.findOne({ _id: new mongoose.Types.ObjectId(user._id) });
+            let userData = await User.findOne({ _id:user});
+            console.log(`userData: ${userData}`,`user ${user}`)
             return res.render("home", { user: userData, product:productData});
 
         } else {
@@ -343,15 +345,15 @@ const logout=async(req,res)=>{
 }
 
 const productDetailInfo = async(req,res)=>{
-   
     try {
         const user = req.session.user
         const {id} = req.params; 
         const product = await Product.findById(id)
 
+        const userId = await User.findById(user)
+
         if(product){
-           
-            return res.render("product_detail",{user,product:product})
+            return res.render("product_detail",{user:userId,product:product})
         }else{
             console.log("Product does not exist...")
         } 

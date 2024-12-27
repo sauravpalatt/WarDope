@@ -26,7 +26,7 @@ router.get("/auth/google",passport.authenticate("google",{scope:["profile","emai
 router.get("/auth/google/callback",passport.authenticate("google",{failureRedirect:"/signup"}),(req,res)=>{
     res.redirect("/")
 })
-router.get("/productDetail/:id",userController.productDetailInfo)
+router.get("/productDetail/:id",userAuth,userController.productDetailInfo)
 router.get("/productList",userController.productList)
 
 //profile 
@@ -45,7 +45,7 @@ router.delete("/deleteAddress/:id",addressController.deleteAddress)
 
 //cart
 router.post("/cart/add",userAuth,cartController.addToCart)
-router.get("/cart",cartController.cartList)
+router.get("/cart",userAuth,cartController.cartList)
 router.post("/cart/update/:itemId",userAuth,cartController.updateCartQty)
 router.delete("/cart/remove/:itemId",userAuth,cartController.deleteCartItem)
 
