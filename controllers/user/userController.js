@@ -365,34 +365,47 @@ const productList = async (req, res) => {
     try {
         const user = req.session.user;
 
-        // Fetch categories
         const categories = await Category.find({ isActive: true });
 
-        // Get sorting option from query string
         let sortOption = req.query.sort;
         let sortCriteria = {};
 
-        // Apply sorting based on query parameter
         if (sortOption === 'latest') {
-            sortCriteria = { createdAt: -1 };  // Sort by creation date (descending)
+            sortCriteria = { createdAt: -1 };  
         } else if (sortOption === 'lowToHigh') {
-            sortCriteria = { promotionalPrice: 1 };  // Sort by promotional price (ascending)
+            sortCriteria = { promotionalPrice: 1 };  
         } else if (sortOption === 'highToLow') {
-            sortCriteria = { promotionalPrice: -1 };  // Sort by promotional price (descending)
+            sortCriteria = { promotionalPrice: -1 };  
         }
 
-        // Find products with the appropriate sorting
-        let productData = await Product.find({
+        let searchTerm = req.query.search || '';  
+
+        let filterCriteria = {
             isBlocked: false,
             category: { $in: categories.map(category => category._id) },
-        }).sort(sortCriteria);  // Apply sorting criteria
+        };
 
-        // Render the page based on user login status
+        if (searchTerm) {
+            filterCriteria.productName = { $regex: searchTerm, $options: 'i' }; 
+        }
+
+        let minPrice = 0;
+        let maxPrice = 2000;
+
+        if (req.query.minPrice || req.query.maxPrice) {
+            minPrice = req.query.minPrice ? parseInt(req.query.minPrice) : 0;
+            maxPrice = req.query.maxPrice ? parseInt(req.query.maxPrice) : 2000;
+
+            filterCriteria.promotionalPrice = { $gte: minPrice, $lte: maxPrice };
+        }
+
+        let productData = await Product.find(filterCriteria).sort(sortCriteria); 
+
         if (user) {
             let userData = await User.findOne({ _id: new mongoose.Types.ObjectId(user._id) });
-            return res.render("product-listUser", { user: userData, product: productData });
+            return res.render("product-listUser", { user: userData, product: productData, search: searchTerm, minPrice, maxPrice });
         } else {
-            return res.render("product-listUser", { product: productData, category: categories });
+            return res.render("product-listUser", { product: productData, search: searchTerm, minPrice, maxPrice });
         }
 
     } catch (error) {

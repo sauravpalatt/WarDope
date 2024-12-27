@@ -44,6 +44,10 @@ router.post("/order/status/:orderId",adminAuth,productController.orderStatus)
 router.post("/order/return/approve/:orderId", adminController.approveReturn);
 router.post("/order/return/deny/:orderId", adminController.denyReturn);
 
+//Stock Mgt
+router.get("/stockList",adminAuth,productController.stockListInfo)
+router.post("/updateStock",adminAuth,productController.stockUpdate)
+
 module.exports = router
 
 

@@ -17,21 +17,49 @@
 <div class="container-fluid pt-5">
     <div class="row px-xl-5">
 
-        <!-- Shop Product Start -->
+        <form method="GET" action="/productList">
+            <!-- Search Input -->
+            <div class="input-group mb-3">
+                <input 
+                    type="text" 
+                    class="form-control" 
+                    name="search" 
+                    placeholder="Search by name" 
+                    value="<%= search || '' %>">
+                <div class="input-group-append">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fa fa-search"></i>
+                    </button>
+                </div>
+            </div>
+        
+            <!-- Price Range Filters -->
+            <div class="form-group">
+                <input 
+                    type="number" 
+                    class="form-control mb-2" 
+                    name="minPrice" 
+                    placeholder="Min Price" 
+                    value="<%= minPrice || '' %>">
+            </div>
+            <div class="form-group">
+                <input 
+                    type="number" 
+                    class="form-control mb-2" 
+                    name="maxPrice" 
+                    placeholder="Max Price" 
+                    value="<%= maxPrice || '' %>">
+            </div>
+        
+            <!-- Submit Button -->
+            <button type="submit" class="btn btn-primary btn-block">Apply Filters</button>
+        </form>
+
+       
         <div class="col">
             <div class="row pb-3">
                 <div class="col-12 pb-1">
                     <div class="d-flex align-items-center justify-content-between mb-4">
-                        <form action="">
-                            <div class="input-group">
-                                <input type="text" class="form-control" placeholder="Search by name">
-                                <div class="input-group-append">
-                                    <span class="input-group-text bg-transparent text-primary">
-                                        <i class="fa fa-search"></i>
-                                    </span>
-                                </div>
-                            </div>
-                        </form>
                         <div class="dropdown ml-4">
                             <button class="btn border dropdown-toggle" type="button" id="triggerId" data-toggle="dropdown" aria-haspopup="true"
                                     aria-expanded="false">

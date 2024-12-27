@@ -370,6 +370,45 @@ const orderStatus = async(req,res)=>{
   }
 }
 
+const stockListInfo = async(req,res)=>{
+  try {
+    const products = await Product.find()
+    
+    if(!products){
+      console.log("Products cannot be fetched")
+    }
+
+    res.render("stocklist",{products})
+
+  } catch (error) {
+    console.error("ERROR IN STOCK LIST INFO FUNCTION",error)
+  }
+}
+
+const stockUpdate = async(req,res)=>{
+  try {
+    const {productId, size, quantity} = req.body
+
+    const product = await Product.findById(productId)
+
+    const variant = product.variants.find(variant => variant.size === size)
+
+    if(!variant){
+      console.log("variant not found ")
+    }
+
+    variant.stock = quantity
+    
+    await product.save()
+
+    res.redirect("/admin/stockList")
+
+  } catch (error) {
+
+    console.error("ERROR IN STOCK UPDATE FUNCTION: ",error)
+  }
+}
+
 module.exports = {
   addProductInfo,
   addProduct,
@@ -382,5 +421,7 @@ module.exports = {
   deleteSize,
   orderListInfo,
   orderDetailInfo,
-  orderStatus
+  orderStatus,
+  stockListInfo,
+  stockUpdate
 };

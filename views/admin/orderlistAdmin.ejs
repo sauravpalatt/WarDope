@@ -26,7 +26,11 @@
                         <%= order.status === 'shipped' ? 'bg-info' : '' %>
                         <%= order.status === 'pending' ? 'bg-warning' : '' %>
                         <%= order.status === 'delivered' ? 'bg-success' : '' %>
-                        <%= order.status === 'canceled' ? 'bg-danger' : '' %>">
+                        <%= order.status === 'canceled' ? 'bg-danger' : '' %>
+                        <%= order.status === 'return requested' ? 'bg-secondary' : '' %>
+                        <%= order.status === 'return approved' ? 'bg-success' : '' %>
+                        <%= order.status === 'return denied' ? 'bg-primary' : '' %>">
+
                         <%= order.status %>
                         </span>
                         </td>

@@ -1,0 +1,156 @@
+<%-include("../partials/admin/header")  %>
+
+<style>
+
+.stock-quantity {
+    font-family: Arial, sans-serif;
+    color: #333;
+    padding: 10px;
+    background-color: #f9f9f9;
+    border-radius: 5px;
+}
+
+.stock-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 5px;
+    padding: 5px;
+    border-bottom: 1px solid #ddd;
+}
+
+
+.stock-item strong {
+    font-weight: bold;
+    color: #007bff;
+}
+
+.stock-amount {
+    font-size: 14px;
+    color: #555;
+    padding: 4px 8px;
+    border-radius: 5px;
+    background-color: #f1f1f1;
+    text-align: center;
+    font-weight: 500;
+}
+
+.stock-amount {
+    background-color: #d1e7dd;
+    color: #2c6e2f;
+}
+
+.stock-item:nth-child(even) {
+    background-color: #f7f7f7;
+}
+</style>
+
+<div class="card-body">
+    <div class="table-responsive">
+        <table class="table table-hover">
+            <thead>
+                <tr>
+                    <th  scope="col">Product Name</th>
+                    <th  scope="col">Price</th>
+                    <th class="text-center" scope="col">Stock Size</th>
+                    <th class="text-center" scope="col">Update Stock</th>
+                </tr>
+            </thead>
+            <tbody>
+                <% products.forEach(product => { %>
+                    <tr>
+                        <td><%= product.productName %></td>
+                        <td>₹<%= product.promotionalPrice %></td>
+                        <td class="stock-quantity">
+                            <% product.variants.forEach(stock => { %>
+                                <div class="stock-item">
+                                    <strong><%= stock.size %>:</strong> 
+                                    <span class="stock-amount"><%= stock.stock %></span>
+                                </div>
+                            <% }); %>
+                        </td>
+                        <td class="text-center">
+                            <button class="btn btn-primary" 
+                                data-bs-toggle="modal" 
+                                data-bs-target="#updateStockModal" 
+                                data-product-id="<%= product._id %>"
+                                data-product-name="<%= product.productName %>"
+                                data-variants="<%= JSON.stringify(product.variants) %>">
+                                Update Stock
+                            </button>
+                        </td>
+                    </tr>
+                <% }); %>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Update Stock Modal -->
+<div class="modal fade" id="updateStockModal" tabindex="-1" aria-labelledby="updateStockModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="updateStockModalLabel">Update Stock Quantity</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <form id="updateStockForm" action="/admin/updateStock" method="POST">
+            <!-- Product ID (hidden) -->
+            <input type="hidden" id="productId" name="productId">
+            
+            <div class="mb-3">
+              <label for="productName" class="form-label">Product</label>
+              <input type="text" class="form-control" id="productName" name="productName" readonly>
+            </div>
+  
+            <div class="mb-3">
+              <label for="stockSize" class="form-label">Size</label>
+              <select class="form-select" id="stockSize" name="size" required></select>
+            </div>
+  
+            <div class="mb-3">
+              <label for="stockQuantity" class="form-label">Stock Quantity</label>
+              <input type="number" class="form-control" id="stockQuantity" name="quantity" required>
+            </div>
+  
+            <button type="submit" class="btn btn-primary">Save Changes</button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+
+
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+    const updateStockButtons = document.querySelectorAll('[data-bs-toggle="modal"]');
+    
+    updateStockButtons.forEach(button => {
+        button.addEventListener('click', (e) => {
+           
+            const productId = button.getAttribute('data-product-id');
+            const productName = button.getAttribute('data-product-name');
+            const variants = JSON.parse(button.getAttribute('data-variants'));
+
+            document.getElementById('productId').value = productId;
+            document.getElementById('productName').value = productName;
+
+            const sizeDropdown = document.getElementById('stockSize');
+            sizeDropdown.innerHTML = ''; 
+
+            variants.forEach(variant => {
+                const option = document.createElement('option');
+                option.value = variant.size;
+                option.textContent = variant.size;
+                sizeDropdown.appendChild(option);
+            });
+
+            document.getElementById('stockQuantity').value = variants[0].stock; 
+        });
+    });
+});
+
+  </script>
+   
+<%-include("../partials/admin/footer")  %>
