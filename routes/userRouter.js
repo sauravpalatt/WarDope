@@ -23,14 +23,19 @@ router.get("/pagenotfound",userController.pageNotFound)
 router.post("/verify-otp",userController.verifyOtp)
 router.post("/resend-otp",userController.resendOtp)
 router.get("/auth/google",passport.authenticate("google",{scope:["profile","email"], prompt: 'select_account'}))
-router.get("/auth/google/callback",passport.authenticate("google",{failureRedirect:"/signup"}),(req,res)=>{
-    res.redirect("/")
-})
+router.get("/auth/google/callback", 
+    passport.authenticate("google", { failureRedirect: "/signup" }), 
+    (req, res) => {
+        req.session.googleUser = req.user;
+        res.redirect("/");
+    }
+);
+
 router.get("/productDetail/:id",userAuth,userController.productDetailInfo)
 router.get("/productList",userController.productList)
 
 //profile 
-router.get("/userProfile",profileController.userProfileInfo)
+router.get("/userProfile",userAuth,profileController.userProfileInfo)
 router.post("/userProfile",profileController.userProfile)
 
 //address

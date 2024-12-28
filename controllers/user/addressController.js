@@ -71,8 +71,8 @@ const Cart = require("../../models/cartSchema")
 
     const addAddressInfo = async(req,res)=>{
         try {
-            const {user} = req.session
-            const userId = await User.findById(user._id)
+            const user = req.session.user
+            const userId = await User.findById(user)
 
             if(userId){
                 return res.render("addAddress",{user:userId})         
@@ -86,7 +86,9 @@ const Cart = require("../../models/cartSchema")
 
     const addAddress = async (req, res) => {
         try {
-            const { user } = req.session;
+            const  user  = req.session.user;
+
+            console.log(`user: ${user}`)
     
             if (!user) {
                 return res.status(401).json({ message: "Unauthorized access. Please log in." });
@@ -102,7 +104,7 @@ const Cart = require("../../models/cartSchema")
                 return res.status(400).json({ message: "Invalid pincode format. Must be 6 digits." });
             }
     
-            const userAddresses = await Address.findOne({ userId: user._id });
+            const userAddresses = await Address.findOne({ userId: user });
     
             if (userAddresses) {
                 
@@ -119,7 +121,7 @@ const Cart = require("../../models/cartSchema")
             } else {
                 
                 const newAddress = new Address({
-                    userId: user._id,
+                    userId: user,
                     addresses: [{
                         title,
                         street,
@@ -144,7 +146,7 @@ const Cart = require("../../models/cartSchema")
        
         try {
             const {user} = req.session
-            const userId = await User.findOne({_id:user._id})
+            const userId = await User.findOne({_id:user})
             
             if(userId){
 
@@ -197,7 +199,7 @@ const Cart = require("../../models/cartSchema")
     const deleteAddress = async (req, res) => {
         try {
             const user = req.session.user;
-            const userId = user._id;
+            const userId = user;
     
             const { id } = req.params;
     

@@ -16,7 +16,7 @@ const userProfileInfo = async(req,res)=>{
         return console.log(`USER DOES NOT EXIST !!!`)
        }
 
-       const userData = await User.findOne({_id: user._id})
+       const userData = await User.findById(user)
 
        res.render("profile",{user:userData})
 

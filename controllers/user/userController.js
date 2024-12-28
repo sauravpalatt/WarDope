@@ -7,6 +7,7 @@ const bcrypt = require("bcrypt")
 const nodemailer = require("nodemailer")
 const mongoose = require('mongoose');
 
+
 const pageNotFound = async(req,res)=>{
     try {
         res.render("page_404")
@@ -18,8 +19,8 @@ const pageNotFound = async(req,res)=>{
 
 const loadHomePage = async (req, res) => {
     try {
+        req.session.user=req.session.user || req.session.googleUser._id
         const user = req.session.user;
-
 
         const categories= await Category.find({isActive:true})
         let productData = await Product.find({

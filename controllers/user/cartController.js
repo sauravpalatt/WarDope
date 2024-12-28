@@ -43,7 +43,7 @@ const addToCart = async (req, res) => {
     const user = req.session.user;
     const userId = await User.findById(user._id);
 
-    const { size, productId, quantity } = req.body;
+    const { size, productId, quantity, stockLeft } = req.body;
 
     if (!size || !quantity || !userId) {
       return res.status(400).json({ message: 'Size, UserId, and Quantity are required.' });
@@ -57,11 +57,6 @@ const addToCart = async (req, res) => {
     const price = product.regularPrice;
     const totalItemPrice = price * quantity;
 
-    // Check if the stock is sufficient
-    if (product.stock < quantity) {
-      return res.status(400).json({ message: 'Insufficient stock for the selected quantity.' });
-    }
-
     let cart = await Cart.findOne({ user: userId });
 
     if (cart) {
@@ -70,19 +65,19 @@ const addToCart = async (req, res) => {
       );
 
       if (existingProductIndex !== -1) {
-        // If the same product with the same size already exists, return a friendly message
+        
         return res.status(200).json({
           message: 'This product is already in your cart with the selected size.',
-          type: 'warning', // Indicate the type of message (warning)
+          type: 'warning', 
         });
       } else {
-        // If the product doesn't exist in the cart, add it
+        
         cart.items.push({ product: productId, quantity, size });
         cart.totalPrice += totalItemPrice;
         await cart.save();
       }
     } else {
-      // If the cart doesn't exist, create a new one
+      
       cart = new Cart({
         user: userId,
         items: [{ product: productId, quantity, size }],
@@ -100,8 +95,8 @@ const addToCart = async (req, res) => {
   }
 };
 
-
 const updateCartQty = async (req, res) => {
+  
     try {
       const { quantity } = req.body;  
       const { itemId } = req.params;   
@@ -237,14 +232,16 @@ const updateCartQty = async (req, res) => {
 
 const ordersList = async(req,res)=>{
   try {
-    const userId = req.session.user._id
-   
+    const userId = req.session.user
+   console.log("userId:",userId)
     if(userId){
       const orders = await Order.find({ userId }).sort({ createdAt: -1 })
+
+      const user = await User.findById(userId)
         
       res.render("orderList",{
         orders,
-        user:userId
+        user
       })
     }
 
