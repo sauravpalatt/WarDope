@@ -52,7 +52,9 @@
                             <tr>
                                 <th scope="col">Product Name</th>
                                 <th scope="col">Quantity</th>
+                                <th scope="col">Size</th>
                                 <th scope="col">Price</th>
+                                <th scope="col" style="display: none;">Product Id</th>
                             </tr>
                         </thead>
                         <tbody class="cartItemsElements">
@@ -61,7 +63,9 @@
                                     <tr>
                                         <td name="itemName"><%= item.product.productName %></td>
                                         <td name="itemQty"><strong><%= item.quantity %></strong></td>
+                                        <td name="itemSize"><strong><%= item.size %></strong></td>
                                         <td name="itemPrice">$<%= item.product.regularPrice %></td>
+                                        <td name="itemPrdId" style="display: none;"><%= item.product._id %></td>
                                     </tr>
                                 <% }); %>
                             <% } else { %>
@@ -412,27 +416,29 @@ document.getElementById("placeOrderIdBtn").addEventListener("click", function ()
     
     const cartItems = [];
 
-    const cartItemsElements = document.querySelectorAll(".cartItemsElements tr"); // Select tr elements inside tbody
+// Select tr elements inside tbody
+const cartItemsElements = document.querySelectorAll(".cartItemsElements tr");
 
-        if (cartItemsElements.length > 0) {
-            cartItemsElements.forEach(item => {
-                const productNameElement = item.querySelector("[name='itemName']");
-                const priceElement = item.querySelector("[name='itemPrice']");
-                const quantityElement = item.querySelector("[name='itemQty']");
-                
+    if (cartItemsElements.length > 0) {
+        cartItemsElements.forEach(item => {
+            const productNameElement = item.querySelector("[name='itemName']");
+            const priceElement = item.querySelector("[name='itemPrice']");
+            const quantityElement = item.querySelector("[name='itemQty']");
+            const sizeElement = item.querySelector("[name='itemSize']");
+            const productIdElement = item.querySelector("[name='itemPrdId']");
 
-                const productName = productNameElement ? productNameElement.innerText : '';
-                const price = priceElement ? Number(priceElement.innerText.replace('$', '').trim()) : 0;
-                const quantity = quantityElement ? Number(quantityElement.innerText.replace('$', '').trim()) : 0;
+            const productName = productNameElement ? productNameElement.innerText : '';
+            const size = sizeElement ? sizeElement.innerText : '';
+            const price = priceElement ? Number(priceElement.innerText.replace('$', '').trim()) : 0;
+            const quantity = quantityElement ? Number(quantityElement.innerText.trim()) : 0; 
+            const productId = productIdElement ? productIdElement.innerText : '';
 
-                console.log(`prd name: ${productName}`,`prd price: ${price}`,`prdQty: ${quantity}`)
+            cartItems.push({ productName, price, quantity, size, productId });
+        });
+    } else {
+        console.log("No cart items found");
+    }
 
-
-                cartItems.push({ productName, price, quantity });
-            });
-        } else {
-            console.log("No cart items found");
-        }
     
     const totalPriceElement = document.getElementById('dynamicTotalPrice');
 

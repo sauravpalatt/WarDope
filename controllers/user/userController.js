@@ -19,7 +19,8 @@ const pageNotFound = async(req,res)=>{
 
 const loadHomePage = async (req, res) => {
     try {
-        req.session.user=req.session.user || req.session.googleUser._id
+        req.session.user= req.session.user || (req.session.googleUser ? req.session.googleUser._id : null)
+        
         const user = req.session.user;
 
         const categories= await Category.find({isActive:true})
@@ -32,12 +33,12 @@ const loadHomePage = async (req, res) => {
         productData = productData.slice(0,4)
 
         if (user) {
-            let userData = await User.findOne({ _id:user});
-            console.log(`userData: ${userData}`,`user ${user}`)
+            let userData = await User.findById(user);
             return res.render("home", { user: userData, product:productData});
 
         } else {
-            return res.render("home",{ product:productData,category:categories});
+            console.log("home page else case")
+            return res.render("home",{ product:productData});
         }
     } catch (error) {
         console.error("Home page not rendered:", error);
@@ -405,7 +406,7 @@ const productList = async (req, res) => {
         let productData = await Product.find(filterCriteria).sort(sortCriteria); 
 
         if (user) {
-            let userData = await User.findOne({ _id: new mongoose.Types.ObjectId(user._id) });
+            let userData = await User.findById(user);
             return res.render("product-listUser", { user: userData, product: productData, search: searchTerm, minPrice, maxPrice });
         } else {
             return res.render("product-listUser", { product: productData, search: searchTerm, minPrice, maxPrice });

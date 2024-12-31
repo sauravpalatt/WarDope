@@ -34,8 +34,10 @@
                     <tr>
                         <th>Product</th>
                         <th>Quantity</th>
+                        <th>Size</th>
                         <th>Price</th>
                         <th>Subtotal</th>
+                        <th style="display: none;">Product Id</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -43,8 +45,10 @@
                         <tr>
                             <td><%= item.productName %></td>
                             <td><%= item.quantity %></td>
+                            <td><%= item.size %></td>
                             <td>₹<%= item.price %></td>
                             <td>₹<%= item.quantity * item.price %></td>
+                            <td class="productId" style="display: none;"><%= item.productId %></td>
                         </tr>
                     <% }); %>
                 </tbody>
@@ -69,70 +73,84 @@
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
 <script>
-    const cancelOrderBtn = document.getElementById("cancelOrderBtn");
+   const cancelOrderBtn = document.getElementById("cancelOrderBtn");
 
-        cancelOrderBtn.addEventListener("click", async (e) => {
-            e.preventDefault();
+cancelOrderBtn.addEventListener("click", async (e) => {
+    e.preventDefault();
 
-            const orderId = "<%= order.orderId %>";
+    const orderId = "<%= order.orderId %>"; 
 
-            const result = await Swal.fire({
-                title: "Are you sure?",
-                text: "Do you really want to cancel this order?",
-                icon: "warning",
-                showCancelButton: true,
-                confirmButtonText: "Yes, cancel it!",
-                cancelButtonText: "No, keep it"
+    const orderItems = [];
+    const rows = document.querySelectorAll("table tbody tr");
+
+    rows.forEach((row) => {
+        const productName = row.querySelector("td:nth-child(1)").innerText;
+        const quantity = row.querySelector("td:nth-child(2)").innerText;
+        const size = row.querySelector("td:nth-child(3)").innerText;
+        const productId = row.querySelector(".productId").innerText;
+
+       
+        orderItems.push({ productId, quantity, size });
+    });
+
+    const result = await Swal.fire({
+        title: "Are you sure?",
+        text: "Do you really want to cancel this order?",
+        icon: "warning",
+        showCancelButton: true,
+        confirmButtonText: "Yes, cancel it!",
+        cancelButtonText: "No, keep it"
+    });
+
+    if (result.isConfirmed) {
+        try {
+            const response = await fetch(`/order/cancel/${orderId}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ orderItems }) 
             });
 
-            if (result.isConfirmed) {
-                try {
-                    const response = await fetch(`/order/cancel/${orderId}`, {
-                        method: 'PUT',
-                        headers: {
-                            'Content-Type': 'application/json',
-                        },
-                    });
+            const data = await response.json();
 
-                    const data = await response.json();
-
-                    if (response.ok) {
-                        Swal.fire({
-                            icon: "success",
-                            text: data.message || "Order cancelled successfully",
-                            toast: true,
-                            position: "top-end",
-                            showConfirmButton: false,
-                            timer: 1000,
-                            timerProgressBar: false
-                        });
-                        setTimeout(() => location.reload(), 1500);
-                    } else {
-                        Swal.fire({
-                            icon: "error",
-                            title: "Oops...",
-                            text: data.message || "Something went wrong.",
-                            confirmButtonText: "Try Again"
-                        });
-                    }
-                } catch (error) {
-                    console.error("Error in canceling order:", error);
-                    Swal.fire({
-                        icon: "error",
-                        title: "Error",
-                        text: "An error occurred while canceling the order. Please try again.",
-                        confirmButtonText: "Close"
-                    });
-                }
+            if (response.ok) {
+                Swal.fire({
+                    icon: "success",
+                    text: data.message || "Order cancelled successfully",
+                    toast: true,
+                    position: "top-end",
+                    showConfirmButton: false,
+                    timer: 1000,
+                    timerProgressBar: false
+                });
+                setTimeout(() => location.reload(), 1500);
             } else {
                 Swal.fire({
-                    icon: "info",
-                    title: "Cancelled",
-                    text: "Order cancellation was aborted.",
-                    confirmButtonText: "OK"
+                    icon: "error",
+                    title: "Oops...",
+                    text: data.message || "Something went wrong.",
+                    confirmButtonText: "Try Again"
                 });
             }
+        } catch (error) {
+            console.error("Error in canceling order:", error);
+            Swal.fire({
+                icon: "error",
+                title: "Error",
+                text: "An error occurred while canceling the order. Please try again.",
+                confirmButtonText: "Close"
+            });
+        }
+    } else {
+        Swal.fire({
+            icon: "info",
+            title: "Cancelled",
+            text: "Order cancellation was aborted.",
+            confirmButtonText: "OK"
         });
+    }
+});
 </script>
 
 

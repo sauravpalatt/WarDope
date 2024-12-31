@@ -150,7 +150,6 @@ const productEdit = async (req, res) => {
 
     const updatedProduct = await Product.findByIdAndUpdate(productId, updateFields, { new: true });
 
-    console.log("exiting from here")
   res.status(200).json({ success: true, message: "Product updated successfully!" });
 
   } catch (error) {
@@ -191,7 +190,6 @@ const productsInfo = async(req,res)=>{
 }
 
 const addProductOffer = async(req,res)=>{
-  console.log("HEY FROM ADD PRODUCT OFFER FN")
   try {
       const {productId,percentage} = req.body
       const findProduct = await Product.findById(productId)
@@ -283,12 +281,11 @@ const deleteSize = async(req,res)=>{
 
 const orderListInfo = async(req,res)=>{
   try {
-    const orders = await Order.find()
-    .populate("userId","name email")
+    const orders = await Order.find().populate("userId")
 
     orders.forEach(order => {
       const date = new Date(order.createdAt);
-      order.formattedDate = date.toLocaleDateString('en-GB'); // Format: DD/MM/YYYY
+      order.formattedDate = date.toLocaleDateString('en-GB'); 
   });
 
   res.render("orderlistAdmin",{orders})
@@ -309,8 +306,6 @@ const orderDetailInfo = async (req, res) => {
     }
 
     const addressId = order.addressId; 
-
-    console.log(`addressId  : ${addressId}`)
 
     const userId = order.userId;  
 

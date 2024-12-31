@@ -11,8 +11,9 @@
                         <th>Price</th>
                         <th>Size</th>
                         <th>Quantity</th>
+                        <th style="display: none;">Stock Left</th>
                         <th>Total</th>
-                        <th>Remove</th> > 
+                        <th>Remove</th> 
                     </tr>
                 </thead>
                 <tbody>
@@ -48,6 +49,7 @@
                               </div>
                             </div>
                           </td>
+                          <td class="stock-left" data-item-id="<%= item._id %>" style="display: none;"><%= item.stockLeft %></td>
                           <td class="align-middle" id="item-total-<%= item._id %>">$<%= item.quantity * item.product.regularPrice %></td>
                           <td class="align-middle">
                             <button class="btn btn-sm btn-primary btn-remove" data-item-id="<%= item._id %>">
@@ -98,13 +100,16 @@
     const subtotalElement = document.querySelector('.cart-summary-subtotal');
     const shippingElement = document.querySelector('.cart-summary-shipping');
     const totalElement = document.querySelector('.cart-summary-total');
-
+    
     function updateQuantity(itemId, action) {
       const quantityInput = document.getElementById(`quantity-${itemId}`);
       const itemTotal = document.getElementById(`item-total-${itemId}`);
+      const stockLeftElement = document.querySelector(`.stock-left[data-item-id="${itemId}"]`);
+      const stockLeft = stockLeftElement ? parseInt(stockLeftElement.textContent) : 0;
       let quantity = parseInt(quantityInput.value);
 
-      if (action === 'increase' && quantity < 10) {
+
+      if (action === 'increase' && quantity < 5 && quantity < stockLeft ) {
         quantity++;
       } else if (action === 'decrease' && quantity > 1) {
         quantity--;

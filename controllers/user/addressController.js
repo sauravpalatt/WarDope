@@ -88,8 +88,6 @@ const Cart = require("../../models/cartSchema")
         try {
             const  user  = req.session.user;
 
-            console.log(`user: ${user}`)
-    
             if (!user) {
                 return res.status(401).json({ message: "Unauthorized access. Please log in." });
             }
@@ -218,7 +216,7 @@ const Cart = require("../../models/cartSchema")
 
     const addBillingAddress = async(req,res)=>{
         try {
-            const { user } = req.session;
+            const  user  = req.session.user;
     
             if (!user) {
                 return res.status(401).json({ message: "Unauthorized access. Please log in." });
@@ -234,7 +232,7 @@ const Cart = require("../../models/cartSchema")
                 return res.status(400).json({ message: "Invalid pincode format. Must be 6 digits." });
             }
     
-            const userAddresses = await Address.findOne({ userId: user._id });
+            const userAddresses = await Address.findOne({ userId: user });
     
             if (userAddresses) {
                 
@@ -250,7 +248,7 @@ const Cart = require("../../models/cartSchema")
 
             } else {
                 const newAddress = new Address({
-                    userId: user._id,
+                    userId: user,
                     addresses: [{
                         title,
                         street,

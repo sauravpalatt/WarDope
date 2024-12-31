@@ -6,53 +6,76 @@ const generateOrderId = require("../../utilities/generateOrderId")
 const Address = require("../../models/addressSchema")
 
 
-const cartList = async(req,res)=>{
-    try {
-        const userId = req.session.user
-        
-      
-        if(!userId){
-          return console.log("User not found in cart")
-        }
+const cartList = async (req, res) => {
+  try {
+    const userId = req.session.user;
 
-        const userData = await User.findById(userId)
-
-        const cart = await Cart.findOne({ user: userId }).populate('items.product');
-
-        if(!cart || cart.length == 0){
-            return res.render("cart",{
-                user:userData,
-                cartItems : [],
-                totalPrice : 0
-            })
-        }
-
-        res.render("cart",{
-            user:userData,
-            cartItems : cart?.items,
-            totalPrice : cart?.totalPrice
-        })
-
-    } catch (error) {
-        console.error(`ERROR IN CART LIST FN: ${error}`)
+    if (!userId) {
+      console.log("User not found in cart");
+      return res.render("cart", {
+        user: null,
+        cartItems: [],
+        totalPrice: 0
+      });
     }
-}
+
+    const userData = await User.findById(userId);
+
+    const cart = await Cart.findOne({ user: userId }).populate('items.product');
+
+    if (!cart || cart.items.length === 0) {
+      return res.render("cart", {
+        user: userData,
+        cartItems: [],
+        totalPrice: 0
+      });
+    }
+
+    const cartItems = cart.items.map(item => {
+      const product = item.product;
+      const variantId = item.variantId;
+
+      const variant = product.variants.find(variant => variant._id.toString() === variantId.toString());
+
+      const stockLeft = variant ? variant.stock : 0;
+
+      return {
+        ...item._doc, 
+        stockLeft 
+      };
+    });
+
+    res.render("cart", {
+      user: userData,
+      cartItems, 
+      totalPrice: cart.totalPrice
+    });
+
+  } catch (error) {
+    console.error(`ERROR IN CART LIST FN: ${error}`);
+    res.status(500).send("Internal Server Error");
+  }
+};
 
 const addToCart = async (req, res) => {
   try {
     const user = req.session.user;
-    const userId = await User.findById(user._id);
+    const userId = await User.findById(user);
 
-    const { size, productId, quantity, stockLeft } = req.body;
+    const { size, productId, quantity} = req.body;
 
     if (!size || !quantity || !userId) {
-      return res.status(400).json({ message: 'Size, UserId, and Quantity are required.' });
+      return res.status(400).json({ message: 'Size, UserId, Quantity or Address Details missing.' });
     }
 
     const product = await Product.findById(productId);
     if (!product) {
       return res.status(404).json({ message: 'Product not found.' });
     }
+
+    const variant = await Product.findOne({_id: productId,"variants.size":size},{'variants.$':1})
+    
+    const variantId=variant.variants[0]._id
 
     const price = product.regularPrice;
     const totalItemPrice = price * quantity;
@@ -72,7 +95,7 @@ const addToCart = async (req, res) => {
         });
       } else {
         
-        cart.items.push({ product: productId, quantity, size });
+        cart.items.push({ product: productId, quantity, size, variantId });
         cart.totalPrice += totalItemPrice;
         await cart.save();
       }
@@ -80,7 +103,7 @@ const addToCart = async (req, res) => {
       
       cart = new Cart({
         user: userId,
-        items: [{ product: productId, quantity, size }],
+        items: [{ product: productId, quantity, size, variantId }],
         totalPrice: totalItemPrice,
       });
       await cart.save();
@@ -91,6 +114,7 @@ const addToCart = async (req, res) => {
       cart,
     });
   } catch (error) {
+    console.error("ERROR IN ADD TO CART FUNCTION:",error)
     res.status(500).json({ message: 'Failed to add product to cart.' });
   }
 };
@@ -100,7 +124,7 @@ const updateCartQty = async (req, res) => {
     try {
       const { quantity } = req.body;  
       const { itemId } = req.params;   
-      const userId = req.session.user._id;  
+      const userId = req.session.user;  
   
       const cart = await Cart.findOne({ user: userId }).populate('items.product');
       if (!cart) {
@@ -153,7 +177,7 @@ const updateCartQty = async (req, res) => {
   const deleteCartItem = async (req, res) => {
     try {
       const { itemId } = req.params; // Cart item ID
-      const userId = req.session.user._id; // User ID from session
+      const userId = req.session.user; // User ID from session
   
       // Find the user's cart
       const cart = await Cart.findOne({ user: userId }).populate('items.product');
@@ -177,10 +201,9 @@ const updateCartQty = async (req, res) => {
         0
       );
   
-      // Return only the cartSubtotal to the frontend
       res.json({
         message: "Item removed successfully",
-        cartSubtotal, // Only send the updated subtotal
+        cartSubtotal, 
       });
     } catch (error) {
       console.error("Error deleting cart item:", error);
@@ -188,26 +211,57 @@ const updateCartQty = async (req, res) => {
     }
 };
 
-  const placeOrder = async (req,res)=>{
-   try {
-    const userId = req.session.user._id;
-    const { cartItems, totalPrice, addressId, deliveryType } = req.body;
+const placeOrder = async (req, res) => {
+  try {
+      const userId = req.session.user;
+      const { cartItems, totalPrice, addressId, deliveryType } = req.body;
 
-    if (!cartItems || cartItems.length === 0) {
-        return res.status(400).json({ error: 'Cart items cannot be empty' });
-    }
+      if (!cartItems || cartItems.length === 0) {
+          return res.status(400).json({ error: 'Cart items cannot be empty' });
+      }
 
-    if (!totalPrice || totalPrice <= 0) {
-        return res.status(400).json({ error: 'Total price must be greater than 0' });
-    }
+      if (!totalPrice || totalPrice <= 0) {
+          return res.status(400).json({ error: 'Total price must be greater than 0' });
+      }
 
-    if (!addressId) {
-        return res.status(400).json({ error: 'Address ID is required' });
-    }
+      if (!addressId) {
+          return res.status(400).json({ error: 'Address ID is required' });
+      }
 
-    if (!deliveryType) {
-        return res.status(400).json({ error: 'Delivery type is required' });
-    }
+      if (!deliveryType) {
+          return res.status(400).json({ error: 'Delivery type is required' });
+      }
+
+      for (const { productId, size, quantity } of cartItems) {
+        
+          const variant = await Product.findOne(
+              { _id: productId, "variants.size": size },
+              { "variants.$": 1 }
+          );
+
+          if (!variant) {
+              return console.log( `Product or variant not found for productId: ${productId}, size: ${size}`);
+          }
+
+          const stockLeft = variant.variants[0].stock;
+
+          if (stockLeft < quantity) {
+              return res.status(400).json({ 
+                  error: `Insufficient stock for productId: ${productId}, size: ${size}. Available stock: ${stockLeft}` 
+              });
+          }
+
+          const updated = await Product.updateOne(
+              { _id: productId, "variants.size": size },
+              { $inc: { "variants.$.stock": -quantity } }
+          );
+
+          if (updated.modifiedCount === 0) {
+              return res.status(500).json({ 
+                  error: `Failed to update stock for productId: ${productId}, size: ${size}` 
+              });
+          }
+      }
 
       let order = new Order({
           userId,
@@ -220,20 +274,19 @@ const updateCartQty = async (req, res) => {
       order = generateOrderId(order);
 
       await order.save();
-      await Cart.deleteOne({user:userId})
 
-    res.status(200).json({ message: 'Order placed successfully!' });
+      await Cart.deleteOne({ user: userId });
 
-   } catch (error) {
-      console.error("ERROR IN PLACE ORDER Fn",error)
-   }
-
-}
+      res.status(200).json({ message: 'Order placed successfully!' });
+  } catch (error) {
+      console.error("Error in placeOrder function:", error);
+      res.status(500).json({ error: 'Internal Server Error' });
+  }
+};
 
 const ordersList = async(req,res)=>{
   try {
     const userId = req.session.user
-   console.log("userId:",userId)
     if(userId){
       const orders = await Order.find({ userId }).sort({ createdAt: -1 })
 
@@ -252,20 +305,19 @@ const ordersList = async(req,res)=>{
 
 const orderDetail = async(req,res)=>{
     try {
-      const userId = req.session.user._id
+      const userId = req.session.user
       const {orderId} = req.params
 
-    
       const user = await User.findById(userId)
+
+      const order = await Order.findOne({ orderId: orderId, userId: userId })
 
       if(!user){
         return console.log("No User")
       }
 
-      const order = await Order.findOne({orderId:orderId})
-
       const addressId = order.addressId;
-
+      
       if(!order){
         return console.log("order in db not found")
       }
@@ -295,31 +347,65 @@ const orderDetail = async(req,res)=>{
 }
 
 const cancelOrder = async (req, res) => {
- 
   try {
-   
-    const { orderId } = req.params;  
-    const userId = req.session.user._id;  
+    const { orderId } = req.params;
+    const userId = req.session.user;
+    const { orderItems } = req.body; // orderItems contains productId, size, and quantity
 
-    const order = await Order.findOne({ orderId: orderId, userId: userId });
+    const user = await User.findById(userId);
+
+    if (!user) {
+      return console.log("No User");
+    }
+
+    const order = await Order.findOne({ orderId: orderId });
 
     if (!order) {
       return res.status(404).json({ message: "Order not found" });
     }
 
     if (order.status !== "pending") {
-      return res.status(400).json({ message: "Order cannot be canceled as it is not in pending state" });
+      return res.status(400).json({
+        message: "Order cannot be canceled as it is not in a pending state",
+      });
+    }
+
+    // Revert stock for each canceled product
+    for (const { productId, size, quantity } of orderItems) {
+      const variant = await Product.findOne(
+        { _id: productId, "variants.size": size },
+        { "variants.$": 1 }
+      );
+
+      if (!variant) {
+        return console.log(
+          `Product or variant not found for productId: ${productId}, size: ${size}`
+        );
+      }
+
+      const updated = await Product.updateOne(
+        { _id: productId, "variants.size": size },
+        { $inc: { "variants.$.stock": quantity } } 
+      );
+
+      if (updated.modifiedCount === 0) {
+        return res.status(500).json({
+          error: `Failed to update stock for productId: ${productId}, size: ${size}`,
+        });
+      }
     }
 
     order.status = "canceled";
-    
     await order.save();
 
-    return res.status(200).json({ message: "Order has been successfully canceled" });
-    
+    return res.status(200).json({
+      message: "Order has been successfully canceled, and stock has been reverted.",
+    });
   } catch (error) {
     console.error("Error in canceling order:", error);
-    return res.status(500).json({ message: "An error occurred while canceling the order" });
+    return res.status(500).json({
+      message: "An error occurred while canceling the order",
+    });
   }
 };
 
