@@ -379,9 +379,14 @@
                 title: 'Address added successfully!',
                 showConfirmButton: false,
                 timer: 3000
-            });
-
+            })
+            
             document.getElementById("addressForm").reset(); 
+            
+            setTimeout(()=>{
+                location.reload()    //implemented reload
+            },3000)
+
         } else {
             // Error Toast
             Swal.fire({
@@ -499,11 +504,11 @@ const cartItemsElements = document.querySelectorAll(".cartItemsElements tr");
             Swal.fire({
                 position: 'top-end',
                 icon: 'success',
-                title: 'Order placed successfully!',
+                title: 'Hurray !!',
+                text: 'Order placed successfully!',
                 showConfirmButton: false,
                 timer: 1500
             }).then(() => {
-                // Redirect to the "/orders" page after showing the success message
                 window.location.href = '/orders';
             });
         })
@@ -511,8 +516,9 @@ const cartItemsElements = document.querySelectorAll(".cartItemsElements tr");
             console.error('Error placing order:', error);
             Swal.fire({
                 position: 'top-end',
-                icon: 'error',
-                title: 'Failed to place the order. Please try again.',
+                icon: 'warning',
+                title:"Oops !!",
+                text: 'Address or Delivery Type missing',
                 showConfirmButton: false,
                 timer: 1500
             });

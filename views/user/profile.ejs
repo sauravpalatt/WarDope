@@ -31,14 +31,13 @@ document.addEventListener('DOMContentLoaded', () => {
     const form = document.getElementById('profileForm');
 
     form.addEventListener('submit', async (event) => {
-        event.preventDefault(); // Prevent default form submission
+        event.preventDefault(); 
 
         const name = document.getElementById('name').value.trim();
         const email = document.getElementById('email').value.trim();
         const oldPassword = document.getElementById('oldPassword').value.trim();
         const newPassword = document.getElementById('newPassword').value.trim()
     
-        // Validation
         if (!name) {
             return Swal.fire({
                 icon: "error",
@@ -56,7 +55,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const updatedProfile = { name, email };
         
-        
             if (newPassword && !oldPassword || oldPassword && !newPassword) {
                 return Swal.fire({
                     icon: "error",
@@ -67,13 +65,11 @@ document.addEventListener('DOMContentLoaded', () => {
                     timer: 1000,
                     showConfirmButton:false
                 });
-
             }else{
                     updatedProfile.oldPassword = oldPassword;
                     updatedProfile.newPassword = newPassword;
             }
 
-            
         try {
             const response = await fetch("/userProfile", {
                 method: "POST",

@@ -283,7 +283,7 @@ const orderListInfo = async(req,res)=>{
   try {
     const orders = await Order.find().populate("userId")
 
-    orders.forEach(order => {
+    orders.reverse().forEach(order => {
       const date = new Date(order.createdAt);
       order.formattedDate = date.toLocaleDateString('en-GB'); 
   });

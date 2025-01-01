@@ -1,4 +1,4 @@
-<%-include("../partials/user/header")%>
+<%- include("../partials/user/header") %>
 
 <div class="container-fluid bg-secondary mb-5">
     <div class="d-flex flex-column align-items-center justify-content-center" style="min-height: 300px">
@@ -10,8 +10,6 @@
         </div>
     </div>
 </div>
-<!-- Page Header End -->
-
 
 <!-- Shop Start -->
 <div class="container-fluid pt-5">
@@ -32,7 +30,17 @@
                     </button>
                 </div>
             </div>
-        
+
+            <!-- Category Filter -->
+            <div class="form-group">
+                <select name="category" class="form-control">
+                    <option value="">Select Category</option>
+                    <% categories.forEach(function(category) { %>
+                        <option value="<%= category._id %>" <%= categoryFilter === category._id ? 'selected' : '' %>><%= category.categoryName %></option>
+                    <% }); %>
+                </select>
+            </div>
+            
             <!-- Price Range Filters -->
             <div class="form-group">
                 <input 
@@ -50,55 +58,66 @@
                     placeholder="Max Price" 
                     value="<%= maxPrice || '' %>">
             </div>
-        
+
             <!-- Submit Button -->
             <button type="submit" class="btn btn-primary btn-block">Apply Filters</button>
         </form>
 
-       
         <div class="col">
             <div class="row pb-3">
                 <div class="col-12 pb-1">
                     <div class="d-flex align-items-center justify-content-between mb-4">
                         <div class="dropdown ml-4">
-                            <button class="btn border dropdown-toggle" type="button" id="triggerId" data-toggle="dropdown" aria-haspopup="true"
-                                    aria-expanded="false">
+                            <button class="btn border dropdown-toggle" type="button" id="triggerId" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                                 Sort by
                             </button>
                             <div class="dropdown-menu dropdown-menu-right" aria-labelledby="triggerId">
-                                <a class="dropdown-item" href="?sort=latest">Latest</a>
-                                <a class="dropdown-item" href="?sort=lowToHigh">Low to High</a>
-                                <a class="dropdown-item" href="?sort=highToLow">High to Low</a>
+                                <a class="dropdown-item" href="?sort=latest&search=<%= search %>&category=<%= categoryFilter %>&minPrice=<%= minPrice %>&maxPrice=<%= maxPrice %>">New Arrivals</a>
+                                <a class="dropdown-item" href="?sort=lowToHigh&search=<%= search %>&category=<%= categoryFilter %>&minPrice=<%= minPrice %>&maxPrice=<%= maxPrice %>">Price: Low to High</a>
+                                <a class="dropdown-item" href="?sort=highToLow&search=<%= search %>&category=<%= categoryFilter %>&minPrice=<%= minPrice %>&maxPrice=<%= maxPrice %>">Price: High to Low</a>
+                                <a class="dropdown-item" href="?sort=AtoZ&search=<%= search %>&category=<%= categoryFilter %>&minPrice=<%= minPrice %>&maxPrice=<%= maxPrice %>">A-Z</a>
+                                <a class="dropdown-item" href="?sort=ZtoA&search=<%= search %>&category=<%= categoryFilter %>&minPrice=<%= minPrice %>&maxPrice=<%= maxPrice %>">Z-A</a>
                             </div>
                         </div>                        
                     </div>
                 </div>
-                <% for(let i=0;i<product.length;i++) { %>
-                <div class="col-lg-3 col-md-6 col-sm-12 pb-2">
-                    <div class="card product-item border-0 mb-4">
-                        <div class="card-header product-img position-relative overflow-hidden bg-transparent border p-0">
-                            <img class="img-fluid w-100" src="<%= product[i].images[0]  %>" alt="">
-                        </div>
-                        <div class="card-body border-left border-right text-center p-0 pt-4 pb-3">
-                            <h6 class="text-truncate mb-3"><%= product[i].productName  %></h6>
-                            <div class="d-flex justify-content-center">
-                                <h6>₹<%= product[i].promotionalPrice  %></h6><h6 class="text-muted ml-2"><del>₹<%= product[i].regularPrice  %></del></h6>
+
+                <% for(let i = 0; i < product.length; i++) { %>
+                    <div class="col-lg-3 col-md-6 col-sm-12 pb-2">
+                        <div class="card product-item border-0 mb-4">
+                            <div class="card-header product-img position-relative overflow-hidden bg-transparent border p-0">
+                                <img class="img-fluid w-100" src="<%= product[i].images[0]  %>" alt="">
                             </div>
+                            <div class="card-body border-left border-right text-center p-0 pt-4 pb-3">
+                                <h6 class="text-truncate mb-3"><%= product[i].productName  %></h6>
+                                <div class="d-flex justify-content-center">
+                                    <h6>₹<%= product[i].promotionalPrice  %></h6><h6 class="text-muted ml-2"><del>₹<%= product[i].regularPrice  %></del></h6>
+                                </div>
+                            </div>
+                            <div class="card-footer d-flex justify-content-between bg-light border">
+                                <a href="/productDetail/<%= product[i]._id  %>" class="btn btn-sm text-dark p-0"><i class="fas fa-eye text-primary mr-1"></i>View Detail</a>
+                            </div>  
                         </div>
-                        <div class="card-footer d-flex justify-content-between bg-light border">
-                            <a href="/productDetail/<%= product[i]._id  %>" class="btn btn-sm text-dark p-0"><i class="fas fa-eye text-primary mr-1"></i>View Detail</a>
-                        </div>  
                     </div>
-                </div>
                 <% } %>
-                
+            </div>
+            
+            <!-- Pagination -->
+            <div class="col-12 text-center">
+                <ul class="pagination justify-content-center">
+                    <% if (page > 1) { %>
+                        <li class="page-item"><a class="page-link" href="?page=<%= page - 1 %>&search=<%= search %>&category=<%= categoryFilter %>&minPrice=<%= minPrice %>&maxPrice=<%= maxPrice %>">Previous</a></li>
+                    <% } %>
+                    <% for (let i = 1; i <= totalPages; i++) { %>
+                        <li class="page-item <%= i === page ? 'active' : '' %>"><a class="page-link" href="?page=<%= i %>&search=<%= search %>&category=<%= categoryFilter %>&minPrice=<%= minPrice %>&maxPrice=<%= maxPrice %>"><%= i %></a></li>
+                    <% } %>
+                    <% if (page < totalPages) { %>
+                        <li class="page-item"><a class="page-link" href="?page=<%= page + 1 %>&search=<%= search %>&category=<%= categoryFilter %>&minPrice=<%= minPrice %>&maxPrice=<%= maxPrice %>">Next</a></li>
+                    <% } %>
+                </ul>
             </div>
         </div>
-        <!-- Shop Product End -->
     </div>
 </div>
 
-
-
-
-<%-include("../partials/user/footer")%>
+<%- include("../partials/user/footer") %>

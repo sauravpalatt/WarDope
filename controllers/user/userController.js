@@ -368,21 +368,29 @@ const productDetailInfo = async(req,res)=>{
 const productList = async (req, res) => {
     try {
         const user = req.session.user;
-
         const categories = await Category.find({ isActive: true });
 
+        // Sorting logic
         let sortOption = req.query.sort;
         let sortCriteria = {};
 
         if (sortOption === 'latest') {
-            sortCriteria = { createdAt: -1 };  
+            sortCriteria = { createdAt: -1 }; // New Arrivals (Latest)
         } else if (sortOption === 'lowToHigh') {
-            sortCriteria = { promotionalPrice: 1 };  
+            sortCriteria = { promotionalPrice: 1 }; // Price: Low to High
         } else if (sortOption === 'highToLow') {
-            sortCriteria = { promotionalPrice: -1 };  
+            sortCriteria = { promotionalPrice: -1 }; // Price: High to Low
+        } else if (sortOption === 'AtoZ') {
+            sortCriteria = { productName: 1 }; // A to Z
+        } else if (sortOption === 'ZtoA') {
+            sortCriteria = { productName: -1 }; // Z to A
         }
 
-        let searchTerm = req.query.search || '';  
+        // Filter parameters
+        let searchTerm = req.query.search || '';
+        let categoryFilter = req.query.category || '';
+        let minPrice = req.query.minPrice || 0;
+        let maxPrice = req.query.maxPrice || 2000;
 
         let filterCriteria = {
             isBlocked: false,
@@ -390,34 +398,63 @@ const productList = async (req, res) => {
         };
 
         if (searchTerm) {
-            filterCriteria.productName = { $regex: searchTerm, $options: 'i' }; 
+            filterCriteria.productName = { $regex: searchTerm, $options: 'i' };
         }
 
-        let minPrice = 0;
-        let maxPrice = 2000;
+        if (categoryFilter) {
+            filterCriteria.category = categoryFilter;
+        }
 
-        if (req.query.minPrice || req.query.maxPrice) {
-            minPrice = req.query.minPrice ? parseInt(req.query.minPrice) : 0;
-            maxPrice = req.query.maxPrice ? parseInt(req.query.maxPrice) : 2000;
-
+        if (minPrice || maxPrice) {
             filterCriteria.promotionalPrice = { $gte: minPrice, $lte: maxPrice };
         }
 
-        let productData = await Product.find(filterCriteria).sort(sortCriteria); 
+        const page = parseInt(req.query.page) || 1;
+        const limit = 12;
+        const skip = (page - 1) * limit;
+
+        // Fetching the products with filters, sorting, and pagination
+        const productData = await Product.find(filterCriteria)
+            .collation({ locale: 'en', strength: 2 }) // Apply collation here, outside sort
+            .sort(sortCriteria) // Apply sorting criteria
+            .skip(skip)
+            .limit(limit);
+
+        const totalProducts = await Product.countDocuments(filterCriteria);
+        const totalPages = Math.ceil(totalProducts / limit);
 
         if (user) {
-            let userData = await User.findById(user);
-            return res.render("product-listUser", { user: userData, product: productData, search: searchTerm, minPrice, maxPrice });
+            const userData = await User.findById(user);
+            return res.render("product-listUser", { 
+                user: userData, 
+                product: productData, 
+                categories, 
+                search: searchTerm, 
+                minPrice, 
+                maxPrice, 
+                page, 
+                totalPages, 
+                categoryFilter,
+                sort: sortOption // Keep the sort parameter in the response
+            });
         } else {
-            return res.render("product-listUser", { product: productData, search: searchTerm, minPrice, maxPrice });
+            return res.render("product-listUser", { 
+                product: productData, 
+                categories, 
+                search: searchTerm, 
+                minPrice, 
+                maxPrice, 
+                page, 
+                totalPages, 
+                categoryFilter,
+                sort: sortOption // Keep the sort parameter in the response
+            });
         }
-
     } catch (error) {
         console.error("ERROR IN PRODUCT LIST FN", error);
         res.status(500).send('Server Error');
     }
 };
-
 
 module.exports=
    {

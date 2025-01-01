@@ -122,7 +122,7 @@
       </button>
     </div>
   </div>
-  <!-- <div class="row px-xl-5">
+  <div class="row px-xl-5">
     <div class="col">
       <div class="nav nav-tabs justify-content-center border-secondary mb-4">
         <a class="nav-item nav-link active" data-toggle="tab" href="#tab-pane-1"
@@ -287,12 +287,14 @@
         </div>
       </div>
     </div>
-  </div> -->
+  </div>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
 <script>
+
+
 let stockInput = document.getElementById("stock-input");
 let stockValue = parseInt(stockInput.value);
 
@@ -300,11 +302,11 @@ document
     .getElementById("increase-stock")
     .addEventListener("click", function () {
 
-      if (stockValue < 10) {
+      if (stockValue < 5) {
         stockValue++;
         stockInput.value = stockValue;
       } else {
-        stockInput.value = 10;
+        stockInput.value = 5;
       }
     });
 
@@ -406,8 +408,8 @@ async function addToCart() {
           text: result.message || "Product added to cart successfully!",
           toast: true,
           position: 'top-end',
-          timer: 3000,  
-          timerProgressBar: true,
+          timer: 1000,  
+          timerProgressBar: false,
           showConfirmButton: false,
         }).then(() => {
           window.location.href = '/cart'; 

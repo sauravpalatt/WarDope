@@ -73,7 +73,8 @@
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
 <script>
-   const cancelOrderBtn = document.getElementById("cancelOrderBtn");
+
+const cancelOrderBtn = document.getElementById("cancelOrderBtn");
 
 cancelOrderBtn.addEventListener("click", async (e) => {
     e.preventDefault();
@@ -124,7 +125,7 @@ cancelOrderBtn.addEventListener("click", async (e) => {
                     timer: 1000,
                     timerProgressBar: false
                 });
-                setTimeout(() => location.reload(), 1500);
+                setTimeout(() => window.location.href="/", 1000);
             } else {
                 Swal.fire({
                     icon: "error",
@@ -152,7 +153,6 @@ cancelOrderBtn.addEventListener("click", async (e) => {
     }
 });
 </script>
-
 
 <script>
 
@@ -199,7 +199,7 @@ document.getElementById("requestReturnBtn").addEventListener("click", async () =
                 timer: 1000,
                 timerProgressBar: false,
             });
-            setTimeout(() => location.reload(), 1500);
+            setTimeout(() => window.location.href="/", 1000);
         } else {
             await Swal.fire({
                 icon: "error",
@@ -219,6 +219,7 @@ document.getElementById("requestReturnBtn").addEventListener("click", async () =
     }
 });
 </script>
+
 
 
 

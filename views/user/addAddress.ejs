@@ -172,8 +172,11 @@
                 icon: 'success',
                 title: 'Address added successfully!',
                 showConfirmButton: false,
-                timer: 3000
+                timer: 2000
             });
+            setTimeout(() => {
+                window.location.href="/address"
+            }, 3000);
 
             document.getElementById("addressForm").reset(); 
         } else {
@@ -184,7 +187,7 @@
                 icon: 'error',
                 title: result.message || "Error adding address",
                 showConfirmButton: false,
-                timer: 3000
+                timer: 2000
             });
         }
     } catch (error) {
@@ -197,7 +200,7 @@
             icon: 'error',
             title: "Failed to add address. Please try again.",
             showConfirmButton: false,
-            timer: 3000
+            timer: 2000
         });
     }
     });
