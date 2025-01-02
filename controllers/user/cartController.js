@@ -212,24 +212,30 @@ const updateCartQty = async (req, res) => {
 };
 
 const placeOrder = async (req, res) => {
+  
   try {
+
       const userId = req.session.user;
       const { cartItems, totalPrice, addressId, deliveryType } = req.body;
 
       if (!cartItems || cartItems.length === 0) {
+        
           return res.status(400).json({ error: 'Cart items cannot be empty' });
       }
 
       if (!totalPrice || totalPrice <= 0) {
+        
           return res.status(400).json({ error: 'Total price must be greater than 0' });
       }
 
       if (!addressId) {
-          return res.status(400).json({ error: 'Address ID is required' });
+        
+          return res.status(400).json({ error: 'Address is required' });
       }
 
       if (!deliveryType) {
-          return res.status(400).json({ error: 'Delivery type is required' });
+        
+          return res.status(400).json({ error: 'Method of payment is required' });
       }
 
       for (const { productId, size, quantity } of cartItems) {
@@ -240,6 +246,7 @@ const placeOrder = async (req, res) => {
           );
 
           if (!variant) {
+            
               return console.log( `Product or variant not found for productId: ${productId}, size: ${size}`);
           }
 
@@ -350,7 +357,7 @@ const cancelOrder = async (req, res) => {
   try {
     const { orderId } = req.params;
     const userId = req.session.user;
-    const { orderItems } = req.body; // orderItems contains productId, size, and quantity
+    const { orderItems } = req.body; 
 
     const user = await User.findById(userId);
 

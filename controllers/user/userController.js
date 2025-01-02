@@ -370,23 +370,21 @@ const productList = async (req, res) => {
         const user = req.session.user;
         const categories = await Category.find({ isActive: true });
 
-        // Sorting logic
         let sortOption = req.query.sort;
         let sortCriteria = {};
 
         if (sortOption === 'latest') {
-            sortCriteria = { createdAt: -1 }; // New Arrivals (Latest)
+            sortCriteria = { createdAt: -1 }; 
         } else if (sortOption === 'lowToHigh') {
-            sortCriteria = { promotionalPrice: 1 }; // Price: Low to High
+            sortCriteria = { promotionalPrice: 1 }; 
         } else if (sortOption === 'highToLow') {
-            sortCriteria = { promotionalPrice: -1 }; // Price: High to Low
+            sortCriteria = { promotionalPrice: -1 }; 
         } else if (sortOption === 'AtoZ') {
-            sortCriteria = { productName: 1 }; // A to Z
+            sortCriteria = { productName: 1 }; 
         } else if (sortOption === 'ZtoA') {
-            sortCriteria = { productName: -1 }; // Z to A
+            sortCriteria = { productName: -1 };
         }
 
-        // Filter parameters
         let searchTerm = req.query.search || '';
         let categoryFilter = req.query.category || '';
         let minPrice = req.query.minPrice || 0;
@@ -413,10 +411,10 @@ const productList = async (req, res) => {
         const limit = 12;
         const skip = (page - 1) * limit;
 
-        // Fetching the products with filters, sorting, and pagination
+        
         const productData = await Product.find(filterCriteria)
-            .collation({ locale: 'en', strength: 2 }) // Apply collation here, outside sort
-            .sort(sortCriteria) // Apply sorting criteria
+            .collation({ locale: 'en', strength: 2 }) 
+            .sort(sortCriteria) 
             .skip(skip)
             .limit(limit);
 
@@ -435,7 +433,7 @@ const productList = async (req, res) => {
                 page, 
                 totalPages, 
                 categoryFilter,
-                sort: sortOption // Keep the sort parameter in the response
+                sort: sortOption 
             });
         } else {
             return res.render("product-listUser", { 
@@ -447,7 +445,7 @@ const productList = async (req, res) => {
                 page, 
                 totalPages, 
                 categoryFilter,
-                sort: sortOption // Keep the sort parameter in the response
+                sort: sortOption 
             });
         }
     } catch (error) {

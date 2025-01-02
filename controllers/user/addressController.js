@@ -53,9 +53,9 @@ const Cart = require("../../models/cartSchema")
 
                  const cart = await Cart.findOne({ user: userId }).populate('items.product');
 
-                 if(!cart){
-                    return console.log("Cant find cart")
-                 }
+                 if (!cart ||  !Array.isArray(cart.items) || cart.items.length === 0) {
+                   return res.redirect("/")
+                }
 
                     res.render("checkout",{
                         user,

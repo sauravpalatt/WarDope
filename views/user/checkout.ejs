@@ -64,7 +64,7 @@
                                         <td name="itemName"><%= item.product.productName %></td>
                                         <td name="itemQty"><strong><%= item.quantity %></strong></td>
                                         <td name="itemSize"><strong><%= item.size %></strong></td>
-                                        <td name="itemPrice">$<%= item.product.regularPrice %></td>
+                                        <td name="itemPrice">₹<%= item.product.regularPrice %></td>
                                         <td name="itemPrdId" style="display: none;"><%= item.product._id %></td>
                                     </tr>
                                 <% }); %>
@@ -80,7 +80,7 @@
                 <div class="card-footer border-secondary bg-transparent">
                     <div class="d-flex justify-content-between mt-2">
                         <h5 class="font-weight-bold">Total</h5>
-                        <h5 class="font-weight-bold" id="dynamicTotalPrice"> $<%= totalPrice %>.00</h5>
+                        <h5 class="font-weight-bold" id="dynamicTotalPrice"> ₹<%= totalPrice %>.00</h5>
                     </div>
                 </div>
             </div>
@@ -434,7 +434,7 @@ const cartItemsElements = document.querySelectorAll(".cartItemsElements tr");
 
             const productName = productNameElement ? productNameElement.innerText : '';
             const size = sizeElement ? sizeElement.innerText : '';
-            const price = priceElement ? Number(priceElement.innerText.replace('$', '').trim()) : 0;
+            const price = priceElement ? Number(priceElement.innerText.replace('₹', '').trim()) : 0;
             const quantity = quantityElement ? Number(quantityElement.innerText.trim()) : 0; 
             const productId = productIdElement ? productIdElement.innerText : '';
 
@@ -450,7 +450,7 @@ const cartItemsElements = document.querySelectorAll(".cartItemsElements tr");
     var totalPrice = 0
 
     if (totalPriceElement) {
-        totalPrice = parseFloat(totalPriceElement.innerText.replace('$', '').replace('.00', ''));
+        totalPrice = parseFloat(totalPriceElement.innerText.replace('₹', '').replace('.00', ''));
     } else {
         console.log("Total price element not found");
     }
@@ -484,19 +484,20 @@ const cartItemsElements = document.querySelectorAll(".cartItemsElements tr");
     cancelButtonText: 'Cancel'
 }).then((result) => {
     if (result.isConfirmed) {
-        // Proceed with placing the order if confirmed
         fetch('/placeOrder', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
             },
-            body: JSON.stringify(cartData) // Assuming cartData contains the necessary order details
+            body: JSON.stringify(cartData) 
         })
         .then(response => {
             if (response.ok) {
-                return response.json(); // Parse JSON response if successful
+                return response.json(); 
             } else {
-                throw new Error('Failed to place the order');
+                return response.json().then(err => {
+                    throw new Error(err.error || 'Failed to place the order');
+                });
             }
         })
         .then(data => {
@@ -517,8 +518,8 @@ const cartItemsElements = document.querySelectorAll(".cartItemsElements tr");
             Swal.fire({
                 position: 'top-end',
                 icon: 'warning',
-                title:"Oops !!",
-                text: 'Address or Delivery Type missing',
+                title: "Oops !!",
+                text: error.message || 'Something went wrong!',
                 showConfirmButton: false,
                 timer: 1500
             });
