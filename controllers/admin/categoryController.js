@@ -52,15 +52,26 @@ const addCategory = async (req, res) => {
     try {
         const { catName, catDes, offerId } = req.body;
 
-        const newCategory = await Category.create({
-            categoryName: catName,
-            description: catDes,
-            offerId: offerId || null, 
-        });
+        const category = await Category.findOne({categoryName:catName})
 
-        if(newCategory){
-            res.status(200).json({ success: true, message: "Category added successfully" });
+        if(category){
+            console.log("FN REACHED")
+            await Category.updateOne({categoryName:catName},{$set:{description:catDes,offerId: offerId || null}})
+
+            res.status(200).json({ success: true, message: "Category updated successfully" });
+
+        }else{
+            const newCategory = await Category.create({
+                categoryName: catName,
+                description: catDes,
+                offerId: offerId || null, 
+            });
+    
+            if(newCategory){
+                res.status(200).json({ success: true, message: "Category added successfully" });
+            }
         }
+
     } catch (error) {
         console.error(error); 
         res.status(500).json({ success: false, message: "Error in addCategory function" });

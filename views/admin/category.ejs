@@ -181,8 +181,8 @@
 <script> 
       document.getElementById("categoryForm").addEventListener("submit", (e) => {
       e.preventDefault()
-        const catName = document.getElementById("category_name").value;
-        const catDes = document.getElementById("category_decrp").value;
+        const catName = document.getElementById("category_name").value.trim();
+        const catDes = document.getElementById("category_decrp").value.trim();
     
         const data = {catName, catDes};
         

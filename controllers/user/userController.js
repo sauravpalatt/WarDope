@@ -58,11 +58,11 @@ const signUpLoader = async(req,res)=>{
 
 const logInLoader = async(req,res)=>{
         try {
-        if(req.session.user){
-            return res.redirect("/")
-        }else{
+        // if(req.session.user){
+        //     return res.redirect("/")
+        // }else{
             return res.render("login")
-        }    
+        // }    
         }catch (error) {
             console.log("Log In Error",error)
             return res.redirect("/pageNotFound")

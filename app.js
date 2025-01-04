@@ -8,6 +8,7 @@ const userRouter = require("./routes/userRouter")
 const adminRouter = require("./routes/adminRouter")
 const db = require ("./config/db")
 const MongoConnect = require("connect-mongo")
+const nocache = require('nocache')
 db()
 
 app.use(express.json())
@@ -28,15 +29,17 @@ app.use(session({
  }));
 
 
-app.use((req,res,next)=>{
-    res.set("cache-control","no store")
-    next()
-})
+// app.use((req,res,next)=>{
+//     res.set("cache-control","no store")
+//     next()
+// })
+
+app.use(nocache())
 
 app.set("view engine","ejs")
 app.set("views",[path.join(__dirname,"views/user"),path.join(__dirname,"views/admin")])
 app.use(express.static(path.join(__dirname,"public")))
-// app.use(express.static('public')); // or your static folder
+
 
 
 app.use("/",userRouter)

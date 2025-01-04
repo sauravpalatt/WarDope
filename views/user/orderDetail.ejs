@@ -125,7 +125,7 @@ cancelOrderBtn.addEventListener("click", async (e) => {
                     timer: 1000,
                     timerProgressBar: false
                 });
-                setTimeout(() => window.location.href="/", 1000);
+                setTimeout(() => window.location.reload(), 1000);
             } else {
                 Swal.fire({
                     icon: "error",

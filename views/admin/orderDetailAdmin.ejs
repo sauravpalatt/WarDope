@@ -104,6 +104,15 @@
                 confirmButtonText: 'OK'
             });
             return;
+        }else if((currentStatus === "return approved" || currentStatus === "return denied" || currentStatus === "return requested") 
+        && (status === "shipped" ||status === "pending" || status === "delivered")){
+            Swal.fire({
+                title: 'Oops',
+                text: `Cannot change the status after ${currentStatus}`,
+                icon: 'warning',
+                confirmButtonText: 'OK'
+            });
+            return;
         }
 
         

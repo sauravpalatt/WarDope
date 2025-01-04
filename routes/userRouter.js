@@ -3,15 +3,15 @@ const userController = require("../controllers/user/userController")
 const profileController = require("../controllers/user/profileController")
 const addressController = require("../controllers/user/addressController")
 const cartController = require("../controllers/user/cartController")
-const {userAuth}= require("../middleware/auth")
+const {userAuth, isUser}= require("../middleware/auth")
 
 const router=express.Router()
 const passport = require("passport")
 
 router.get("/",userController.loadHomePage)
-router.get("/signup",userController.signUpLoader)
+router.get("/signup", isUser, userController.signUpLoader)
 router.post("/signup",userController.signUp)
-router.get("/login",userController.logInLoader)
+router.get("/login",isUser,userController.logInLoader)
 router.get("/logout",userController.logout)
 router.post("/login",userController.login)
 router.get("/forgotPassword",userController.forgPasswordInfo)
@@ -36,17 +36,17 @@ router.get("/productList",userController.productList)
 
 //profile 
 router.get("/userProfile",userAuth,profileController.userProfileInfo)
-router.post("/userProfile",profileController.userProfile)
+router.post("/userProfile",userAuth,profileController.userProfile)
 
 //address
 router.get("/address",addressController.addressPageInfo)
 router.get("/checkout",userAuth,addressController.checkOutInfo)
 router.post("/addBillingAddress",userAuth,addressController.addBillingAddress)
-router.get("/addAddress",addressController.addAddressInfo)
-router.post("/addAddress",addressController.addAddress)
-router.get("/editAddressInfo/:id",addressController.editAddressInfo)
-router.put("/editAddress/:id",addressController.editAddress)
-router.delete("/deleteAddress/:id",addressController.deleteAddress)
+router.get("/addAddress",userAuth,addressController.addAddressInfo)
+router.post("/addAddress",userAuth,addressController.addAddress)
+router.get("/editAddressInfo/:id",userAuth,addressController.editAddressInfo)
+router.put("/editAddress/:id",userAuth,addressController.editAddress)
+router.delete("/deleteAddress/:id",userAuth,addressController.deleteAddress)
 
 //cart
 router.post("/cart/add",userAuth,cartController.addToCart)

@@ -24,7 +24,7 @@
                             <img src="<%= item.product.images[0] %>" alt="" style="width: 50px;">
                             <%= item.product.productName %>
                           </td>
-                          <td class="align-middle">₹<%= item.product.regularPrice %></td>
+                          <td class="align-middle">$<%= item.product.regularPrice %></td>
                           <td class="align-middle"><%= item.size %></td>
                           <td class="align-middle">
                             <div class="input-group quantity mx-auto" style="width: 100px;">
@@ -50,7 +50,7 @@
                             </div>
                           </td>
                           <td class="stock-left" data-item-id="<%= item._id %>" style="display: none;"><%= item.stockLeft %></td>
-                          <td class="align-middle" id="item-total-<%= item._id %>">₹<%= item.quantity * item.product.regularPrice %></td>
+                          <td class="align-middle" id="item-total-<%= item._id %>">$<%= item.quantity * item.product.regularPrice %></td>
                           <td class="align-middle">
                             <button class="btn btn-sm btn-primary btn-remove" data-item-id="<%= item._id %>">
                               <i class="fa fa-times"></i>
@@ -84,7 +84,7 @@
     <div class="card-body">
         <div class="d-flex justify-content-between mb-3 pt-1">
             <h5 class="font-weight-medium">Total</h5>
-            <h5 class="font-weight-medium cart-summary-subtotal">₹<%= totalPrice %>.00</h5>
+            <h5 class="font-weight-medium cart-summary-subtotal">$<%= totalPrice %>.00</h5>
         </div>
     </div>
       <div class="card-footer border-secondary bg-transparent">
