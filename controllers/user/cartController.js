@@ -4,7 +4,8 @@ const User = require("../../models/userSchema")
 const Order = require("../../models/orderSchema")
 const generateOrderId = require("../../utilities/generateOrderId")
 const Address = require("../../models/addressSchema")
-
+const Wishlist = require("../../models/wishlistSchema")
+const { userAuth } = require("../../middleware/auth")
 
 const cartList = async (req, res) => {
   try {
@@ -340,7 +341,7 @@ const orderDetail = async(req,res)=>{
         return console.log('Address not found for this user');
       }
       
-      const address = addressDoc.addresses[0];  // Get the matched address object
+      const address = addressDoc.addresses[0]; 
 
       res.render("orderDetail",{
         order,
@@ -440,6 +441,70 @@ const returnProduct = async (req,res)=>{
   }
 }
 
+const wishlistInfo = async(req,res)=>{
+  try {
+    const {user} = req.session
+
+    const items = await Wishlist.find({User:user}).populate("Product")
+
+    const userId = await User.findById(user) // this user id is not mere id but includes all user document details
+
+    res.render("wishlist",{items,user:userId})
+  } catch (error) {
+    console.error("Wishlist not found",error) 
+  }
+}
+
+const addToWishlist = async(req,res)=>{
+  try {
+    const {user} = req.session
+    const {productId} = req.body
+
+    const existingItem = await Wishlist.findOne({
+      User: user,
+      Product: productId
+    })
+
+    if(existingItem){
+      return res.status(400).json({success:false,message:"Item Already in Wishlist !!", errorType: "duplicate"})
+    }
+
+    const newWishlistItem = new Wishlist({
+      User: user,
+      Product: productId
+    })
+
+    await newWishlistItem.save()
+
+    res.status(200).json({ success: true, message: "Added to wishlist" })
+
+  } catch (error) {
+    console.error("ERROR IN ADD TO WISHLIST FN",error)
+  }
+}
+
+const removeFromWishlist = async(req,res)=>{
+  try {
+    const {id} = req.params
+    const userId = req.session.user
+
+    const result = await Wishlist.findOneAndDelete({
+      User: userId,
+      Product: id
+    })
+
+    if(result){
+      return res.status(200).json({success:true,message:"Product removed"})
+    }
+     res.status(404).json({success:false,message:"Oops...Try again"})
+
+  } catch (error) {
+    console.error("ERROR IN REMOVE WISHLIST FN",error)
+  }
+}
+
+
+
 module.exports = {
     addToCart,
     cartList,
@@ -449,7 +514,10 @@ module.exports = {
     ordersList,
     orderDetail,
     cancelOrder,
-    returnProduct
+    returnProduct,
+    wishlistInfo,
+    addToWishlist,
+    removeFromWishlist
 }
 
 
