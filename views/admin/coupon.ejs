@@ -1,0 +1,162 @@
+<%- include("../partials/admin/header") %>
+
+<div class="card-body">
+    <!-- Add Coupon Button -->
+    <div class="mb-3 text-end">
+        <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addCouponModal">
+            Add Coupon
+        </button>
+    </div>
+
+    <!-- Coupon Table -->
+    <div class="table-responsive">
+        <table class="table table-hover">
+            <thead>
+                <tr>
+                    <th scope="col">Coupon Code</th>
+                    <th scope="col">Discount Type</th>
+                    <th scope="col">Discount Value</th>
+                    <th scope="col">Min Purchase</th>
+                    <th scope="col">Start Date</th>
+                    <th scope="col">End Date</th>
+                    <th scope="col">Status</th>
+                    <th class="text-center" scope="col" class="text-end">Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                <% if (coupons && coupons.length > 0) { %>
+                    <% coupons.forEach(coupon => { %>
+                        <tr>
+                            <td><b><%= coupon.code %></b></td>
+                            <td><%= coupon.discountType === 'percentage' ? 'Percentage' : 'Flat' %></td>
+                            <td>
+                                <%= coupon.discountType === 'percentage' ? coupon.discountValue + '%' : '₹' + coupon.discountValue %>
+                            </td>
+                            <td>₹<%= coupon.minPurchase %></td>
+                            <td><%= coupon.startDate.toDateString() %></td>
+                            <td><%= coupon.endDate.toDateString() %></td>
+                            <td>
+                                <span class="badge rounded-pill 
+                                <%= coupon.status === 'active' ? 'bg-success' : '' %>
+                                <%= coupon.status === 'inactive' ? 'bg-warning' : '' %>">
+                                
+                                    <%= coupon.status %>
+                                    
+                                </span>
+                            </td>
+                            <td class="text-center">
+                                <% if(coupon.status == 'inactive') {%>
+                                <a href="/admin/activateCouponStatus/<%= coupon._id %>" class="btn btn-sm btn-success rounded"
+                                style ="color: white;">active</a>
+                                <% } else { %>
+                                <a href="/admin/inactivateCouponStatus/<%= coupon._id %>" class="btn btn-sm btn-danger rounded">inactive</a>
+                                <% } %>
+                            </td>
+                        </tr>
+                    <% }); %>
+                <% } else { %>
+                    <tr>
+                        <td colspan="10" class="text-center text-muted">No Coupons Found</td>
+                    </tr>
+                <% } %>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Add Coupon Modal -->
+<div class="modal fade" id="addCouponModal" tabindex="-1" aria-labelledby="addCouponModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form id="addCouponModal">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="addCouponModalLabel">Add New Coupon</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="couponCode" class="form-label">Coupon Code</label>
+                        <input type="text" name="code" id="couponCode" class="form-control" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="discountType" class="form-label">Discount Type</label>
+                        <select name="discountType" id="discountType" class="form-select" required>
+                            <option value="percentage">Percentage</option>
+                            <option value="flat">Flat</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="discountValue" class="form-label">Discount Value</label>
+                        <input type="number" name="discountValue" id="discountValue" class="form-control" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="minPurchase" class="form-label">Minimum Purchase</label>
+                        <input type="number" name="minPurchase" id="minPurchase" class="form-control" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="startDate" class="form-label">Start Date</label>
+                        <input type="date" name="startDate" id="startDate" class="form-control" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="endDate" class="form-label">End Date</label>
+                        <input type="date" name="endDate" id="endDate" class="form-control" required>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="submit" class="btn btn-primary">Add Coupon</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script>
+    document.getElementById("addCouponModal").addEventListener("submit", async (e) => {
+        e.preventDefault();
+
+        const formData = new FormData(e.target);
+        const couponData = Object.fromEntries(formData.entries());
+
+        try {
+            const response = await fetch('/admin/addCoupon', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(couponData),
+            });
+
+            const data = await response.json()
+
+            if (response.ok) {
+                Swal.fire({
+                    title: 'Success!',
+                    text: data.message,
+                    icon: 'success',
+                    confirmButtonText: 'Okay'
+                }).then(() => {
+                    location.reload(); 
+                });
+            } else {
+                const errorData = await response.json();
+                Swal.fire({
+                    title: 'Error!',
+                    text: `Error: ${errorData.message}`,
+                    icon: 'error',
+                    confirmButtonText: 'Try Again'
+                });
+            }
+        } catch (error) {
+            console.error('Error adding coupon:', error);
+            Swal.fire({
+                title: 'Oops!',
+                text: 'Something went wrong. Please try again.',
+                icon: 'error',
+                confirmButtonText: 'Okay'
+            });
+        }
+    });
+</script>
+<%- include("../partials/admin/footer") %>

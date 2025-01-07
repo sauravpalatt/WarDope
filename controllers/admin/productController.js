@@ -6,6 +6,7 @@ const path = require("path");
 const sharp = require("sharp");
 const Order = require("../../models/orderSchema");
 const Address = require("../../models/addressSchema")
+const Coupon = require("../../models/couponSchema")
 
 
 const addProductInfo = async (req, res) => {
@@ -404,6 +405,76 @@ const stockUpdate = async(req,res)=>{
   }
 }
 
+const couponList = async(req,res)=>{
+  try {
+      const coupons = await Coupon.find({}).sort({startDate: -1})
+
+      res.render("coupon",{coupons})
+      
+  } catch (error) {
+    console.error("ERROR IN COUPON LIST FN",error)
+  }
+}
+
+const addCoupon = async(req,res)=>{
+  try {
+      const {
+        code,
+        discountType,
+        discountValue,
+        minPurchase,
+        startDate,
+        endDate,
+    } = req.body;
+
+    if (!code || !discountType || !discountValue || !minPurchase || !startDate || !endDate) {
+      return res.status(400).json({ success: false, message: "All fields are required" });
+    }
+
+    const newCoupon = new Coupon ({
+        code,
+        discountType,
+        discountValue,
+        minPurchase,
+        startDate,
+        endDate
+    })
+
+    await newCoupon.save()
+
+     res.status(200).json({success:true,message:"Coupon created successfully"})
+
+  } catch (error) {
+    console.error("ERROR IN ADD COUPON FUNCTION",error)
+  }
+}
+
+const activateCouponStatus = async(req,res)=>{
+
+  try {
+    const {id} = req.params
+    await Coupon.findByIdAndUpdate({_id:id},{status: 'active'})
+    res.redirect('/admin/couponList');
+
+  } catch (error) {
+    consle.error("ERROR IN ACTIVATE COUPON STATUS FN",error)
+    
+  }
+}
+
+const inactivateCouponStatus = async(req,res)=>{
+ 
+  try {
+    const {id} = req.params
+    await Coupon.findByIdAndUpdate({_id:id},{status: 'inactive'})
+    res.redirect('/admin/couponList');
+
+  } catch (error) {
+    consle.error("ERROR IN ACTIVATE COUPON STATUS FN",error)
+    
+  }
+}
+
 module.exports = {
   addProductInfo,
   addProduct,
@@ -418,5 +489,9 @@ module.exports = {
   orderDetailInfo,
   orderStatus,
   stockListInfo,
-  stockUpdate
+  stockUpdate,
+  couponList,
+  addCoupon,
+  activateCouponStatus,
+  inactivateCouponStatus
 };

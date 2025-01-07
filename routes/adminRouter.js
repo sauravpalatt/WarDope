@@ -48,6 +48,12 @@ router.post("/order/return/deny/:orderId", adminController.denyReturn);
 router.get("/stockList",adminAuth,productController.stockListInfo)
 router.post("/updateStock",adminAuth,productController.stockUpdate)
 
+//Coupon Mgt
+router.get("/couponList",adminAuth,productController.couponList)
+router.post("/addCoupon",adminAuth,productController.addCoupon)
+router.get('/activateCouponStatus/:id',adminAuth,productController.activateCouponStatus)
+router.get('/inactivateCouponStatus/:id',adminAuth,productController.inactivateCouponStatus)
+
 module.exports = router
 
 
