@@ -1,0 +1,113 @@
+<%- include("../partials/user/header") %>
+
+<div class="container-fluid pt-5">
+    <div class="row px-xl-5">
+        <div class="col-lg-8 table-responsive mb-5">
+            <table class="table table-bordered text-center mb-0">
+                <thead class="bg-secondary text-dark">
+                    <tr>
+                        <th>Products</th>
+                        <th>Price</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody class="align-middle">
+                    <% items.forEach((item)=>{ %>
+                        <tr>
+                            <td class="ml-1">
+                                <div style="display: flex; align-items: center;">
+                                    <img src="<%= item.Product.images[0] %>" alt="" style="width: 50px; margin-right: 10px;">
+                                    <%= item.Product.productName %>
+                                </div>
+                            </td>
+                            <td>₹<%= item.Product.promotionalPrice %></td>
+                            <td>
+                                <button class="btn productDetail btn-sm btn-primary mb-1" href ="/productDetail/<%= item.Product._id %>" ><i class="fas fa-eye"></i> View </button>
+                                <button class="btn remove btn-sm btn-danger mb-1" data-id= "<%= item.Product._id %>" ><i class="fa fa-times"></i></button>
+                            </td>
+                        </tr>
+
+                   <% }) %>
+                </tbody>
+            </table>
+        </div>
+        <div class="col-lg-4">
+            <div class="card border-secondary mb-5">
+                <div class="card-header bg-secondary border-0">
+                    <h4 class="font-weight-semi-bold m-0">Wishlist Summary</h4>
+                </div>
+                <div class="card-body">
+                    <h6 class="font-weight-medium">You have <span class="font-weight-bold"> <%= items.length %> items</span> in your wishlist.</h6>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+
+        document.querySelectorAll('.productDetail').forEach(button => {
+            button.addEventListener('click', (event) => {
+                event.preventDefault();
+                const productLink = button.getAttribute('href');
+
+                    window.location.href = productLink;   
+            });
+        });
+
+        document.querySelectorAll('.remove').forEach(button => {
+            button.addEventListener('click', async (event) => {
+                event.preventDefault();
+                const productId = button.getAttribute('data-id');
+
+                const result = await Swal.fire({
+                    icon:"warning",
+                    title: "You Sure?",
+                    text: "Remove this item from your wishlist ?",
+                    showCancelButton: true,
+                    cancelButtonText: 'Cancel',
+                    confirmButtonText: "Confirm",
+                })
+
+                if(result.isConfirmed) {
+                    try {
+                    const response = await fetch(`/wishlist/remove/${productId}`, {
+                        method: 'DELETE',
+                        headers: { 'Content-Type': 'application/json' },
+                    });
+
+                    const result = await response.json();
+                        if (result.success) {
+                            Swal.fire({
+                                icon: "success",
+                                text: result.message,
+                                timer: 1000,
+                                toast: true,
+                                showConfirmButton: false,
+                                position: "top-end"
+                            })
+                            .then(()=>{
+                                window.location.reload()
+                            })
+                        } else {
+                            Swal.fire({
+                                icon: "error",
+                                text: result.message,
+                                timer: 3000,
+                                toast: true,
+                                position: "top-end"
+                            })
+                        }
+                    } catch (error) {
+                        console.error('Error Removing Item From Wishlist', error);
+                    }  
+                }
+            });
+        });
+    });
+</script>
+
+<%- include("../partials/user/footer") %>
