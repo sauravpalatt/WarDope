@@ -1,6 +1,7 @@
 const Address = require("../../models/addressSchema")
 const User = require("../../models/userSchema")
 const Cart = require("../../models/cartSchema")
+const Coupon = require("../../models/couponSchema")
 
     const addressPageInfo = async (req, res) => {
         try {
@@ -57,11 +58,15 @@ const Cart = require("../../models/cartSchema")
                    return res.redirect("/")
                 }
 
+                const coupons = await Coupon.find({status:"active"})
+
                     res.render("checkout",{
                         user,
                         addresses,
                         cartItems : cart.items,
-                        totalPrice : cart.totalPrice})
+                        totalPrice : cart.totalPrice,
+                        coupons
+                    })
             }
 
         } catch (error) {

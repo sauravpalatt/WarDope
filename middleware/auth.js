@@ -3,20 +3,20 @@ const User = require("../models/userSchema")
 
 const userAuth = (req, res, next) => {
     if (req.session.user) {
-        User.findById(req.session.user) // Removed quotes
+        User.findById(req.session.user) 
             .then((data) => {
                 if (data && !data.isBlocked) {
-                    return next(); // Proceed if user exists and is not blocked
+                    return next(); 
                 } else {
-                    return res.redirect("/login"); // Redirect blocked users
+                    return res.redirect("/login"); 
                 }
             })
             .catch((error) => {
                 console.error("Error in user-auth middleware", error);
-                res.status(500).send("Internal Server Error"); // Changed status to 500
+                res.status(500).send("Internal Server Error"); 
             });
     } else {
-        res.redirect("/login"); // Redirect unauthenticated users
+        res.redirect("/login"); 
     }
 };
 
@@ -38,7 +38,6 @@ const adminAuth = (req,res,next)=>{
         res.redirect("/admin/login")
     }
 }
-
 
 module.exports={
     userAuth,
