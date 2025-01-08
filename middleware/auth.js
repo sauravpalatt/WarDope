@@ -8,7 +8,6 @@ const userAuth = (req, res, next) => {
             .then((data) => {
                 if (data && !data.isBlocked) {
                     return next(); 
-                    return next(); 
                 } else {
                     return res.redirect("/login"); 
                     // return res.redirect("/login"); 
