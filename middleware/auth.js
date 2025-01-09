@@ -9,13 +9,11 @@ const userAuth = (req, res, next) => {
                 if (data && !data.isBlocked) {
                     return next(); 
                 } else {
-                    return res.redirect("/login"); 
-                    // return res.redirect("/login"); 
+                    return res.redirect("/login");  
                 }
             })
             .catch((error) => {
                 console.error("Error in user-auth middleware", error);
-                res.status(500).send("Internal Server Error"); 
                 res.status(500).send("Internal Server Error"); 
             });
     } else {

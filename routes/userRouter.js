@@ -62,9 +62,14 @@ router.delete("/wishlist/remove/:id",userAuth,cartController.removeFromWishlist)
 
 //order
 router.post("/placeOrder",userAuth,cartController.placeOrder)
+// router.post("/createOrder",userAuth,cartController.createOrder)
+router.post("/verifyPayment",userAuth,cartController.verifyPayment)
 router.get("/orders",userAuth,cartController.ordersList)
 router.get("/orderDetail/:orderId",userAuth,cartController.orderDetail)
 router.put("/order/cancel/:orderId",userAuth,cartController.cancelOrder)
 router.post("/order/return/:orderId",userAuth,cartController.returnProduct)
+
+//coupon
+router.post("/applyCoupon",userAuth,cartController.applyCoupon)
 
 module.exports=router

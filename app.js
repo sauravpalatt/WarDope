@@ -28,12 +28,6 @@ app.use(session({
     })
  }));
 
-
-// app.use((req,res,next)=>{
-//     res.set("cache-control","no store")
-//     next()
-// })
-
 app.use(nocache())
 
 app.set("view engine","ejs")

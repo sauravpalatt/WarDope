@@ -76,7 +76,11 @@ const userSchema = new Schema({
             type:Date,
             default:Date.now
         }
-    }]
+    }],
+    appliedCoupon: {
+         type: String, 
+         default: null 
+    }
 },{timestamps:true})
 
 const User = mongoose.model("User",userSchema)
