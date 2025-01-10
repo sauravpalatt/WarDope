@@ -3,6 +3,7 @@ const bcrypt = require("bcrypt")
 const env = require("dotenv").config()
 const User = require("../../models/userSchema")
 const Order = require("../../models/orderSchema")
+const Wallet = require("../../models/walletSchema")
 
 const pageerror = (req,res)=>{
    res.render("page-error")
@@ -84,6 +85,23 @@ const approveReturn = async(req,res)=>{
        order.status = "return approved"
        await order.save();
 
+        let wallet = await Wallet.findOne({ userId: order.userId });
+        if (!wallet) {
+            wallet = new Wallet({ userId: order.userId });
+        }
+       
+        const refundAmount = order.totalPrice
+
+        wallet.balance += refundAmount
+       
+        wallet.transactions.push({
+        amount: refundAmount,
+        type: 'credit',
+        description: `Refund for ${order.status.toLowerCase()} order`,
+        })
+
+        await wallet.save()
+       
        res.status(200).json({ message: "Return approved successfully." })
 
     } catch (error) {

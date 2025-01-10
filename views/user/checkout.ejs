@@ -128,10 +128,12 @@
                         </div>
                     </div>
                     <div>
+                        <% if(wallet.balance > 0) { %>
                         <div class="custom-control custom-radio">
-                            <input type="radio" class="custom-control-input" name="payment" id="banktransfer">
-                            <label class="custom-control-label" for="banktransfer">Wallet</label>
+                            <input type="radio" class="custom-control-input" name="payment" id="wallet">
+                            <label class="custom-control-label" for="wallet">Wallet: <span id="walletBalance" style="color: green;"> ₹ <%= wallet.balance %>.00</span> </label>
                         </div>
+                        <% } %>
                     </div>
                 </div>
                 <div class="card-footer border-secondary bg-transparent">
@@ -497,81 +499,117 @@
 
         const cartData = { cartItems, totalPrice, addressId, deliveryType };
 
-        async function handleCheckout() {
-            if (deliveryType === 'razorpay') {
-                try {
-                    const orderResponse = await fetch('/placeOrder', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify(cartData),
-                    });
+  async function handleCheckout() {
+  if (deliveryType === 'razorpay') {
+    try {
+      const orderResponse = await fetch('/placeOrder', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(cartData),
+      });
 
-                    if (!orderResponse.ok) {
-                        throw new Error("Failed to create Razorpay order");
-                    }
+      if (!orderResponse.ok) {
+        throw new Error('Failed to create Razorpay order');
+      }
 
-                    const { order, key } = await orderResponse.json();
+      const { order, key } = await orderResponse.json();
 
-                    const options = {
-                        key,
-                        amount: order.amount,
-                        currency: order.currency,
-                        order_id: order.id,
-                        name: "WarDope",
-                        description: "Thank you for shopping with us!",
-                        handler: async function (response) {
-                            const verifyResponse = await fetch('/verifyPayment', {
-                                method: 'POST',
-                                headers: { 'Content-Type': 'application/json' },
-                                body: JSON.stringify(response),
-                            });
+      const options = {
+        key,
+        amount: order.amount,
+        currency: order.currency,
+        order_id: order.id,
+        name: 'WarDope',
+        description: 'Thank you for shopping with us!',
+        handler: async function (response) {
+          const verifyResponse = await fetch('/verifyPayment', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(response),
+          });
 
-                            const verifyResult = await verifyResponse.json();
+          const verifyResult = await verifyResponse.json();
 
-                            if (verifyResult.success) {
-                                Swal.fire("Success", "Payment verified successfully!", "success").then(() => {
-                                    window.location.href = '/orders';
-                                });
-                            } else {
-                                Swal.fire("Error", "Payment verification failed!", "error");
-                            }
-                        },
-                        theme: { color: "#3399cc" },
-                    };
+          if (verifyResult.success) {
+            Swal.fire('Success', 'Payment verified successfully!', 'success').then(() => {
+              window.location.href = '/orders';
+            });
+          } else {
+            Swal.fire('Error', 'Payment verification failed!', 'error');
+          }
+        },
+        theme: { color: '#3399cc' },
+      };
 
-                    const razorpayInstance = new Razorpay(options);
-                    razorpayInstance.open();
+      const razorpayInstance = new Razorpay(options);
+      razorpayInstance.open();
 
-                    razorpayInstance.on('payment.failed', function (response) {
-                        Swal.fire("Error", `Payment failed: ${response.error.description}`, "error");
-                    });
-                } catch (error) {
-                    console.error("Error during Razorpay payment process:", error);
-                    Swal.fire("Error", "Payment initiation failed!", "error");
-                }
-            } else if (deliveryType === 'cashOnDelivery' || deliveryType === 'banktransfer') {
-                try {
-                    const response = await fetch('/placeOrder', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify(cartData),
-                    });
+      razorpayInstance.on('payment.failed', function (response) {
+        Swal.fire('Error', `Payment failed: ${response.error.description}`, 'error');
+      });
+    } catch (error) {
+      console.error('Error during Razorpay payment process:', error);
+      Swal.fire('Error', 'Payment initiation failed!', 'error');
+    }
+  } else if(deliveryType === "wallet") {
 
-                    if (response.ok) {
-                        Swal.fire("Success", "Order placed successfully!", "success").then(() => {
-                            window.location.href = '/orders';
-                        });
-                    } else {
-                        throw new Error("Failed to place order");
-                    }
-                } catch (error) {
-                    console.error("Error placing order:", error);
-                    Swal.fire("Error", error.message || "Something went wrong!", "error");
-                }
-            }
-        }
+    const walletBalanceText = document.getElementById('walletBalance')?.innerText;
+    const walletBalance = parseFloat(walletBalanceText.replace(/[^0-9.]/g, ''));
 
-        // Confirm checkout
+    console.log(`totalPrice: ${totalPrice}`)
+    
+    if(walletBalance < totalPrice){
+    return Swal.fire({
+            icon: "warning",
+            title: "Oops...",
+            text: "Insufficient fund !!",
+            timer: 1000,
+            toast: true,
+            position: "top-end",
+            showConfirmButton: false
+        })
+    }
+
+    try {
+      const response = await fetch('/placeOrder', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(cartData),
+      });
+
+      if (response.ok) {
+        Swal.fire('Success', 'Order placed successfully!', 'success').then(() => {
+          window.location.href = '/orders';
+        });
+      } else {
+        throw new Error('Failed to place order');
+      }
+    } catch (error) {
+      console.error('Error placing order:', error);
+      Swal.fire('Error', error.message || 'Something went wrong!', 'error');
+    }
+
+  } else {
+    try {
+      const response = await fetch('/placeOrder', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(cartData),
+      });
+
+      if (response.ok) {
+        Swal.fire('Success', 'Order placed successfully!', 'success').then(() => {
+          window.location.href = '/orders';
+        });
+      } else {
+        throw new Error('Failed to place order');
+      }
+    } catch (error) {
+      console.error('Error placing order:', error);
+      Swal.fire('Error', error.message || 'Something went wrong!', 'error');
+    }
+  }
+}
         Swal.fire({
             title: 'Confirm Order',
             text: 'Do you want to place this order?',

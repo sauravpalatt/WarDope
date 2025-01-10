@@ -2,6 +2,7 @@ const Address = require("../../models/addressSchema")
 const User = require("../../models/userSchema")
 const Cart = require("../../models/cartSchema")
 const Coupon = require("../../models/couponSchema")
+const Wallet = require("../../models/walletSchema")
 
     const addressPageInfo = async (req, res) => {
         try {
@@ -60,12 +61,15 @@ const Coupon = require("../../models/couponSchema")
 
                 const coupons = await Coupon.find({status:"active"})
 
+                const wallet = await Wallet.findOne({userId:user})
+
                     res.render("checkout",{
                         user,
                         addresses,
                         cartItems : cart.items,
                         totalPrice : cart.totalPrice,
-                        coupons
+                        coupons,
+                        wallet
                     })
             }
 
