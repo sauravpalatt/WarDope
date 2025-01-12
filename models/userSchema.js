@@ -1,4 +1,5 @@
 const mongoose = require("mongoose")
+const Coupon = require("./couponSchema")
 const {Schema} = mongoose
 
 const userSchema = new Schema({
@@ -77,10 +78,12 @@ const userSchema = new Schema({
             default:Date.now
         }
     }],
-    appliedCoupon: {
-         type: String, 
-         default: null 
-    }
+    appliedCoupon: [
+        {
+          Coupon: String,
+          appliedAt: { type: Date, default: Date.now }, 
+        },
+      ]
 },{timestamps:true})
 
 const User = mongoose.model("User",userSchema)

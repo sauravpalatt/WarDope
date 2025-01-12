@@ -55,7 +55,7 @@
                         <% } %>
                     </select>
                     <div class="mt-3">
-                        <button id="applyCouponBtn" class="btn btn-primary btn-sm">Apply Coupon</button>
+                        <button id="applyCouponBtn" class="btn btn-primary btn-sm">Redeem Coupon</button>
                     </div>
                 </div>
                 
@@ -128,7 +128,7 @@
                         </div>
                     </div>
                     <div>
-                        <% if(wallet.balance > 0) { %>
+                        <% if(wallet && wallet.balance > 0 ) { %>
                         <div class="custom-control custom-radio">
                             <input type="radio" class="custom-control-input" name="payment" id="wallet">
                             <label class="custom-control-label" for="wallet">Wallet: <span id="walletBalance" style="color: green;"> ₹ <%= wallet.balance %>.00</span> </label>
@@ -469,7 +469,7 @@
             return;
         }
 
-        // Fetching total price
+        // Fetching Dynamic Total price
         const totalPriceElement = document.getElementById('dynamicTotalPrice');
         let totalPrice = 0;
         if (totalPriceElement) {
@@ -477,6 +477,16 @@
         } else {
             Swal.fire("Error", "Total price element not found!", "error");
             return;
+        }
+
+        // Fetching Initial Price:
+        const initialPriceElement = document.getElementById("totalPrice")
+        let initialPrice = 0;
+        if (initialPriceElement) {
+            initialPrice = parseFloat(initialPriceElement.innerText.replace("₹","").replace(".00",""))
+        }else {
+            Swal.fire("Error", "Initial Price not found", "error")
+            return
         }
 
         // Fetching address ID
@@ -497,7 +507,7 @@
             return;
         }
 
-        const cartData = { cartItems, totalPrice, addressId, deliveryType };
+        const cartData = { cartItems, totalPrice, addressId, deliveryType, initialPrice };
 
   async function handleCheckout() {
   if (deliveryType === 'razorpay') {
@@ -626,66 +636,71 @@
 </script>
 
 <script>
-    document.getElementById("applyCouponBtn").addEventListener("click", async (e) => {
-        e.preventDefault();
+   document.getElementById("applyCouponBtn").addEventListener("click", async (e) => {
+    e.preventDefault();
 
-        const couponSelectId = document.getElementById("couponSelect");
-        const totalPriceId = document.getElementById("totalPrice");
-        const discount = document.getElementById("discount");
-        const dynamicTotalPrice = document.getElementById("dynamicTotalPrice");
+    const couponSelectId = document.getElementById("couponSelect");
+    const totalPriceId = document.getElementById("totalPrice");
+    const totalPrice = parseFloat(totalPriceId.innerText.replace(/[^0-9.]/g, ''));
+    const discountValue = parseFloat(couponSelectId.value);
+    const couponCode = couponSelectId.options[couponSelectId.selectedIndex].text;
 
-        const totalPrice = parseFloat(totalPriceId.innerText.replace(/[^0-9.]/g, ''));
-        const discountValue = parseFloat(couponSelectId.value);
-        const couponCode = couponSelectId.options[couponSelectId.selectedIndex].text;
+    // Show confirmation dialog before sending the fetch request
+    Swal.fire({
+        icon: "question",
+        title: "Are you sure?",
+        text: "Coupon once redeemed will expire. Do you want to proceed?",
+        showCancelButton: true,
+        confirmButtonText: "Yes, Apply Coupon",
+        cancelButtonText: "No, Cancel",
+    }).then(async (result) => {
+        if (result.isConfirmed) {
+            try {
+                const couponData = {
+                    totalPrice,
+                    discountValue,
+                    couponCode
+                };
 
-        try {
-            const couponData = {
-                totalPrice,
-                discountValue,
-                couponCode
-            };
-
-            const response = await fetch("/applyCoupon", {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json"
-                },
-                body: JSON.stringify(couponData)
-            });
-
-            if (!response.ok) {
-                const { message } = await response.json();
-                Swal.fire({
-                    icon: "warning",
-                    title: "Coupon Error",
-                    text: message || "Something went wrong while applying the coupon.",
+                const response = await fetch("/applyCoupon", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify(couponData)
                 });
-                return;
+
+                if (!response.ok) {
+                    const { message } = await response.json();
+                    Swal.fire({
+                        icon: "warning",
+                        title: "Oops !!",
+                        text: message || "Something went wrong while applying the coupon.",
+                    });
+                    return;
+                }
+
+                const { discountPrice, amountDeducted } = await response.json();
+
+                document.getElementById("discount").innerText = `- ₹${amountDeducted.toFixed(2)}`;
+                document.getElementById("dynamicTotalPrice").innerText = `₹${discountPrice.toFixed(2)}`;
+
+                Swal.fire({
+                    icon: "success",
+                    title: "Coupon Applied!",
+                    text: `Your coupon "${couponCode}" was successfully applied.`,
+                });
+            } catch (error) {
+                console.error("ERROR IN FETCHING COUPON IN FRONT END", error);
+                Swal.fire({
+                    icon: "error",
+                    title: "Error",
+                    text: "Failed to apply the coupon. Please try again later.",
+                });
             }
-
-            const { discountPrice, amountDeducted } = await response.json();
-
-            discount.innerText = `- ₹${amountDeducted.toFixed(2)}`;
-            dynamicTotalPrice.innerText = `₹${discountPrice.toFixed(2)}`;
-
-            Swal.fire({
-                icon: "success",
-                title: "Coupon Applied!",
-                text: `Your coupon "${couponCode}" was successfully applied.`,
-            });
-
-        } catch (error) {
-            console.error("ERROR IN FETCHING COUPON IN FRONT END", error);
-            Swal.fire({
-                icon: "error",
-                title: "Error",
-                text: "Failed to apply the coupon. Please try again later.",
-            });
         }
     });
+});
 </script>
-
-
-
 
 <%- include ("../partials/user/footer") %>

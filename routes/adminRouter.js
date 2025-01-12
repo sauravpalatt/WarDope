@@ -7,14 +7,16 @@ const categoryController = require("../controllers/admin/categoryController")
 const productController = require("../controllers/admin/productController")
 const upload = require('../middleware/upload'); 
 
-
 router.get("/pageerror",adminController.pageerror)
 //Log In Mgt
 router.get("/login",adminController.loadLogin)
 router.post("/login",adminController.login)
 router.get("/logout",adminController.adminLogout)
 router.get("/",adminAuth,adminController.loadDashboard)
-//Customer Mgt
+
+// router.post("/salesReport",adminAuth,adminController.salesReportList)
+
+// Customer Mgt
 router.get("/users",adminAuth,customerController.userInfo)
 router.get("/blockCustomer",adminAuth,customerController.blockUser)
 router.get("/unblockCustomer",adminAuth,customerController.unblockUser)
@@ -39,6 +41,8 @@ router.delete("/deleteSize/:id",adminAuth,productController.deleteSize)
 
 //Order Mgt
 router.get("/orderlist",adminAuth,productController.orderListInfo)
+// router.get("/filterOrderList",adminAuth,productController.filteredList)
+// router.get("/salesReport",adminAuth,productController.orderListInfo)
 router.get("/orderDetail/:orderId",adminAuth,productController.orderDetailInfo)
 router.post("/order/status/:orderId",adminAuth,productController.orderStatus)
 router.post("/order/return/approve/:orderId", adminController.approveReturn);

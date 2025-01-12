@@ -8,8 +8,8 @@
             <p>Whole data about your business here</p>
           </div>
           <div>
-            <a href="#" class="btn btn-primary"
-              ><i class="text-muted material-icons md-post_add"></i>Create
+            <a href="/admin/orderList" class="btn btn-primary"
+              ><i class="text-muted material-icons md-post_add"></i>Sales
               report</a
             >
           </div>
@@ -23,7 +23,7 @@
                 ></span>
                 <div class="text">
                   <h6 class="mb-1 card-title">Revenue</h6>
-                  <span>$13,456.5</span>
+                  <span><%= totalSales %>.00 RS</span>
                   <span class="text-sm"> Shipping fees are not included </span>
                 </div>
               </article>
@@ -37,7 +37,7 @@
                 ></span>
                 <div class="text">
                   <h6 class="mb-1 card-title">Orders</h6>
-                  <span>53.668</span>
+                  <span><%= countOrders %></span>
                   <span class="text-sm"> Excluding orders in transit </span>
                 </div>
               </article>
@@ -51,8 +51,8 @@
                 ></span>
                 <div class="text">
                   <h6 class="mb-1 card-title">Products</h6>
-                  <span>9.856</span>
-                  <span class="text-sm"> In 19 Categories </span>
+                  <span><%= countProducts %></span>
+                  <span class="text-sm">  </span>
                 </div>
               </article>
             </div>

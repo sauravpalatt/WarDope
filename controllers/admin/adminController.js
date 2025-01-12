@@ -4,6 +4,8 @@ const env = require("dotenv").config()
 const User = require("../../models/userSchema")
 const Order = require("../../models/orderSchema")
 const Wallet = require("../../models/walletSchema")
+const Product = require("../../models/productSchema")
+
 
 const pageerror = (req,res)=>{
    res.render("page-error")
@@ -48,7 +50,24 @@ const login = async (req, res) => {
 const loadDashboard =async (req,res)=>{
     try {
         if(req.session.admin){
-            return res.render("dashboard")
+
+            const salesTotal= await Order.aggregate([
+                {$group:
+                    {_id:"null",totalsales:{$sum:"$totalPrice"}}
+                }
+            ])
+
+            const countOrders = await Order.countDocuments({})
+
+            const countProducts = await Product.countDocuments({})
+
+            const totalSales =  salesTotal[0].totalsales 
+            
+            return res.render("dashboard",{
+                totalSales,
+                countOrders,
+                countProducts
+            })
         }else{
             return res.redirect("/pageerror")
         }
@@ -132,6 +151,8 @@ const denyReturn = async(req,res)=>{
     }
 }
 
+
+
 module.exports={
     loadLogin,
     login,
@@ -139,6 +160,6 @@ module.exports={
     pageerror,
     adminLogout,
     approveReturn,
-    denyReturn
+    denyReturn,
 }
 

@@ -1,4 +1,35 @@
-<%-include("../partials/admin/header")%>
+<%- include("../partials/admin/header") %>
+
+<div class="filter-section">
+    <form id="filter-form" method="GET" action="/admin/orderList">
+        <label for="filterType">Select Range:</label>
+        <select id="filterType" name="filterType">
+            <option value="">--Select--</option>
+            <option value="1-day">Last 1 Day</option>
+            <option value="1-week">Last 1 Week</option>
+            <option value="1-month">Last 1 Month</option>
+            <option value="1-year">Last 1 Year</option>
+            <option value="custom">Custom Range</option>
+        </select>
+
+        <!-- Custom Range Fields -->
+        <div id="custom-range" style="display: none;">
+            <label for="startDate">Start Date:</label>
+            <input type="date" id="startDate" name="startDate">
+
+            <label for="startTime">Start Time:</label>
+            <input type="time" id="startTime" name="startTime">
+
+            <label for="endDate">End Date:</label>
+            <input type="date" id="endDate" name="endDate">
+
+            <label for="endTime">End Time:</label>
+            <input type="time" id="endTime" name="endTime">
+        </div>
+
+        <button type="submit">Filter</button>
+    </form>
+</div>
 
 <div class="card-body">
     <div class="table-responsive">
@@ -8,7 +39,10 @@
                     <th>Order-Id</th>
                     <th scope="col">Name</th>
                     <th scope="col">Email</th>
-                    <th scope="col">Total</th>
+                    <th scope="col">Amount</th>
+                    <th scope="col">Discount</th>
+                    <th scope="col">Coupon</th>
+                    <th scope="col">Final Amt</th>
                     <th scope="col">Status</th>
                     <th scope="col">Date</th>
                     <th class="text-center" scope="col" class="text-end">Action</th>
@@ -20,27 +54,45 @@
                         <td><%= order.orderId %></td>
                         <td><b><%= order.userId.name %></b></td>
                         <td><%= order.userId.email %></td>
+                        <td>₹<%= order.initialPrice %></td>
+                        <td>₹<%= order.discount %></td>
+                        <td><%= order.coupon %></td>
                         <td>₹<%= order.totalPrice %></td>
                         <td>
-                        <span class="badge rounded-pill 
-                        <%= order.status === 'shipped' ? 'bg-info' : '' %>
-                        <%= order.status === 'pending' ? 'bg-warning' : '' %>
-                        <%= order.status === 'delivered' ? 'bg-success' : '' %>
-                        <%= order.status === 'canceled' ? 'bg-danger' : '' %>
-                        <%= order.status === 'return requested' ? 'bg-secondary' : '' %>
-                        <%= order.status === 'return approved' ? 'bg-success' : '' %>
-                        <%= order.status === 'return denied' ? 'bg-primary' : '' %>">
-
-                        <%= order.status %>
-                        </span>
+                            <span class="badge rounded-pill 
+                                <%= order.status === 'shipped' ? 'bg-info' : '' %>
+                                <%= order.status === 'pending' ? 'bg-warning' : '' %>
+                                <%= order.status === 'delivered' ? 'bg-success' : '' %>
+                                <%= order.status === 'canceled' ? 'bg-danger' : '' %>
+                                <%= order.status === 'return requested' ? 'bg-secondary' : '' %>
+                                <%= order.status === 'return approved' ? 'bg-success' : '' %>
+                                <%= order.status === 'return denied' ? 'bg-primary' : '' %>">
+                                <%= order.status %>
+                            </span>
                         </td>
-                        <td><%= order.formattedDate %></td>
+                        <td><%= order.formattedDate || 'Date not available' %></td>
                         <td class="text-end">
                             <a href="/admin/orderDetail/<%= order.orderId %>" class="btn btn-md rounded font-sm">Detail</a>
-                            <!-- dropdown //end -->
                         </td>
                     </tr>
                 <%  }); %>
-            </tbody>    
+            </tbody> 
+        </table>
+    </div> 
+</div>
 
-<%-include("../partials/admin/footer")%>
+<script>
+    const filterType = document.getElementById('filterType');
+    const customRange = document.getElementById('custom-range');
+    
+    // Show/hide custom range inputs based on selected filter
+    filterType.addEventListener('change', () => {
+        if (filterType.value === 'custom') {
+            customRange.style.display = 'block';
+        } else {
+            customRange.style.display = 'none';
+        }
+    });
+</script>
+
+<%- include("../partials/admin/footer") %>

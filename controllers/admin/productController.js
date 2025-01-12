@@ -282,17 +282,67 @@ const deleteSize = async(req,res)=>{
 
 const orderListInfo = async(req,res)=>{
   try {
-    const orders = await Order.find().populate("userId")
+    // Extract filter parameters from the query
+    const { filterType, startDate, startTime, endDate, endTime } = req.query;
+    let filter = {};
 
+    // Get the current date
+    const now = new Date();
+
+    // Handle different filter types
+    if (filterType === '1-day') {
+      const startOfDay = new Date(now.setHours(0, 0, 0, 0));
+      const endOfDay = new Date(now.setHours(23, 59, 59, 999));
+      filter.createdAt = { $gte: startOfDay, $lt: endOfDay };
+    } else if (filterType === '1-week') {
+      const lastWeek = new Date();
+      lastWeek.setDate(now.getDate() - 7);
+      filter.createdAt = { $gte: lastWeek, $lt: now };
+    } else if (filterType === '1-month') {
+      const lastMonth = new Date();
+      lastMonth.setMonth(now.getMonth() - 1);
+      filter.createdAt = { $gte: lastMonth, $lt: now };
+    } else if (filterType === '1-year') {
+      const lastYear = new Date();
+      lastYear.setFullYear(now.getFullYear() - 1);
+      filter.createdAt = { $gte: lastYear, $lt: now };
+    } else if (filterType === 'custom' && startDate && endDate) {
+      let startDateTime = new Date(startDate);
+      let endDateTime = new Date(endDate);
+
+      // Handle start time
+      if (startTime) {
+        const [startHour, startMinute] = startTime.split(':');
+        startDateTime.setHours(startHour, startMinute, 0, 0);
+      }
+
+      // Handle end time
+      if (endTime) {
+        const [endHour, endMinute] = endTime.split(':');
+        endDateTime.setHours(endHour, endMinute, 59, 999);
+      }
+
+      filter.createdAt = {
+        $gte: startDateTime,
+        $lte: endDateTime,
+      };
+    }
+
+    // Fetch the filtered orders from the database
+    const orders = await Order.find(filter).populate("userId").lean();
+
+    // Format the date for rendering in the template
     orders.reverse().forEach(order => {
       const date = new Date(order.createdAt);
-      order.formattedDate = date.toLocaleDateString('en-GB'); 
-  });
+      order.formattedDate = date.toLocaleDateString('en-GB') + " " + date.toLocaleTimeString('en-GB'); // Format date and time
+    });
 
-  res.render("orderlistAdmin",{orders})
+    // Render the order list view with filtered orders
+    res.render("orderlistAdmin", { orders });
+
   } catch (error) {
-    console.error(`ERROR FETCHING ORDER LIST INFO:${error}`)
-    
+    console.error(`ERROR FETCHING ORDER LIST INFO: ${error}`);
+    res.status(500).send("Internal Server Error");
   }
 }
 
@@ -475,6 +525,48 @@ const inactivateCouponStatus = async(req,res)=>{
   }
 }
 
+const filteredList = async (req,res)=>{
+  try {
+    const { filterType, startDate, endDate } = req.query;
+
+    let filter = {};
+    const now = new Date();
+
+    if (filterType === '1-day') {
+        const yesterday = new Date();
+        yesterday.setDate(now.getDate() - 1);
+        filter.createdAt = { $gte: yesterday, $lt: now };
+    } else if (filterType === '1-week') {
+        const lastWeek = new Date();
+        lastWeek.setDate(now.getDate() - 7);
+        filter.createdAt = { $gte: lastWeek, $lt: now };
+    } else if (filterType === '1-month') {
+        const lastMonth = new Date();
+        lastMonth.setMonth(now.getMonth() - 1);
+        filter.createdAt = { $gte: lastMonth, $lt: now };
+    } else if (filterType === '1-year') {
+        const lastYear = new Date();
+        lastYear.setFullYear(now.getFullYear() - 1);
+        filter.createdAt = { $gte: lastYear, $lt: now };
+    } else if (filterType === 'custom') {
+  
+        if (startDate && endDate) {
+            filter.createdAt = {
+                $gte: new Date(startDate),
+                $lte: new Date(endDate),
+            };
+        }
+    }
+
+    const orders = await Order.find(filter).populate('userId').sort({ createdAt: -1 });
+
+    res.render('orderListAdmin', { orders });
+
+  } catch (error) {
+    console.error("ERROR IN FILTERED LIST FN",error);
+  }
+}
+
 module.exports = {
   addProductInfo,
   addProduct,
@@ -493,5 +585,6 @@ module.exports = {
   couponList,
   addCoupon,
   activateCouponStatus,
-  inactivateCouponStatus
+  inactivateCouponStatus,
+  filteredList
 };

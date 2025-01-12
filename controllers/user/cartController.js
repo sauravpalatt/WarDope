@@ -185,7 +185,7 @@ const updateCartQty = async (req, res) => {
     }
   };
 
-  const deleteCartItem = async (req, res) => {
+const deleteCartItem = async (req, res) => {
     try {
       const { itemId } = req.params; // Cart item ID
       const userId = req.session.user; // User ID from session
@@ -225,7 +225,9 @@ const updateCartQty = async (req, res) => {
 const placeOrder = async (req, res) => {
   try {
     const userId = req.session.user;
-    const { cartItems, totalPrice, addressId, deliveryType } = req.body;
+    const { cartItems, totalPrice, addressId, deliveryType, initialPrice } = req.body;
+
+    console.log("InitialPrice: ",initialPrice)
 
     // Validations
     if (!cartItems || cartItems.length === 0) {
@@ -261,13 +263,22 @@ const placeOrder = async (req, res) => {
       userId,
       cartItems,
       totalPrice,
+      initialPrice,
       addressId,
       deliveryType,
+      discount: req.session.amountDeducted ? req.session.amountDeducted : 0,
+      coupon: req.session.couponCode ? req.session.couponCode : "null"
     });
 
     order = generateOrderId(order);
     await order.save();
     await Cart.deleteOne({ user: userId });
+
+    req.session.amountDeducted = 0
+    req.session.couponCode = "null"
+
+    console.log(`Amount deducted: ${req.session.amountDeducted}`)
+    console.log(`Coupon Code: ${req.session.couponCode}`)
 
     //Razorpay
     if (deliveryType === 'razorpay') {
@@ -280,7 +291,6 @@ const placeOrder = async (req, res) => {
       const order = await razorpay.orders.create(options);
       return res.status(200).json({ order, key: process.env.RAZORPAY_KEY_ID });
     }
-
 
     //Wallet
     if(deliveryType === "wallet"){
@@ -558,35 +568,30 @@ const applyCoupon = async(req,res)=>{
   const userId = req.session.user
   const { totalPrice, discountValue, couponCode} = req.body
 
-  console.log(`couponCode ${couponCode}`)
-
   try {
     
     const user = await User.findById(userId)
 
-    if(user.appliedCoupon) {
-      return res.status(404).json({success:false,message: "Oops...You already redeemed a coupon"})
+    const existingCoupon = await User.findOne({
+      _id: userId,
+      appliedCoupon: { $elemMatch: { Coupon: couponCode } },
+    });
+
+    if(existingCoupon) {
+      return res.status(404).json({success:false,message:"This coupon has been redeemed"})
     }
      
-    const coupon = await Coupon.findOne({code: couponCode}) 
-    
-    if(!coupon){
-      return res.status(404).json({success:false,message: "Coupon does not exist or not active currently"})
-    }
+    const amountDeducted = Math.round((totalPrice * discountValue) / 100);
+    const discountPrice = Math.round(totalPrice - amountDeducted);
 
-    const amountDeducted = Math.round(totalPrice * discountValue/100)
+    req.session.amountDeducted = amountDeducted
+    req.session.couponCode = couponCode
 
-    console.log(`Amt Deducted: ${amountDeducted}`)
+    user.appliedCoupon.push({ Coupon: couponCode, appliedAt: new Date() });
 
-    const discountPrice = Math.round(totalPrice - amountDeducted)
-
-    console.log(`discountPrice: ${discountPrice}`)
-
-    user.appliedCoupon =  couponCode
     await user.save()
-
-    console.log("end")
-    return res.json({discountPrice,amountDeducted})
+    
+    return res.json({ discountPrice, amountDeducted });
     
   } catch (error) {
     console.error("ERROR IN APPLY COUPON FN",error)
