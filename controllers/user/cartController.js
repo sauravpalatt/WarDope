@@ -451,7 +451,7 @@ const cancelOrder = async (req, res) => {
             wallet = new Wallet({ userId: order.userId });
         }
 
-    if(order.deliveryType === "razorpay"){
+    if(order.deliveryType === "razorpay" || order.deliveryType === "wallet" ){
 
       const refundAmount = order.totalPrice
       wallet.balance += refundAmount
