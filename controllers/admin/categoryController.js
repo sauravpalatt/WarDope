@@ -1,4 +1,5 @@
 const Category = require("../../models/categorySchema")
+const Product = require("../../models/productSchema")
 const mongoose = require("mongoose")
 
 const categoryInfo = async (req, res) => {
@@ -50,12 +51,13 @@ const categoryInfo = async (req, res) => {
 
 const addCategory = async (req, res) => {
     try {
-        const { catName, catDes, offerId } = req.body;
-
+        const { catDes, offerId } = req.body;
+        const catName = req.body.catName.trim().toUpperCase();
+        
         const category = await Category.findOne({categoryName:catName})
 
         if(category){
-            console.log("FN REACHED")
+
             await Category.updateOne({categoryName:catName},{$set:{description:catDes,offerId: offerId || null}})
 
             res.status(200).json({ success: true, message: "Category updated successfully" });
@@ -156,6 +158,41 @@ const editCategory = async(req,res)=>{
     }
 }
 
+const addCategoryOffer = async(req,res)=>{
+
+    const categoryId = req.params.categoryId;
+   
+    const { offerPercent } = req.body; 
+    try {
+        console.log("1")
+        const category = await Category.findById(categoryId);
+
+
+
+        if (!category) {
+            console.log("2")
+            return res.json({ success: false, message: 'Category not found' });
+        }
+
+        category.offer = offerPercent;
+        await category.save();
+
+        const products = await Product.updateMany(
+            { category: categoryId },
+            { $set: { promotionalPrice: { $multiply: ['$regularPrice', 1 - offerPercent / 100] } } }
+        );
+
+        return res.json({
+            success: true,
+            message: `Offer of ${offerPercent}% applied successfully. ${products.modifiedCount} products updated.`,
+          });
+
+    } catch (error) {
+        console.error(error);
+        return res.json({ success: false, message: 'Error applying offer' });
+    }
+}
+
 module.exports={
     categoryInfo,
     addCategory,
@@ -163,4 +200,5 @@ module.exports={
     inactivateUser,
     editCategoryInfo,
     editCategory,
+    addCategoryOffer
 }

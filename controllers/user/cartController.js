@@ -88,7 +88,7 @@ const addToCart = async (req, res) => {
     
     const variantId=variant.variants[0]._id
 
-    const price = product.regularPrice;
+    const price = product.promotionalPrice;
     const totalItemPrice = price * quantity;
 
     let cart = await Cart.findOne({ user: userId });
@@ -158,7 +158,7 @@ const updateCartQty = async (req, res) => {
         if (isNaN(item.quantity) || item.quantity <= 0) {
           return res.status(400).json({ message: `Invalid quantity for item ${item._id}` });
         }
-        totalPrice += item.quantity * product.regularPrice;
+        totalPrice += item.quantity * product.promotionalPrice;
       }
   
       cart.totalPrice = totalPrice;
@@ -173,7 +173,7 @@ const updateCartQty = async (req, res) => {
   
       res.json({
         quantity,
-        productPrice: cartItem.product.regularPrice,
+        productPrice: cartItem.product.promotionalPrice,
         shippingCost,
         cartSubtotal,
         cartTotal
@@ -208,7 +208,7 @@ const deleteCartItem = async (req, res) => {
   
       // Recalculate cart subtotal
       const cartSubtotal = cart.items.reduce(
-        (sum, item) => sum + item.quantity * item.product.regularPrice,
+        (sum, item) => sum + item.quantity * item.product.promotionalPrice,
         0
       );
   

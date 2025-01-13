@@ -7,6 +7,8 @@ const sharp = require("sharp");
 const Order = require("../../models/orderSchema");
 const Address = require("../../models/addressSchema")
 const Coupon = require("../../models/couponSchema")
+const ExcelJS = require('exceljs');
+const PDFDocument = require('pdfkit');
 
 
 const addProductInfo = async (req, res) => {
@@ -190,28 +192,52 @@ const productsInfo = async(req,res)=>{
   }
 }
 
-const addProductOffer = async(req,res)=>{
-  try {
-      const {productId,percentage} = req.body
-      const findProduct = await Product.findById(productId)
-      const findCategory = await Category.findOne({_id:findProduct.category})
-      if(findCategory.categoryOffer>percentage){
-        return res.json({status:false,message:"This product category already has a category offer"})
-      }
+// const addProductOffer = async(req,res)=>{
+//   try {
+//       const {productId,percentage} = req.body
+//       const findProduct = await Product.findById(productId)
+//       const findCategory = await Category.findOne({_id:findProduct.category})
+//       if(findCategory.categoryOffer>percentage){
+//         return res.json({status:false,message:"This product category already has a category offer"})
+//       }
       
-     findProduct.promotionalPrice = Math.floor(findProduct.regularPrice * (1-percentage/100))
-     findProduct.productOffer = parseInt(percentage)
-     await findProduct.save()
-     findCategory.categoryOffer=0 
-     await findCategory.save()
-     res.json({status:true})
+//      findProduct.promotionalPrice = Math.floor(findProduct.regularPrice * (1-percentage/100))
+//      findProduct.productOffer = parseInt(percentage)
+//      await findProduct.save()
+//      findCategory.categoryOffer=0 
+//      await findCategory.save()
+//      res.json({status:true})
 
+//   } catch (error) {
+//       console.error("ERROR IN ADD-PRODUCT OFFER",error)
+//       res.redirect("admin/pageerror")
+//       res.status(500).json({status:false,message:"Internal Server Error"})
+//   }
+// }
+
+const addProductOffer = async (req, res) => {
+  try {
+      const { productId, percentage } = req.body;
+
+      // Find the product by ID
+      const findProduct = await Product.findById(productId);
+      if (!findProduct) {
+          return res.json({ status: false, message: "Product not found" });
+      }
+
+      // Calculate the promotional price based on the percentage
+      findProduct.promotionalPrice = Math.floor(findProduct.regularPrice * (1 - percentage / 100));
+      findProduct.productOffer = parseInt(percentage);
+
+      // Save the updated product
+      await findProduct.save();
+
+      res.json({ status: true, message: "Product offer added successfully" });
   } catch (error) {
-      console.error("ERROR IN ADD-PRODUCT OFFER",error)
-      res.redirect("admin/pageerror")
-      res.status(500).json({status:false,message:"Internal Server Error"})
+      console.error("ERROR IN ADD-PRODUCT OFFER", error);
+      res.status(500).json({ status: false, message: "Internal Server Error" });
   }
-}
+};
 
 const removeProductOffer = async(req,res)=>{
   try {
@@ -282,14 +308,14 @@ const deleteSize = async(req,res)=>{
 
 const orderListInfo = async(req,res)=>{
   try {
-    // Extract filter parameters from the query
+    
     const { filterType, startDate, startTime, endDate, endTime } = req.query;
     let filter = {};
 
-    // Get the current date
+    
     const now = new Date();
 
-    // Handle different filter types
+    
     if (filterType === '1-day') {
       const startOfDay = new Date(now.setHours(0, 0, 0, 0));
       const endOfDay = new Date(now.setHours(23, 59, 59, 999));
@@ -310,13 +336,13 @@ const orderListInfo = async(req,res)=>{
       let startDateTime = new Date(startDate);
       let endDateTime = new Date(endDate);
 
-      // Handle start time
+      
       if (startTime) {
         const [startHour, startMinute] = startTime.split(':');
         startDateTime.setHours(startHour, startMinute, 0, 0);
       }
 
-      // Handle end time
+      
       if (endTime) {
         const [endHour, endMinute] = endTime.split(':');
         endDateTime.setHours(endHour, endMinute, 59, 999);
@@ -328,16 +354,13 @@ const orderListInfo = async(req,res)=>{
       };
     }
 
-    // Fetch the filtered orders from the database
     const orders = await Order.find(filter).populate("userId").lean();
 
-    // Format the date for rendering in the template
     orders.reverse().forEach(order => {
       const date = new Date(order.createdAt);
       order.formattedDate = date.toLocaleDateString('en-GB') + " " + date.toLocaleTimeString('en-GB'); // Format date and time
     });
 
-    // Render the order list view with filtered orders
     res.render("orderlistAdmin", { orders });
 
   } catch (error) {
@@ -345,6 +368,119 @@ const orderListInfo = async(req,res)=>{
     res.status(500).send("Internal Server Error");
   }
 }
+
+const downloadSalesReport = async (req, res) => {
+  try {
+    const { format } = req.params; // pdf or excel
+    const orders = await Order.find().populate("userId").lean(); // Fetch all orders
+
+    // Ensure the 'public/reports' directory exists
+    const reportsDir = path.join(__dirname, '../public/reports');
+    if (!fs.existsSync(reportsDir)) {
+      fs.mkdirSync(reportsDir, { recursive: true });
+    }
+
+    if (format === 'pdf') {
+      // Generate PDF
+      const doc = new PDFDocument({ size: 'A4', margin: 50 });
+      const filePath = path.join(reportsDir, 'sales-report.pdf');
+      const stream = fs.createWriteStream(filePath);
+
+      doc.pipe(stream);
+
+      // Title
+      doc.fontSize(26).text('Sales Report', { align: 'center', underline: true });
+      doc.moveDown();
+      
+      // Subtitle: Date
+      const date = new Date().toLocaleDateString('en-GB');
+      doc.fontSize(12).text(`Date: ${date}`, { align: 'right' });
+      doc.moveDown(2); // Adding space after the subtitle
+
+      // Add Table Headers with Bold Font
+      const headers = [
+        'Order ID', 'User Name', 'Email', 'Amount', 'Discount', 'Coupon', 'Final Amt', 'Status', 'Date'
+      ];
+      
+      doc.fontSize(14).font('Helvetica-Bold').text(headers.join(' | '), { align: 'center' });
+      doc.moveDown(0.5); // Space after header
+
+      // Add Border Line
+      doc.strokeColor('black').lineWidth(1).moveTo(doc.x, doc.y).lineTo(doc.x + 550, doc.y).stroke();
+      doc.moveDown(1);
+
+      // Add Order Data with Table Rows
+      orders.forEach(order => {
+        const dateFormatted = new Date(order.createdAt).toLocaleString('en-GB');
+        const row = [
+          order.orderId, 
+          order.userId.name, 
+          order.userId.email, 
+          `₹${order.initialPrice}`, 
+          `₹${order.discount}`, 
+          order.coupon, 
+          `₹${order.totalPrice}`, 
+          order.status, 
+          dateFormatted
+        ];
+
+        // Adding Row Data in a Table-like Format
+        doc.fontSize(12).font('Helvetica').text(row.join(' | '), { align: 'center' });
+        doc.moveDown(0.5); // Space between rows
+      });
+
+      // Final Border Line after all rows
+      doc.strokeColor('black').lineWidth(1).moveTo(doc.x, doc.y).lineTo(doc.x + 550, doc.y).stroke();
+
+      // Finalize the PDF
+      doc.end();
+
+      stream.on('finish', () => {
+        res.download(filePath);
+      });
+    } else if (format === 'excel') {
+      // Excel handling remains unchanged for now.
+      const workbook = new ExcelJS.Workbook();
+      const worksheet = workbook.addWorksheet('Sales Report');
+
+      worksheet.columns = [
+        { header: 'Order ID', key: 'orderId', width: 20 },
+        { header: 'User Name', key: 'userName', width: 25 },
+        { header: 'Email', key: 'email', width: 25 },
+        { header: 'Amount', key: 'initialPrice', width: 15 },
+        { header: 'Discount', key: 'discount', width: 15 },
+        { header: 'Coupon', key: 'coupon', width: 15 },
+        { header: 'Final Amount', key: 'totalPrice', width: 15 },
+        { header: 'Status', key: 'status', width: 15 },
+        { header: 'Date', key: 'createdAt', width: 25 },
+      ];
+
+      orders.forEach(order => {
+        worksheet.addRow({
+          orderId: order.orderId,
+          userName: order.userId.name,
+          email: order.userId.email,
+          initialPrice: order.initialPrice,
+          discount: order.discount,
+          coupon: order.coupon,
+          totalPrice: order.totalPrice,
+          status: order.status,
+          createdAt: new Date(order.createdAt).toLocaleString('en-GB'),
+        });
+      });
+
+      const filePath = path.join(reportsDir, 'sales-report.xlsx');
+      await workbook.xlsx.writeFile(filePath);
+
+      res.download(filePath);
+    } else {
+      res.status(400).send('Invalid format specified.');
+    }
+  } catch (error) {
+    console.error(`ERROR GENERATING SALES REPORT: ${error}`);
+    res.status(500).send('Error generating sales report.');
+  }
+};
 
 const orderDetailInfo = async (req, res) => {
   try {
@@ -586,5 +722,6 @@ module.exports = {
   addCoupon,
   activateCouponStatus,
   inactivateCouponStatus,
-  filteredList
+  filteredList,
+  downloadSalesReport
 };

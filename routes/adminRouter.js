@@ -20,6 +20,7 @@ router.get("/",adminAuth,adminController.loadDashboard)
 router.get("/users",adminAuth,customerController.userInfo)
 router.get("/blockCustomer",adminAuth,customerController.blockUser)
 router.get("/unblockCustomer",adminAuth,customerController.unblockUser)
+
 //Category Mgt
 router.get("/categories",adminAuth,categoryController.categoryInfo)
 router.post("/addcategory",adminAuth,categoryController.addCategory)
@@ -27,7 +28,8 @@ router.get("/activateCategory",adminAuth,categoryController.activateUser)
 router.get("/inactivateCategory",adminAuth,categoryController.inactivateUser)
 router.get("/editCategory",adminAuth,categoryController.editCategoryInfo)
 router.post("/editCategory/:id",adminAuth,categoryController.editCategory)
-// router.post("/addOffer",adminAuth,categoryController.addOffer)
+// router.post("/addCatOffer/:categoryId",adminAuth,categoryController.addCategoryOffer)
+
 //Product Mgt
 router.get("/addProduct", adminAuth, productController.addProductInfo);
 router.post("/addProduct",upload, adminAuth, productController.addProduct);  
@@ -41,6 +43,7 @@ router.delete("/deleteSize/:id",adminAuth,productController.deleteSize)
 
 //Order Mgt
 router.get("/orderlist",adminAuth,productController.orderListInfo)
+router.get('/download-sales-report/:format',adminAuth,productController.downloadSalesReport)
 // router.get("/filterOrderList",adminAuth,productController.filteredList)
 // router.get("/salesReport",adminAuth,productController.orderListInfo)
 router.get("/orderDetail/:orderId",adminAuth,productController.orderDetailInfo)

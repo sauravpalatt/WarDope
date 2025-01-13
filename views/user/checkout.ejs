@@ -80,7 +80,7 @@
                                         <td name="itemName"><%= item.product.productName %></td>
                                         <td name="itemQty"><strong><%= item.quantity %></strong></td>
                                         <td name="itemSize"><strong><%= item.size %></strong></td>
-                                        <td name="itemPrice">₹<%= item.product.regularPrice %></td>
+                                        <td name="itemPrice">₹<%= item.product.promotionalPrice %></td>
                                         <td name="itemPrdId" style="display: none;"><%= item.product._id %></td>
                                     </tr>
                                 <% }); %>

@@ -31,6 +31,11 @@
     </form>
 </div>
 
+<div class="action-buttons">
+    <button id="download-pdf" class="btn btn-primary">Download PDF Report</button>
+    <button id="download-excel" class="btn btn-primary">Download Excel Report</button>
+</div>
+
 <div class="card-body">
     <div class="table-responsive">
         <table class="table table-hover">
@@ -84,7 +89,9 @@
 <script>
     const filterType = document.getElementById('filterType');
     const customRange = document.getElementById('custom-range');
-    
+    const downloadPdfButton = document.getElementById('download-pdf');
+    const downloadExcelButton = document.getElementById('download-excel');
+
     // Show/hide custom range inputs based on selected filter
     filterType.addEventListener('change', () => {
         if (filterType.value === 'custom') {
@@ -92,6 +99,16 @@
         } else {
             customRange.style.display = 'none';
         }
+    });
+
+    // Trigger PDF download
+    downloadPdfButton.addEventListener('click', () => {
+        window.location.href = '/admin/download-sales-report/pdf';
+    });
+
+    // Trigger Excel download
+    downloadExcelButton.addEventListener('click', () => {
+        window.location.href = '/admin/download-sales-report/excel';
     });
 </script>
 
