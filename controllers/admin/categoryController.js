@@ -160,31 +160,30 @@ const editCategory = async(req,res)=>{
 
 const addCategoryOffer = async(req,res)=>{
 
-    const categoryId = req.params.categoryId;
-   
-    const { offerPercent } = req.body; 
+    const { offerPercent, categoryId } = req.body;
+
     try {
-        console.log("1")
+        
         const category = await Category.findById(categoryId);
 
-
-
         if (!category) {
-            console.log("2")
             return res.json({ success: false, message: 'Category not found' });
         }
 
         category.offer = offerPercent;
         await category.save();
 
-        const products = await Product.updateMany(
-            { category: categoryId },
-            { $set: { promotionalPrice: { $multiply: ['$regularPrice', 1 - offerPercent / 100] } } }
-        );
+        const products = await Product.find({ category: categoryId });
 
+        for (let product of products) {
+          const discountAmount = (product.regularPrice * offerPercent) / 100;
+          product.promotionalPrice = Math.round(product.regularPrice - discountAmount);
+    
+          await product.save();
+        }
         return res.json({
             success: true,
-            message: `Offer of ${offerPercent}% applied successfully. ${products.modifiedCount} products updated.`,
+            message: 'Offer applied successfully'
           });
 
     } catch (error) {

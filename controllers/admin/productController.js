@@ -192,52 +192,50 @@ const productsInfo = async(req,res)=>{
   }
 }
 
-// const addProductOffer = async(req,res)=>{
-//   try {
-//       const {productId,percentage} = req.body
-//       const findProduct = await Product.findById(productId)
-//       const findCategory = await Category.findOne({_id:findProduct.category})
-//       if(findCategory.categoryOffer>percentage){
-//         return res.json({status:false,message:"This product category already has a category offer"})
-//       }
-      
-//      findProduct.promotionalPrice = Math.floor(findProduct.regularPrice * (1-percentage/100))
-//      findProduct.productOffer = parseInt(percentage)
-//      await findProduct.save()
-//      findCategory.categoryOffer=0 
-//      await findCategory.save()
-//      res.json({status:true})
-
-//   } catch (error) {
-//       console.error("ERROR IN ADD-PRODUCT OFFER",error)
-//       res.redirect("admin/pageerror")
-//       res.status(500).json({status:false,message:"Internal Server Error"})
-//   }
-// }
-
-const addProductOffer = async (req, res) => {
+const addProductOffer = async(req,res)=>{
   try {
-      const { productId, percentage } = req.body;
-
-      // Find the product by ID
-      const findProduct = await Product.findById(productId);
-      if (!findProduct) {
-          return res.json({ status: false, message: "Product not found" });
+      const {productId,percentage} = req.body
+      const findProduct = await Product.findById(productId)
+      const findCategory = await Category.findOne({_id:findProduct.category})
+      if(findCategory.categoryOffer>percentage){
+        return res.json({status:false,message:"This product category already has a category offer"})
       }
+      
+     findProduct.promotionalPrice = Math.floor(findProduct.regularPrice * (1-percentage/100))
+     findProduct.productOffer = parseInt(percentage)
+     await findProduct.save()
+     findCategory.categoryOffer=0 
+     await findCategory.save()
+     res.json({status:true})
 
-      // Calculate the promotional price based on the percentage
-      findProduct.promotionalPrice = Math.floor(findProduct.regularPrice * (1 - percentage / 100));
-      findProduct.productOffer = parseInt(percentage);
-
-      // Save the updated product
-      await findProduct.save();
-
-      res.json({ status: true, message: "Product offer added successfully" });
   } catch (error) {
-      console.error("ERROR IN ADD-PRODUCT OFFER", error);
-      res.status(500).json({ status: false, message: "Internal Server Error" });
+      console.error("ERROR IN ADD-PRODUCT OFFER",error)
+      res.redirect("admin/pageerror")
+      res.status(500).json({status:false,message:"Internal Server Error"})
   }
-};
+}
+//   try {
+//       const { productId, percentage } = req.body;
+
+//       // Find the product by ID
+//       const findProduct = await Product.findById(productId);
+//       if (!findProduct) {
+//           return res.json({ status: false, message: "Product not found" });
+//       }
+
+//       // Calculate the promotional price based on the percentage
+//       findProduct.promotionalPrice = Math.floor(findProduct.regularPrice * (1 - percentage / 100));
+//       findProduct.productOffer = parseInt(percentage);
+
+//       // Save the updated product
+//       await findProduct.save();
+
+//       res.json({ status: true, message: "Product offer added successfully" });
+//   } catch (error) {
+//       console.error("ERROR IN ADD-PRODUCT OFFER", error);
+//       res.status(500).json({ status: false, message: "Internal Server Error" });
+//   }
+// };
 
 const removeProductOffer = async(req,res)=>{
   try {
@@ -661,47 +659,48 @@ const inactivateCouponStatus = async(req,res)=>{
   }
 }
 
-const filteredList = async (req,res)=>{
-  try {
-    const { filterType, startDate, endDate } = req.query;
+// const filteredList = async (req,res)=>{
+//   try {
+//     const { filterType, startDate, endDate } = req.query;
 
-    let filter = {};
-    const now = new Date();
+//     let filter = {};
+//     const now = new Date();
 
-    if (filterType === '1-day') {
-        const yesterday = new Date();
-        yesterday.setDate(now.getDate() - 1);
-        filter.createdAt = { $gte: yesterday, $lt: now };
-    } else if (filterType === '1-week') {
-        const lastWeek = new Date();
-        lastWeek.setDate(now.getDate() - 7);
-        filter.createdAt = { $gte: lastWeek, $lt: now };
-    } else if (filterType === '1-month') {
-        const lastMonth = new Date();
-        lastMonth.setMonth(now.getMonth() - 1);
-        filter.createdAt = { $gte: lastMonth, $lt: now };
-    } else if (filterType === '1-year') {
-        const lastYear = new Date();
-        lastYear.setFullYear(now.getFullYear() - 1);
-        filter.createdAt = { $gte: lastYear, $lt: now };
-    } else if (filterType === 'custom') {
+//     if (filterType === '1-day') {
+//         const yesterday = new Date();
+//         yesterday.setDate(now.getDate() - 1);
+//         filter.createdAt = { $gte: yesterday, $lt: now };
+//     } else if (filterType === '1-week') {
+//         const lastWeek = new Date();
+//         lastWeek.setDate(now.getDate() - 7);
+//         filter.createdAt = { $gte: lastWeek, $lt: now };
+//     } else if (filterType === '1-month') {
+//         const lastMonth = new Date();
+//         lastMonth.setMonth(now.getMonth() - 1);
+//         filter.createdAt = { $gte: lastMonth, $lt: now };
+//     } else if (filterType === '1-year') {
+//         const lastYear = new Date();
+//         lastYear.setFullYear(now.getFullYear() - 1);
+//         filter.createdAt = { $gte: lastYear, $lt: now };
+//     } else if (filterType === 'custom') {
   
-        if (startDate && endDate) {
-            filter.createdAt = {
-                $gte: new Date(startDate),
-                $lte: new Date(endDate),
-            };
-        }
-    }
+//         if (startDate && endDate) {
+//             filter.createdAt = {
+//                 $gte: new Date(startDate),
+//                 $lte: new Date(endDate),
+//             };
+//         }
+//     }
 
-    const orders = await Order.find(filter).populate('userId').sort({ createdAt: -1 });
+//     const orders = await Order.find(filter).populate('userId').sort({ createdAt: -1 });
 
-    res.render('orderListAdmin', { orders });
+//     res.render('orderListAdmin', { orders });
 
-  } catch (error) {
-    console.error("ERROR IN FILTERED LIST FN",error);
-  }
-}
+//   } catch (error) {
+//     console.error("ERROR IN FILTERED LIST FN",error);
+//   }
+// }
+
 
 module.exports = {
   addProductInfo,
@@ -722,6 +721,5 @@ module.exports = {
   addCoupon,
   activateCouponStatus,
   inactivateCouponStatus,
-  filteredList,
   downloadSalesReport
 };
