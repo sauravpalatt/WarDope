@@ -67,21 +67,44 @@
     <% if(order.status === 'delivered') { %>
         <button id="requestReturnBtn"class="btn btn-warning mt-3">Request Return</button>
      <% } %>   
+  
+</div>
 
+<div class="modal fade" id="cancelModal" tabindex="-1" aria-labelledby="cancelModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="cancelModalLabel">Cancel Order</h5>
+            </div>
+            <div class="modal-body">
+                <form id="cancelOrderForm">
+                    <div class="mb-3">
+                        <label for="cancelReason" class="form-label">Reason for Cancellation</label>
+                        <textarea class="form-control" id="cancelReason" rows="3" required></textarea>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <button type="button" id="confirmCancelBtn" class="btn btn-danger">Submit</button>
+            </div>
+        </div>
+    </div>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
 <script>
-
-const cancelOrderBtn = document.getElementById("cancelOrderBtn");
-
-cancelOrderBtn.addEventListener("click", async (e) => {
+    const cancelOrderBtn = document.getElementById("cancelOrderBtn");
+    const confirmCancelBtn = document.getElementById("confirmCancelBtn");
+    const cancelReasonInput = document.getElementById("cancelReason");
+    const cancelModal = document.getElementById("cancelModal"); // Assuming you have a modal for the reason input
+    const orderItems = [];
+    const orderId = "<%= order.orderId %>";
+    
+    cancelOrderBtn.addEventListener("click", async (e) => {
     e.preventDefault();
 
-    const orderId = "<%= order.orderId %>"; 
-
-    const orderItems = [];
     const rows = document.querySelectorAll("table tbody tr");
 
     rows.forEach((row) => {
@@ -90,7 +113,6 @@ cancelOrderBtn.addEventListener("click", async (e) => {
         const size = row.querySelector("td:nth-child(3)").innerText;
         const productId = row.querySelector(".productId").innerText;
 
-       
         orderItems.push({ productId, quantity, size });
     });
 
@@ -104,45 +126,8 @@ cancelOrderBtn.addEventListener("click", async (e) => {
     });
 
     if (result.isConfirmed) {
-        try {
-            const response = await fetch(`/order/cancel/${orderId}`, {
-                method: 'PUT',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({ orderItems }) 
-            });
-
-            const data = await response.json();
-
-            if (response.ok) {
-                Swal.fire({
-                    icon: "success",
-                    text: data.message || "Order cancelled successfully",
-                    toast: true,
-                    position: "top-end",
-                    showConfirmButton: false,
-                    timer: 1000,
-                    timerProgressBar: false
-                });
-                setTimeout(() => window.location.reload(), 1000);
-            } else {
-                Swal.fire({
-                    icon: "error",
-                    title: "Oops...",
-                    text: data.message || "Something went wrong.",
-                    confirmButtonText: "Try Again"
-                });
-            }
-        } catch (error) {
-            console.error("Error in canceling order:", error);
-            Swal.fire({
-                icon: "error",
-                title: "Error",
-                text: "An error occurred while canceling the order. Please try again.",
-                confirmButtonText: "Close"
-            });
-        }
+        let cancelModalInstance = new bootstrap.Modal(cancelModal);
+        cancelModalInstance.show();
     } else {
         Swal.fire({
             icon: "info",
@@ -151,9 +136,58 @@ cancelOrderBtn.addEventListener("click", async (e) => {
             confirmButtonText: "OK"
         });
     }
-});
+    });
 
+    confirmCancelBtn.addEventListener("click", async () => {
+    const cancelReason = cancelReasonInput.value.trim();
+    if (!cancelReason) {
+        return Swal.fire({
+            icon: "no icon",
+            title: "Missing Reason",
+            text: "Please provide a reason for cancellation.",
+            confirmButtonText: "OK",
+        });
+    }
 
+    try {
+        const response = await fetch(`/order/cancel/${orderId}`, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ reason: cancelReason, orderItems: orderItems }),
+        });
+
+        const data = await response.json();
+
+        if (response.ok) {
+            Swal.fire({
+                icon: "success",
+                text: data.message || "Order cancelled successfully",
+                toast: true,
+                position: "top-end",
+                showConfirmButton: false,
+                timer: 1000,
+            });
+            setTimeout(() => window.location.reload(), 1000);
+        } else {
+            Swal.fire({
+                icon: "error",
+                title: "Failed",
+                text: data.message || "Unable to cancel the order.",
+                confirmButtonText: "Try Again",
+            });
+        }
+    } catch (error) {
+        console.error("Error:", error);
+        Swal.fire({
+            icon: "error",
+            title: "Error",
+            text: "An error occurred while cancelling the order. Please try again.",
+            confirmButtonText: "Close",
+        });
+    }
+ });
 </script>
 
 <script>
@@ -220,9 +254,7 @@ document.getElementById("requestReturnBtn").addEventListener("click", async () =
         });
     }
 });
+
 </script>
-
-
-
 
 <%- include("../partials/user/footer") %>

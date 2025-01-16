@@ -65,10 +65,12 @@ router.post("/placeOrder",userAuth,cartController.placeOrder)
 router.post("/verifyPayment",userAuth,cartController.verifyPayment)
 router.get("/orders",userAuth,cartController.ordersList)
 router.get("/orderDetail/:orderId",userAuth,cartController.orderDetail)
-router.put("/order/cancel/:orderId",userAuth,cartController.cancelOrder)
+router.post("/order/cancel/:orderId",userAuth,cartController.cancelOrder)
 router.post("/order/return/:orderId",userAuth,cartController.returnProduct)
+router.get("/wallet",userAuth,cartController.getWalletInfo)
 
 //coupon
 router.post("/applyCoupon",userAuth,cartController.applyCoupon)
+router.get("/removeCoupon",userAuth,cartController.removeCoupon)
 
 module.exports=router

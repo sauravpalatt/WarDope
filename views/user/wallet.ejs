@@ -1,0 +1,65 @@
+<%- include ("../partials/user/header") %>
+
+<!-- Wallet Section -->
+<div class="container my-5">
+    <div class="row">
+        <!-- Wallet Balance -->
+        <div class="col-12 text-center mb-4">
+            <h2>Your Wallet Balance</h2>
+            <h1 class="display-3 text-success">$500.00</h1>
+        </div>
+    </div>
+
+    <!-- Wallet History -->
+    <div class="row">
+        <div class="col-12">
+            <h3 class="mb-3">Wallet History</h3>
+            <table class="table table-bordered table-hover">
+                <thead class="table-light">
+                    <tr>
+                        <th>Sl No:</th>
+                        <th>Date</th>
+                        <th>Description</th>
+                        <th>Amount</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <% if (wallet && wallet.length > 0) { %>
+                        <% wallet.forEach((transaction, idx) => { %>
+                        <tr>
+                            <td><%= idx + 1 %></td>
+                            <td><%= new Date(transaction.date).toDateString().slice(4) %></td>
+                            <td><%= transaction.description %></td>
+                            <% if (transaction.type === "credit") { %>
+                            <td class="text-success">+₹ <%= transaction.amount %></td>
+                            <td><span class="badge text-success">Credit</span></td>
+                            <% } else { %>
+                            <td class="text-danger">-₹ <%= transaction.amount %></td>
+                            <td><span class="badge text-danger">Debit</span></td>
+                            <% } %>
+                        </tr>
+                        <% }) %>
+                    <% } else { %>
+                        <tr><td colspan="5">No transactions available.</td></tr>
+                    <% } %>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Pagination Controls -->
+    <div class="row">
+        <div class="col-12 text-center">
+            <% if (currentPage > 1) { %>
+                <a href="/wallet?page=<%= currentPage - 1 %>" class="btn btn-primary">Previous</a>
+            <% } %>
+
+            <% if (currentPage < totalPages) { %>
+                <a href="/wallet?page=<%= currentPage + 1 %>" class="btn btn-primary">Next</a>
+            <% } %>
+        </div>
+    </div>
+</div>
+
+<%- include ("../partials/user/footer") %>

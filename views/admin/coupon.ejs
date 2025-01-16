@@ -16,9 +16,9 @@
                     <th scope="col">Coupon Code</th>
                     <th scope="col">Discount Type</th>
                     <th scope="col">Discount Value</th>
-                    <th scope="col">Min Purchase</th>
-                    <th scope="col">Start Date</th>
-                    <th scope="col">End Date</th>
+                    <th scope="col" >Min Purchase</th>
+                    <th scope="col" >Start Date</th>
+                    <th scope="col" >End Date</th>
                     <th scope="col">Status</th>
                     <th class="text-center" scope="col" class="text-end">Action</th>
                 </tr>
@@ -32,9 +32,9 @@
                             <td>
                                 <%= coupon.discountType === 'percentage' ? coupon.discountValue + '%' : '₹' + coupon.discountValue %>
                             </td>
-                            <td>₹<%= coupon.minPurchase %></td>
-                            <td><%= coupon.startDate.toDateString() %></td>
-                            <td><%= coupon.endDate.toDateString() %></td>
+                            <td >₹<%= coupon.minPurchase %></td>
+                            <td ><%= coupon.startDate.toDateString() %></td>
+                            <td ><%= coupon.endDate.toDateString() %></td>
                             <td>
                                 <span class="badge rounded-pill 
                                 <%= coupon.status === 'active' ? 'bg-success' : '' %>

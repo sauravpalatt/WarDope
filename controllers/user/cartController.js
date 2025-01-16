@@ -225,10 +225,8 @@ const deleteCartItem = async (req, res) => {
 const placeOrder = async (req, res) => {
   try {
     const userId = req.session.user;
-    const { cartItems, totalPrice, addressId, deliveryType, initialPrice } = req.body;
-
-    console.log("InitialPrice: ",initialPrice)
-
+    const { cartItems, totalPrice, addressId, deliveryType, initialPrice, } = req.body;
+   
     // Validations
     if (!cartItems || cartItems.length === 0) {
       return res.status(400).json({ error: 'Cart items cannot be empty' });
@@ -274,11 +272,11 @@ const placeOrder = async (req, res) => {
     await order.save();
     await Cart.deleteOne({ user: userId });
 
+    await User.updateOne({_id:userId,"appliedCoupon.Coupon":req.session.couponCode},
+      {$set: {"appliedCoupon.$.isRedeemed":true}})
+
     req.session.amountDeducted = 0
     req.session.couponCode = "null"
-
-    console.log(`Amount deducted: ${req.session.amountDeducted}`)
-    console.log(`Coupon Code: ${req.session.couponCode}`)
 
     //Razorpay
     if (deliveryType === 'razorpay') {
@@ -295,7 +293,18 @@ const placeOrder = async (req, res) => {
     //Wallet
     if(deliveryType === "wallet"){
 
-      const wallet = await Wallet.updateOne({userId},{$inc: {balance:-totalPrice}})
+      await Wallet.updateOne({userId},{$inc: {balance:-totalPrice}})
+
+      let wallet = await Wallet.findOne({userId})
+
+      wallet.transactions?.push({
+        amount: totalPrice,
+        type: "debit",
+        description: `Payment made via wallet: ₹${totalPrice}`,
+        date: new Date()
+      })
+
+      await wallet.save()
 
       if(!wallet){
         return console.log("Wallet not found !!!")
@@ -398,6 +407,9 @@ const cancelOrder = async (req, res) => {
     const { orderId } = req.params;
     const userId = req.session.user;
     const { orderItems } = req.body; 
+    const {reason} = req.body
+
+    console.log(`cancel reason: ${typeof reason}`)
 
     const user = await User.findById(userId);
 
@@ -411,13 +423,6 @@ const cancelOrder = async (req, res) => {
       return res.status(404).json({ message: "Order not found" });
     }
 
-    if (order.status !== "pending") {
-      return res.status(400).json({
-        message: "Order cannot be canceled as it is not in a pending state",
-      });
-    }
-
-    // Revert stock for each canceled product
     for (const { productId, size, quantity } of orderItems) {
       const variant = await Product.findOne(
         { _id: productId, "variants.size": size },
@@ -443,6 +448,8 @@ const cancelOrder = async (req, res) => {
     }
 
     order.status = "canceled";
+    order.cancelReason = reason
+
     await order.save();
 
     let wallet = await Wallet.findOne({ userId: order.userId });
@@ -569,16 +576,28 @@ const applyCoupon = async(req,res)=>{
   const { totalPrice, discountValue, couponCode} = req.body
 
   try {
-    
+
     const user = await User.findById(userId)
 
-    const existingCoupon = await User.findOne({
+    const dateToday = new Date()
+
+    const redeemedCoupon = await User.findOne({
       _id: userId,
-      appliedCoupon: { $elemMatch: { Coupon: couponCode } },
+      appliedCoupon: { $elemMatch: { Coupon: couponCode, isRedeemed: true } },
     });
 
-    if(existingCoupon) {
+    if(redeemedCoupon) {
       return res.status(404).json({success:false,message:"This coupon has been redeemed"})
+    }
+
+    const invalidCoupon = await Coupon.findOne({code:couponCode})
+
+    if(dateToday > invalidCoupon.endDate){
+      return res.status(404).json({success:false,message: "This coupon has been expired"})
+    }
+
+    if(totalPrice < invalidCoupon.minPurchase){
+      return res.status(404).json({success:false, message: `Coupon available only for purchase ₹${invalidCoupon.minPurchase}.00 or above`})
     }
      
     const amountDeducted = Math.round((totalPrice * discountValue) / 100);
@@ -587,8 +606,13 @@ const applyCoupon = async(req,res)=>{
     req.session.amountDeducted = amountDeducted
     req.session.couponCode = couponCode
 
-    user.appliedCoupon.push({ Coupon: couponCode, appliedAt: new Date() });
+    const existingCoupon = await User.findOne({_id:userId,
+    appliedCoupon:{$elemMatch: { Coupon:couponCode}}})
 
+    if(!existingCoupon){
+      user.appliedCoupon.push({ Coupon: couponCode, appliedAt: new Date() });
+    }
+    
     await user.save()
     
     return res.json({ discountPrice, amountDeducted });
@@ -597,6 +621,46 @@ const applyCoupon = async(req,res)=>{
     console.error("ERROR IN APPLY COUPON FN",error)
   }
 }
+
+const removeCoupon = async (req,res)=>{
+  try {
+    req.session.amountDeducted = 0
+    req.session.couponCode = null
+
+    return res.status(200).send({success:true,message:"Coupon removed"})
+  } catch (error) {
+    console.error("ERROR IN REMOVE COUPON FN",error)
+  }
+}
+
+const getWalletInfo = async (req, res) => {
+  try {
+    const userId = req.session.user;
+    const wallets = await Wallet.findOne({ userId });
+
+    const user = await User.findById(userId);
+
+    // Pagination logic
+    const page = parseInt(req.query.page) || 1; // Default to page 1 if no page query is provided
+    const limit = 5; // Limit of 5 transactions per page
+    const skip = (page - 1) * limit;
+
+    const wallet = wallets ? wallets.transactions.slice(skip, skip + limit) : [];
+    
+    // Calculate total pages
+    const totalTransactions = wallets ? wallets.transactions.length : 0;
+    const totalPages = Math.ceil(totalTransactions / limit);
+
+    res.render("wallet", {
+      wallet,
+      user,
+      currentPage: page,
+      totalPages: totalPages
+    });
+  } catch (error) {
+    console.error("ERROR IN WALLET INFO FN", error);
+  }
+};
 
 module.exports = {
     addToCart,
@@ -612,7 +676,9 @@ module.exports = {
     addToWishlist,
     removeFromWishlist,
     applyCoupon,
-    verifyPayment
+    verifyPayment,
+    removeCoupon,
+    getWalletInfo
 }
 
 

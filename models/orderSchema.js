@@ -18,6 +18,10 @@ const orderSchema = new mongoose.Schema({
     addressId: { type: mongoose.Schema.Types.ObjectId, ref: 'Address', required: true },
     deliveryType: { type: String, required: true },
     status: { type: String, enum: ['pending', 'shipped', 'delivered', 'canceled', 'return requested', 'return approved', 'return denied'], default: 'pending' },
+    cancelReason: {
+        type: String,    
+        trim: true,
+      },
     createdAt: { type: Date, default: Date.now },
     updatedAt: { type: Date, default: Date.now },
     discount: {type: Number},

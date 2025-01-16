@@ -81,6 +81,7 @@ const userSchema = new Schema({
     appliedCoupon: [
         {
           Coupon: String,
+          isRedeemed: { type: Boolean, default: false},
           appliedAt: { type: Date, default: Date.now }, 
         },
       ]
