@@ -300,7 +300,7 @@ const placeOrder = async (req, res) => {
       wallet.transactions?.push({
         amount: totalPrice,
         type: "debit",
-        description: `Payment made via wallet: ₹${totalPrice}`,
+        description: `Payment made via wallet`,
         date: new Date()
       })
 
@@ -640,19 +640,19 @@ const getWalletInfo = async (req, res) => {
 
     const user = await User.findById(userId);
 
-    // Pagination logic
-    const page = parseInt(req.query.page) || 1; // Default to page 1 if no page query is provided
-    const limit = 5; // Limit of 5 transactions per page
+    const page = parseInt(req.query.page) || 1; 
+    const limit = 5; 
     const skip = (page - 1) * limit;
 
     const wallet = wallets ? wallets.transactions.slice(skip, skip + limit) : [];
+    const walletBalance= wallets ? wallets.balance : 0
     
-    // Calculate total pages
     const totalTransactions = wallets ? wallets.transactions.length : 0;
     const totalPages = Math.ceil(totalTransactions / limit);
 
     res.render("wallet", {
       wallet,
+      walletBalance,
       user,
       currentPage: page,
       totalPages: totalPages

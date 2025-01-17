@@ -20,6 +20,7 @@
     <link rel="shortcut icon" href="/nest-backend/assets/imgs/icons">
     <!-- Template CSS -->
     <link href="/nest-backend/assets/css/main.css?v=1.1" rel="stylesheet" type="text/css" />
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
     <link href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.css" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.js"></script>
@@ -88,7 +89,90 @@
       #custom-range input {
           width: 180px;
       }
+
   </style>
+          <style>
+            .form-select {
+            width: 100%;
+            padding: 12px 16px;
+            font-size: 12px;
+            border-radius: 8px;
+            border: 1px solid #ccc;
+            background-color: #f8f9fa;
+            transition: border-color 0.3s ease;
+          }
+    
+          .form-select:focus {
+            border-color: #007bff;
+            outline: none;
+          }
+    
+          /* Custom styles for the custom date range filter */
+          .custom-filter-form .d-flex {
+            align-items: center;
+            gap: 15px;
+          }
+    
+          .custom-date-input {
+            width: 160px;
+            padding: 12px;
+            font-size: 14px;
+            border-radius: 8px;
+            border: 1px solid #ccc;
+            background-color: #fff;
+            transition: border-color 0.3s ease;
+          }
+    
+          .custom-date-input:focus {
+            border-color: #007bff;
+            outline: none;
+          }
+    
+          .text-muted {
+            font-size: 14px;
+          }
+    
+          /* Apply button styling */
+          .apply-btn {
+            padding: 10px 18px;
+            font-size: 14px;
+            border-radius: 8px;
+            background-color: #007bff;
+            color: #fff;
+            border: none;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+          }
+    
+          .apply-btn:hover {
+            background-color: #0056b3;
+          }
+    
+          /* Styling for the "to" label */
+          span.text-muted {
+            font-size: 12px;
+            color: #6c757d;
+          }
+    
+          /* Adding padding and spacing around the container */
+          .col-lg-3 {
+            padding: 20px;
+          }
+    
+          /* For mobile responsiveness */
+          @media (max-width: 768px) {
+            .custom-filter-form .d-flex {
+              flex-direction: column;
+              gap: 10px;
+            }
+            .custom-date-input {
+              width: 100%;
+            }
+            .apply-btn {
+              width: 100%;
+            }
+          }
+            </style>
 
   </head>
 

@@ -123,10 +123,16 @@
                         </div>
                     </div>
                     <div class="form-group">
+                        <% if(totalPrice && totalPrice > 1000) { %>
                         <div class="custom-control custom-radio">
                             <input type="radio" class="custom-control-input" name="payment" id="cashOnDelivery">
                             <label class="custom-control-label" for="cashOnDelivery">Cash On Delivery</label>
                         </div>
+                        <% } else { %>
+                        <div style="font-family: cursive; color: #c0857f;">
+                            <p>Cash on delivery only applicable for orders more than <br> ₹ 1000.00</p>
+                        </div>
+                        <% } %>
                     </div>
                     <div>
                         <% if(wallet && wallet.balance > 0 ) { %>

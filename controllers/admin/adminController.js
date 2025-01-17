@@ -5,6 +5,7 @@ const User = require("../../models/userSchema")
 const Order = require("../../models/orderSchema")
 const Wallet = require("../../models/walletSchema")
 const Product = require("../../models/productSchema")
+const moment = require("moment");
 
 
 const pageerror = (req,res)=>{
@@ -47,34 +48,131 @@ const login = async (req, res) => {
     }
 };
 
-const loadDashboard =async (req,res)=>{
-    try {
-        if(req.session.admin){
+const loadDashboard = async (req, res) => {
+  try {
+    if (req.session.admin) {
+      
+      let { filter } = req.query;
+      let startDate, endDate;
 
-            const salesTotal= await Order.aggregate([
-                {$group:
-                    {_id:"null",totalsales:{$sum:"$totalPrice"}}
-                }
-            ])
+      if (filter === "yearly") {
+        startDate = moment().startOf("year").toDate();
+        endDate = moment().endOf("year").toDate();
+      } else if (filter === "monthly") {
+        startDate = moment().startOf("month").toDate();
+        endDate = moment().endOf("month").toDate();
+      } else if (filter === "weekly") {
+        startDate = moment().startOf("week").toDate();
+        endDate = moment().endOf("week").toDate();
+      } else if (filter === "custom") {
+       
+        startDate = new Date(req.query.startDate);
+        endDate = new Date(req.query.endDate);
 
-            const countOrders = await Order.countDocuments({})
+      } else {
+        startDate = moment().startOf("year").toDate();
+        endDate = moment().endOf("year").toDate();
+      }
 
-            const countProducts = await Product.countDocuments({})
+      // Aggregation to calculate total sales
+      const salesTotal = await Order.aggregate([
+        {
+          $match: { createdAt: { $gte: startDate, $lte: endDate } },
+        },
+        {
+          $group: {
+            _id: "null",
+            totalsales: { $sum: "$totalPrice" },
+          },
+        },
+      ]);
 
-            const totalSales =  salesTotal[0].totalsales 
-            
-            return res.render("dashboard",{
-                totalSales,
-                countOrders,
-                countProducts
-            })
-        }else{
-            return res.redirect("/pageerror")
-        }
-    } catch (error) {
-        console.error("Error loading Dashboard",error) 
+      const topProducts = await Order.aggregate([
+        {
+          $match: { createdAt: { $gte: startDate, $lte: endDate } } 
+        },
+        { $unwind: "$cartItems" },
+        {
+          $group: {
+            _id: "$cartItems.productId",
+            totalSales: { $sum: { $multiply: ["$cartItems.price", "$cartItems.quantity"] } },
+            productName: { $first: "$cartItems.productName" },
+          },
+        },
+        { $sort: { totalSales: -1 } },
+        { $limit: 10 },
+      ]);
+
+      const topCategories = await Order.aggregate([
+        {
+          $match: { createdAt: { $gte: startDate, $lte: endDate } } // Filter orders based on date
+        },
+        { $unwind: "$cartItems" },
+        {
+          $lookup: {
+            from: "products",
+            localField: "cartItems.productId",
+            foreignField: "_id",
+            as: "productDetails",
+          },
+        },
+        { $unwind: "$productDetails" },
+        {
+          $group: {
+            _id: "$productDetails.category",
+            totalSales: { $sum: { $multiply: ["$cartItems.price", "$cartItems.quantity"] } },
+          },
+        },
+        { $sort: { totalSales: -1 } },
+        { $limit: 10 },
+        {
+          $lookup: {
+            from: "categories",
+            localField: "_id",
+            foreignField: "_id",
+            as: "categoryInfo",
+          },
+        },
+        { $unwind: "$categoryInfo" },
+        {
+          $project: {
+            _id: 1,
+            totalSales: 1,
+            categoryName: "$categoryInfo.categoryName",
+          },
+        },
+      ]);
+
+      const countOrders = await Order.countDocuments({});
+      const countProducts = await Product.countDocuments({});
+      const totalSales = salesTotal[0] ? salesTotal[0].totalsales : 0;
+
+      if (req.accepts('json') && filter) {
+        return res.json({
+          totalSales,
+          countOrders,
+          countProducts,
+          topProducts,
+          topCategories,
+          filter
+        });
+      } else {
+        return res.render("dashboard", {
+          totalSales,
+          countOrders,
+          countProducts,
+          topProducts,
+          topCategories,
+          filter
+        });
+      }
+    } else {
+      return res.redirect("/pageerror");
     }
-}
+  } catch (error) {
+    console.error("Error loading Dashboard", error);
+  }
+};
 
 const adminLogout = (req,res)=>{
     req.session.destroy((err)=>{
@@ -150,8 +248,6 @@ const denyReturn = async(req,res)=>{
         console.error("ERROR IN DENY RETURN FN",error)
     }
 }
-
-
 
 module.exports={
     loadLogin,

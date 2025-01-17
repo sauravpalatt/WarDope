@@ -308,12 +308,16 @@ const orderListInfo = async(req,res)=>{
   try {
     
     const { filterType, startDate, startTime, endDate, endTime } = req.query;
+    req.session.filterType = filterType
+    req.session.startDate = startDate || 0
+    req.session.startTime = startTime || 0
+    req.session.endDate = endDate || 0
+    req.session.endTime = endTime || 0
+
     let filter = {};
 
-    
     const now = new Date();
 
-    
     if (filterType === '1-day') {
       const startOfDay = new Date(now.setHours(0, 0, 0, 0));
       const endOfDay = new Date(now.setHours(23, 59, 59, 999));
@@ -368,21 +372,49 @@ const orderListInfo = async(req,res)=>{
 }
 
 const downloadSalesReport = async (req, res) => {
-  try {
-    const { format } = req.params; // pdf or excel
-    const orders = await Order.find().populate("userId").lean(); // Fetch all orders
 
-    // Ensure the 'public/reports' directory exists
+  try {
+    const { format } = req.params; 
+
+    const filterType = req.session.filterType
+    const startDate = req.session.startDate 
+    const startTime = req.session.startTime 
+    const endDate = req.session.endDate 
+    const endTime = req.session.endTime 
+
+    let filterConditions = {};
+
+    if (filterType === '1-day') {
+      const today = new Date();
+      filterConditions.createdAt = { $gte: new Date(today.setDate(today.getDate() - 1)) };
+    } else if (filterType === '1-week') {
+      const lastWeek = new Date();
+      filterConditions.createdAt = { $gte: new Date(lastWeek.setDate(lastWeek.getDate() - 7)) };
+    } else if (filterType === '1-month') {
+      const lastMonth = new Date();
+      filterConditions.createdAt = { $gte: new Date(lastMonth.setMonth(lastMonth.getMonth() - 1)) };
+    } else if (filterType === '1-year') {
+      const lastYear = new Date();
+      filterConditions.createdAt = { $gte: new Date(lastYear.setFullYear(lastYear.getFullYear() - 1)) };
+    } else if (filterType === 'custom') {
+     
+      if (startDate && endDate) {
+        filterConditions.createdAt = {
+          $gte: new Date(`${startDate}T${startTime || '00:00'}`),
+          $lte: new Date(`${endDate}T${endTime || '23:59'}`),
+        };
+      }
+    }
+
+    const orders = await Order.find(filterConditions).populate("userId").lean();
+
     const reportsDir = path.join(__dirname, '../public/reports');
     if (!fs.existsSync(reportsDir)) {
       fs.mkdirSync(reportsDir, { recursive: true });
     }
-
     if (format === 'pdf') { 
-      // Initialize PDF Document
       const doc = new PDFDocument({ size: 'A4', margin: 50 });
     
-      // Set response headers for PDF download
       const filePath = path.join(reportsDir, 'sales-report.pdf');
       const stream = fs.createWriteStream(filePath);
       doc.pipe(stream);
@@ -415,16 +447,14 @@ const downloadSalesReport = async (req, res) => {
           const overallOrderAmount = orders.reduce((total, order) => total + order.initialPrice, 0);
           const overallDiscount = orders.reduce((total, order) => total + order.discount, 0);
           
-          // Add summary section for overall sales data
           doc.fontSize(12)
               .text(`Overall Sales Count: ${overallSalesCount}`, { align: 'left' })
               .text(`Overall Order Amount: ${overallOrderAmount.toFixed(2)}`, { align: 'left' })
               .text(`Overall Discount: ${overallDiscount.toFixed(2)}`, { align: 'left' })
               .moveDown(2);
     
-      // Table Configuration
       const tableTop = doc.y;
-      const colWidths = [150, 60,  50, 50, 50, 50, 70];
+      const colWidths = [150, 60, 50, 50, 50, 70, 70];
       const tableMarginLeft = 50;
       const colPositions = colWidths.reduce((positions, width, index) => {
           positions.push(index === 0 ? tableMarginLeft : positions[index - 1] + colWidths[index - 1]);
@@ -498,16 +528,16 @@ const downloadSalesReport = async (req, res) => {
               .stroke();
       });
     
-      // Finalize the document
+      
       doc.end();
     
-      // Send PDF for download
+      
       stream.on('finish', () => {
         res.download(filePath);
       });
     }
      else if (format === 'excel') {
-      // Excel handling remains unchanged for now.
+    
       const workbook = new ExcelJS.Workbook();
       const worksheet = workbook.addWorksheet('Sales Report');
 
@@ -549,159 +579,6 @@ const downloadSalesReport = async (req, res) => {
     res.status(500).send('Error generating sales report.');
   }
 };
-// const downloadSalesReport = async (req, res) => {
-//   try {
-//     const { format } = req.params; // pdf or excel
-//     const orders = await Order.find().populate("userId").lean(); // Fetch all orders
-
-//     if (orders.length === 0) {
-//       return res.status(404).send('No orders found.');
-//     }
-
-//     // Calculate overall sales count, order amount, and discount
-//     const overallSalesCount = orders.length;
-//     const overallOrderAmount = orders.reduce((sum, order) => sum + order.initialPrice, 0);
-//     const overallDiscount = orders.reduce((sum, order) => sum + order.discount, 0);
-
-//     // Ensure the 'public/reports' directory exists
-//     const reportsDir = path.join(__dirname, '../public/reports');
-//     if (!fs.existsSync(reportsDir)) {
-//       fs.mkdirSync(reportsDir, { recursive: true });
-//     }
-
-//     // Handle PDF generation
-//     if (format === 'pdf') {
-//       const doc = new PDFDocument({ size: 'A4', margin: 50 });
-//       const filePath = path.join(reportsDir, 'sales-report.pdf');
-//       const stream = fs.createWriteStream(filePath);
-
-//       doc.pipe(stream);
-
-//       // Title
-//       doc.fontSize(18).text('Sales Report', { align: 'center', underline: true });
-//       doc.moveDown();
-
-//       // Overall Summary Section
-//       doc.fontSize(12).text(`Overall Sales Count: ${overallSalesCount}`);
-//       doc.fontSize(12).text(`Overall Order Amount: ₹${overallOrderAmount.toFixed(2)}`);
-//       doc.fontSize(12).text(`Overall Discount: ₹${overallDiscount.toFixed(2)}`);
-//       doc.moveDown(2); // Add some space after the summary
-
-//       // Table Header with column spacing
-//       const headers = ['Order ID', 'User Name', 'Amount', 'Discount', 'Final Amt', 'Status', 'Date'];
-//       const headerWidths = [20, 10, 5, 5, 5, 5, 5]; // More space for Order ID
-
-//       let currentX = doc.x;
-//       const positions = headerWidths.map((width) => {
-//         currentX += width * 20; // Column position
-//         return currentX;
-//       });
-
-//       doc.fontSize(10).font('Helvetica-Bold');
-//       headers.forEach((header, index) => {
-//         doc.text(header, positions[index], doc.y, { continued: true });
-//       });
-//       doc.moveDown(0.5);
-
-//       // Add a border line after headers
-//       doc.strokeColor('black')
-//         .lineWidth(1)
-//         .moveTo(doc.x, doc.y)
-//         .lineTo(positions[positions.length - 1], doc.y)
-//         .stroke();
-//       doc.moveDown(1);
-
-//       // Add the order data to the table
-//       orders.forEach(order => {
-//         const dateFormatted = new Date(order.createdAt).toLocaleString('en-GB');
-//         const row = [
-//           order.orderId,
-//           order.userId.name,
-//           `₹${order.initialPrice.toFixed(2)}`,
-//           `₹${order.discount.toFixed(2)}`,
-//           `₹${order.totalPrice.toFixed(2)}`,
-//           order.status,
-//           dateFormatted
-//         ];
-
-//         row.forEach((cell, index) => {
-//           // Right-align numeric data
-//           const align = (index === 0 || index === 2 || index === 3 || index === 4) ? 'right' : (index === 6) ? 'center' : 'left';
-//           doc.fontSize(10).font('Helvetica').text(cell, positions[index], doc.y, { continued: true, align });
-//         });
-//         doc.moveDown(0.5);
-//       });
-
-//       // Final Border Line
-//       doc.strokeColor('black')
-//         .lineWidth(1)
-//         .moveTo(doc.x, doc.y)
-//         .lineTo(positions[positions.length - 1], doc.y)
-//         .stroke();
-
-//       doc.end();
-
-//       stream.on('finish', () => {
-//         res.download(filePath);
-//       });
-//     }
-//     // Handle Excel generation
-//     else if (format === 'excel') {
-//       const workbook = new ExcelJS.Workbook();
-//       const worksheet = workbook.addWorksheet('Sales Report');
-
-//       // Overall Summary Row
-//       worksheet.addRow([]);
-//       worksheet.addRow([
-//         'Overall Sales Count', overallSalesCount,
-//         'Overall Order Amount', `₹${overallOrderAmount.toFixed(2)}`,
-//         'Overall Discount', `₹${overallDiscount.toFixed(2)}`,
-//         '',
-//       ]);
-
-//       // Table Header with spacing for Order ID
-//       worksheet.columns = [
-//         { header: 'Order ID', key: 'orderId', width: headerWidths[0], alignment: { horizontal: 'right' } },
-//         { header: 'User Name', key: 'userName', width: headerWidths[1], alignment: { horizontal: 'left' } },
-//         { header: 'Amount', key: 'initialPrice', width: headerWidths[2], alignment: { horizontal: 'right' } },
-//         { header: 'Discount', key: 'discount', width: headerWidths[3], alignment: { horizontal: 'right' } },
-//         { header: 'Final Amount', key: 'totalPrice', width: headerWidths[4], alignment: { horizontal: 'right' } },
-//         { header: 'Status', key: 'status', width: headerWidths[5], alignment: { horizontal: 'left' } },
-//         { header: 'Date', key: 'createdAt', width: headerWidths[6], alignment: { horizontal: 'center' } }
-//       ];
-
-//       // Add the order data to the table
-//       orders.forEach(order => {
-//         worksheet.addRow({
-//           orderId: order.orderId,
-//           userName: order.userId.name,
-//           initialPrice: `₹${order.initialPrice.toFixed(2)}`,
-//           discount: `₹${order.discount.toFixed(2)}`,
-//           totalPrice: `₹${order.totalPrice.toFixed(2)}`,
-//           status: order.status,
-//           createdAt: new Date(order.createdAt).toLocaleString('en-GB')
-//         });
-//       });
-
-//       const filePath = path.join(reportsDir, 'sales-report.xlsx');
-//       await workbook.xlsx.writeFile(filePath);
-
-//       res.download(filePath);
-//     }
-//     // Invalid format handling
-//     else {
-//       res.status(400).send('Invalid format specified.');
-//     }
-//   } catch (error) {
-//     console.error(`ERROR GENERATING SALES REPORT: ${error}`);
-//     res.status(500).send('Error generating sales report.');
-//   }
-// };
-
-
-
-
-
 
 
 

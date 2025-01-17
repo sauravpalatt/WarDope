@@ -45,7 +45,6 @@ router.delete("/deleteSize/:id",adminAuth,productController.deleteSize)
 router.get("/orderlist",adminAuth,productController.orderListInfo)
 
 router.get('/download-sales-report/:format',adminAuth,productController.downloadSalesReport)
-// router.get("/filterOrderList",adminAuth,productController.filteredList)
 router.get("/orderDetail/:orderId",adminAuth,productController.orderDetailInfo)
 router.post("/order/status/:orderId",adminAuth,productController.orderStatus)
 router.post("/order/return/approve/:orderId", adminController.approveReturn);

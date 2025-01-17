@@ -185,6 +185,8 @@
                             <a href="/" class="nav-item nav-link">Home</a>
                             <a href="/productList" class="nav-item nav-link">Shop</a>
                             <a href="/wallet" class="nav-item nav-link">Wallet</a>
+                            <a href="/orders" class="nav-item nav-link">Orders</a>
+                            <a href="/address" class="nav-item nav-link">Address</a>
                         </div>
                         <div class="navbar-nav mr-0">
                             <% if (locals.user){ %>
@@ -192,8 +194,6 @@
                                     <a href="#" class="nav-link dropdown-toggle mr-4" data-toggle="dropdown"><%= locals.user.name %></a>
                                 <div class="dropdown-menu rounded-0 m-0">
                                     <a href="/userProfile" class="dropdown-item">Profile</a>
-                                    <a href="/address" class="dropdown-item">Address</a>
-                                    <a href="/orders" class="dropdown-item">Orders</a>
                                     <a href="/logout" class="dropdown-item">Log Out</a>
                                 </div>
                               <% } else { %>

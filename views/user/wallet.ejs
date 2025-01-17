@@ -1,16 +1,14 @@
 <%- include ("../partials/user/header") %>
 
-<!-- Wallet Section -->
 <div class="container my-5">
     <div class="row">
-        <!-- Wallet Balance -->
+        
         <div class="col-12 text-center mb-4">
             <h2>Your Wallet Balance</h2>
-            <h1 class="display-3 text-success">$500.00</h1>
+            <h1 class="display-3 text-success">₹<%= walletBalance %>.00</h1>
         </div>
     </div>
 
-    <!-- Wallet History -->
     <div class="row">
         <div class="col-12">
             <h3 class="mb-3">Wallet History</h3>
@@ -48,7 +46,6 @@
         </div>
     </div>
 
-    <!-- Pagination Controls -->
     <div class="row">
         <div class="col-12 text-center">
             <% if (currentPage > 1) { %>
