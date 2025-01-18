@@ -3,6 +3,7 @@ const mongoose = require('mongoose');
 const orderSchema = new mongoose.Schema({
 
     orderId: {type:String,unique:true,required:true},
+    razorpayOrderId: { type: String, default: null },
     userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
     cartItems: [
         {
@@ -17,7 +18,7 @@ const orderSchema = new mongoose.Schema({
     totalPrice: { type: Number, required: true },
     addressId: { type: mongoose.Schema.Types.ObjectId, ref: 'Address', required: true },
     deliveryType: { type: String, required: true },
-    status: { type: String, enum: ['pending', 'shipped', 'delivered', 'canceled', 'return requested', 'return approved', 'return denied'], default: 'pending' },
+    status: { type: String, enum: ['pending', 'shipped', 'delivered', 'canceled', 'return requested', 'return approved', 'return denied','paid'], default: 'pending' },
     cancelReason: {
         type: String,    
         trim: true,

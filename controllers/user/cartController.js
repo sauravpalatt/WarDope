@@ -11,6 +11,10 @@ const Coupon = require("../../models/couponSchema")
 const crypto = require("crypto");
 const Razorpay = require("razorpay")
 const env = require("dotenv").config()
+const PDFDocument = require("pdfkit");
+const fs = require("fs")
+const path = require("path");
+
 
 const razorpay = new Razorpay({
   key_id: process.env.RAZORPAY_KEY_ID,
@@ -269,7 +273,6 @@ const placeOrder = async (req, res) => {
     });
 
     order = generateOrderId(order);
-    await order.save();
     await Cart.deleteOne({ user: userId });
 
     await User.updateOne({_id:userId,"appliedCoupon.Coupon":req.session.couponCode},
@@ -280,14 +283,16 @@ const placeOrder = async (req, res) => {
 
     //Razorpay
     if (deliveryType === 'razorpay') {
+      
       const options = {
         amount: totalPrice * 100, 
         currency: 'INR',
         receipt: `receipt_${Date.now()}`,
       };
 
-      const order = await razorpay.orders.create(options);
-      return res.status(200).json({ order, key: process.env.RAZORPAY_KEY_ID });
+      const razorpayOrder = await razorpay.orders.create(options);
+
+      order.razorpayOrderId = razorpayOrder.id;
     }
 
     //Wallet
@@ -306,9 +311,17 @@ const placeOrder = async (req, res) => {
 
       await wallet.save()
 
+      order.status = 'paid'
+
       if(!wallet){
         return console.log("Wallet not found !!!")
       }
+    }
+
+    await order.save();
+
+    if(deliveryType === "razorpay"){
+      return res.status(200).json({ order, key: process.env.RAZORPAY_KEY_ID });
     }
 
     res.status(200).json({ message: 'Order placed successfully!' });
@@ -329,6 +342,13 @@ const verifyPayment = async (req, res) => {
       .digest('hex');
 
     if (generatedSignature === razorpay_signature) {
+
+      const order = await Order.updateOne({razorpayOrderId:razorpay_order_id},
+        {$set:{status:"paid"}})
+
+      if(!order){
+        return console.log("order not found")
+      }  
       
       res.status(200).json({ success: true, message: 'Payment verified successfully!' });
     } else {
@@ -662,6 +682,190 @@ const getWalletInfo = async (req, res) => {
   }
 };
 
+
+const downloadInvoice = async (req, res) => {
+  try {
+    const { orderId } = req.params;
+    const order = await Order.findOne({ orderId }).populate("userId cartItems.productId");
+
+    if (!order) {
+      return res.status(404).json({ message: "Order not found" });
+    }
+
+    // Fetch the address details using the order's addressId
+    let addressVariant = await Address.findOne({ "addresses._id": order.addressId }, { "addresses.$": 1 });
+
+    // If addressVariant is not found, return a 404 error
+    if (!addressVariant) {
+      return res.status(404).json({ message: "Address not found" });
+    }
+
+    const address = addressVariant.addresses[0]; 
+
+    const invoicesDir = path.join(__dirname, "../invoices");
+    if (!fs.existsSync(invoicesDir)) {
+      fs.mkdirSync(invoicesDir, { recursive: true });
+    }
+
+    const invoicePath = path.join(invoicesDir, `invoice_${orderId}.pdf`);
+    const doc = new PDFDocument({ size: "A4", margin: 50 });
+
+    const writeStream = fs.createWriteStream(invoicePath);
+    doc.pipe(writeStream);
+
+    // Generate the invoice content
+    generateHeader(doc);
+    generateCustomerInformation(doc, order, address); // Pass the address as an argument
+    generateInvoiceTable(doc, order);
+    generateFooter(doc);
+
+    doc.end();
+
+    // Send the generated invoice file as a response
+    writeStream.on("finish", () => {
+      res.download(invoicePath, `Invoice_${orderId}.pdf`, (err) => {
+        if (err) console.error("Error sending file:", err);
+        fs.unlinkSync(invoicePath); // Delete the file after sending
+      });
+    });
+  } catch (error) {
+    console.error("Error generating invoice:", error);
+    res.status(500).json({ message: "Failed to generate invoice" });
+  }
+};
+
+function generateHeader(doc) {
+  doc
+    .image("logo.png", 50, 45, { width: 50 })
+    .fillColor("#444444")
+    .fontSize(20)
+    .text("WarDope", 110, 57)
+    .fontSize(10)
+    .text("WarDope", 200, 50, { align: "right" })
+    .text("123 Fashion Street", 200, 65, { align: "right" })
+    .text("Kasaragod, Kerala, 671123", 200, 80, { align: "right" })
+    .moveDown();
+}
+
+function generateCustomerInformation(doc, order, address) {
+  doc
+    .fillColor("#444444")
+    .fontSize(20)
+    .text("Invoice", 50, 160);
+  generateHr(doc, 185);
+
+  const customerInformationTop = 200;
+  doc
+    .fontSize(8)
+    .font("Helvetica-Bold")
+    .text("Order ID:", 50, customerInformationTop)
+    .font("Helvetica")
+    .text(order.orderId, 150, customerInformationTop)
+    .font("Helvetica-Bold")
+    .text("Order Date:", 50, customerInformationTop + 15)
+    .font("Helvetica")
+    .text(new Date(order.createdAt).toLocaleDateString(), 150, customerInformationTop + 15)
+    .font("Helvetica")
+    .text("Total Price:", 50, customerInformationTop + 30)
+    .text(`${order.totalPrice}.00`, 150, customerInformationTop + 30)
+    .font("Helvetica-Bold")
+    .text("Name:", 300, customerInformationTop)
+    .font("Helvetica")
+    .text(order.userId.name, 350, customerInformationTop)
+    .font("Helvetica-Bold")
+    .text("Address:", 300, customerInformationTop + 15)
+    .font("Helvetica")
+    .text(address.street, 350, customerInformationTop + 15)
+    .text(`${address.city}, ${address.state}, ${address.pinCode}, ${address.country}`, 350, customerInformationTop + 30)
+    .moveDown();
+  generateHr(doc, 252);
+}
+
+function generateInvoiceTable(doc, order) {
+  let i;
+  const invoiceTableTop = 330;
+
+  doc.font("Helvetica-Bold");
+  generateTableRow(doc, invoiceTableTop, "Item", "Size", "Unit Cost", "Quantity", "Total");
+  generateHr(doc, invoiceTableTop + 20);
+  doc.font("Helvetica");
+
+  for (i = 0; i < order.cartItems.length; i++) {
+      const item = order.cartItems[i];
+      const position = invoiceTableTop + (i + 1) * 30;
+      generateTableRow(
+          doc,
+          position,
+          item.productName,
+          item.size,
+          `${item.price}.00`,
+          item.quantity,
+          `${item.price * item.quantity}.00`
+      );
+      generateHr(doc, position + 20);
+  }
+}
+
+function generateFooter(doc) {
+  doc.fontSize(10).text("Thank you for shopping with us!", 50, 780, { align: "center", width: 500 });
+}
+
+function generateTableRow(doc, y, item, size, unitCost, quantity, total) {
+  doc
+      .fontSize(10)
+      .text(item, 50, y)
+      .text(size, 200, y)
+      .text(unitCost, 280, y, { width: 90, align: "right" })
+      .text(quantity, 370, y, { width: 90, align: "right" })
+      .text(total, 0, y, { align: "right" });
+}
+
+function generateHr(doc, y) {
+  doc.strokeColor("#aaaaaa").lineWidth(1).moveTo(50, y).lineTo(550, y).stroke();
+}
+
+const retryRazorpay = async (req, res) => {
+  try {
+    const { finalAmount } = req.body;
+
+    const order = await razorpay.orders.create({
+      amount: finalAmount * 100,
+      currency: "INR",
+      receipt: "order_rcptid_11"
+    });
+
+    console.log(`key id: ${process.env.RAZORPAY_KEY_ID}`)
+
+    res.status(200).json({ key: razorpay.key_id, order });
+
+  } catch (error) {
+    console.error("Error creating Razorpay order:", error);
+    res.status(500).json({ error: "Failed to create Razorpay order." });
+  }
+};
+
+const verifyRetryPayment = async (req, res) => {
+  try {
+    const { razorpay_order_id, razorpay_payment_id, razorpay_signature, order_id } = req.body;
+
+    const hmac = crypto
+      .createHmac("sha256", process.env.RAZORPAY_SECRET)
+      .update(razorpay_order_id + "|" + razorpay_payment_id)
+      .digest("hex");
+
+    if (hmac === razorpay_signature) {
+      await Order.updateOne({ _id: order_id }, { $set: { status: "paid" } });
+      res.status(200).json({ success: true, orderId: order_id });
+    } else {
+      res.status(400).json({ success: false });
+    }
+  } catch (error) {
+    console.error("Error verifying payment:", error);
+    res.status(500).json({ error: "Payment verification failed." });
+  }
+};
+
+
 module.exports = {
     addToCart,
     cartList,
@@ -678,7 +882,10 @@ module.exports = {
     applyCoupon,
     verifyPayment,
     removeCoupon,
-    getWalletInfo
+    getWalletInfo,
+    downloadInvoice,
+    retryRazorpay,
+    verifyRetryPayment
 }
 
 

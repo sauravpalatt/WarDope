@@ -68,9 +68,14 @@ router.get("/orderDetail/:orderId",userAuth,cartController.orderDetail)
 router.post("/order/cancel/:orderId",userAuth,cartController.cancelOrder)
 router.post("/order/return/:orderId",userAuth,cartController.returnProduct)
 router.get("/wallet",userAuth,cartController.getWalletInfo)
+router.get("/order/invoice/:orderId",userAuth,cartController.downloadInvoice)
 
 //coupon
 router.post("/applyCoupon",userAuth,cartController.applyCoupon)
 router.get("/removeCoupon",userAuth,cartController.removeCoupon)
+
+//retry Payment
+router.post("/retryRazorpay",userAuth,cartController.retryRazorpay)
+router.post("/verifyRetryRazorpay",userAuth,cartController.verifyRetryPayment)
 
 module.exports=router
