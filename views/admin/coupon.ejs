@@ -68,7 +68,7 @@
 <div class="modal fade" id="addCouponModal" tabindex="-1" aria-labelledby="addCouponModalLabel" aria-hidden="true">
     <div class="modal-dialog">
         <div class="modal-content">
-            <form id="addCouponModal">
+            <form id="couponForm">
                 <div class="modal-header">
                     <h5 class="modal-title" id="addCouponModalLabel">Add New Coupon</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
@@ -77,6 +77,7 @@
                     <div class="mb-3">
                         <label for="couponCode" class="form-label">Coupon Code</label>
                         <input type="text" name="code" id="couponCode" class="form-control" required>
+                        <small class="text-danger" id="couponCodeError"></small>
                     </div>
                     <div class="mb-3">
                         <label for="discountType" class="form-label">Discount Type</label>
@@ -88,23 +89,27 @@
                     <div class="mb-3">
                         <label for="discountValue" class="form-label">Discount Value</label>
                         <input type="number" name="discountValue" id="discountValue" class="form-control" required>
+                        <small class="text-danger" id="discountValueError"></small>
                     </div>
                     <div class="mb-3">
                         <label for="minPurchase" class="form-label">Minimum Purchase</label>
                         <input type="number" name="minPurchase" id="minPurchase" class="form-control" required>
+                        <small class="text-danger" id="minPurchaseError"></small>
                     </div>
                     <div class="mb-3">
                         <label for="startDate" class="form-label">Start Date</label>
                         <input type="date" name="startDate" id="startDate" class="form-control" required>
+                        <small class="text-danger" id="startDateError"></small>
                     </div>
                     <div class="mb-3">
                         <label for="endDate" class="form-label">End Date</label>
                         <input type="date" name="endDate" id="endDate" class="form-control" required>
+                        <small class="text-danger" id="endDateError"></small>
                     </div>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                    <button type="submit" class="btn btn-primary">Add Coupon</button>
+                    <button type="submit" class="btn btn-primary" id="submitBtn" >Add Coupon</button>
                 </div>
             </form>
         </div>
@@ -114,10 +119,96 @@
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
 <script>
-    document.getElementById("addCouponModal").addEventListener("submit", async (e) => {
-        e.preventDefault();
+    const form = document.getElementById("couponForm");
+    const submitBtn = document.getElementById("submitBtn");
 
-        const formData = new FormData(e.target);
+    const couponCode = document.getElementById("couponCode");
+    const discountType = document.getElementById("discountType");
+    const discountValue = document.getElementById("discountValue");
+    const minPurchase = document.getElementById("minPurchase");
+    const startDate = document.getElementById("startDate");
+    const endDate = document.getElementById("endDate");
+
+    const errors = {
+        couponCode: document.getElementById("couponCodeError"),
+        discountValue: document.getElementById("discountValueError"),
+        minPurchase: document.getElementById("minPurchaseError"),
+        startDate: document.getElementById("startDateError"),
+        endDate: document.getElementById("endDateError")
+    };
+
+    function validateCouponCode() {
+        if (!/^[A-Za-z0-9]{3,}$/.test(couponCode.value)) {
+            errors.couponCode.textContent = "Code must be at least 3 characters (letters/numbers only)";
+            return false;
+        }
+        errors.couponCode.textContent = "";
+        return true;
+    }
+
+    function validateDiscountValue() {
+        const value = parseFloat(discountValue.value);
+        if (isNaN(value) || value <= 0) {
+            errors.discountValue.textContent = "Discount must be greater than 0.";
+            return false;
+        }
+        if (discountType.value === "percentage" && (value < 1 || value > 100)) {
+            errors.discountValue.textContent = "Percentage must be between 1 and 100.";
+            return false;
+        }
+        errors.discountValue.textContent = "";
+        return true;
+    }
+
+    function validateMinPurchase() {
+        if (isNaN(parseFloat(minPurchase.value)) || parseFloat(minPurchase.value) <= 0) {
+            errors.minPurchase.textContent = "Minimum purchase must be greater than 0.";
+            return false;
+        }
+        errors.minPurchase.textContent = "";
+        return true;
+    }
+
+    function validateDates() {
+        const today = new Date().toISOString().split("T")[0];
+        if (startDate.value < today) {
+            errors.startDate.textContent = "Start date cannot be in the past.";
+            return false;
+        }
+        errors.startDate.textContent = "";
+
+        if (endDate.value <= startDate.value) {
+            errors.endDate.textContent = "End date must be after the start date.";
+            return false;
+        }
+        errors.endDate.textContent = "";
+        return true;
+    }
+
+  function validateForm() {
+    const isValid =
+        validateCouponCode() &&
+        validateDiscountValue() &&
+        validateMinPurchase() &&
+        validateDates();
+    
+    console.log("Form valid: ", isValid);  // Add this to verify form validation
+    submitBtn.disabled = !isValid;
+    return isValid;
+}
+
+    couponCode.addEventListener("input", validateCouponCode);
+    discountValue.addEventListener("input", validateDiscountValue);
+    minPurchase.addEventListener("input", validateMinPurchase);
+    startDate.addEventListener("change", validateDates);
+    endDate.addEventListener("change", validateDates);
+    discountType.addEventListener("change", validateDiscountValue);
+
+    form.addEventListener("submit", async (e) => {
+        e.preventDefault();
+        if (!validateForm()) return;
+
+        const formData = new FormData(form);
         const couponData = Object.fromEntries(formData.entries());
 
         try {
@@ -129,7 +220,7 @@
                 body: JSON.stringify(couponData),
             });
 
-            const data = await response.json()
+            const data = await response.json();
 
             if (response.ok) {
                 Swal.fire({
@@ -138,13 +229,12 @@
                     icon: 'success',
                     confirmButtonText: 'Okay'
                 }).then(() => {
-                    location.reload(); 
+                    location.reload();
                 });
             } else {
-                const errorData = await response.json();
                 Swal.fire({
                     title: 'Error!',
-                    text: `Error: ${errorData.message}`,
+                    text: `Error: ${data.message}`,
                     icon: 'error',
                     confirmButtonText: 'Try Again'
                 });
@@ -160,5 +250,4 @@
         }
     });
 </script>
-
 <%- include("../partials/admin/footer") %>

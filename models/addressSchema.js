@@ -14,7 +14,8 @@ const addressSchema = new Schema({
             city: { type: String, required: true },
             state: { type: String, required: true },
             pinCode: { type: String, required: true },
-            country: { type: String, required: true }
+            country: { type: String, required: true },
+            deleted: {type: Boolean, default: false}
         }
     ]
 }, { timestamps: true });

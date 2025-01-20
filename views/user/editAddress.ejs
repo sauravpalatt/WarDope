@@ -47,50 +47,80 @@
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
 <script>
+document.addEventListener("DOMContentLoaded", () => {
     const updatedAddressForm = document.getElementById("addressForm");
+
+    // Helper function to validate fields
+    function validateField(value, regex) {
+        return regex.test(value.trim());
+    }
+
+    // Convert to title case (first letter capital, rest lowercase)
+    function toTitleCase(value) {
+        return value
+            .toLowerCase()
+            .replace(/\b\w/g, char => char.toUpperCase()); // Capitalizes first letter of each word
+    }
+
+    // Validation rules
+    const nameRegex = /^[A-Za-z\s]+$/; // Allows only letters and spaces
+    const pinCodeRegex = /^\d{6}$/; // Ensures exactly 6 digits
 
     updatedAddressForm.addEventListener("submit", async (e) => {
         e.preventDefault();
 
         const addressId = document.getElementById('addressId').value;
-
-        // Validation
         const title = document.querySelector('input[name="title"]:checked');
-        const street = document.getElementById('street').value.trim();
-        const city = document.getElementById('city').value.trim();
-        const state = document.getElementById('state').value.trim();
-        const pinCode = document.getElementById('pinCode').value.trim();
-        const country = document.getElementById('country').value.trim();
+        const street = document.getElementById('street');
+        const city = document.getElementById('city');
+        const state = document.getElementById('state');
+        const pinCode = document.getElementById('pinCode');
+        const country = document.getElementById('country');
 
-        if (!title || !street || !city || !state || !pinCode || !country) {
-            Swal.fire({
-                icon: 'warning',
-                title: 'Validation Error',
-                text: 'All fields are required!',
-            });
+        // Validate fields
+        if (!title || !street.value || !city.value || !state.value || !pinCode.value || !country.value) {
+            Swal.fire({ icon: 'warning', title: 'Oops !!!', text: 'All fields are required!' });
+            return;
+        }
+        if (!validateField(street.value, nameRegex)) {
+            Swal.fire({ icon: 'error', title: 'Oops !!!', text: 'Street can only contain letters and spaces!' });
+            return;
+        }
+        if (!validateField(city.value, nameRegex)) {
+            Swal.fire({ icon: 'error', title: 'Oops !!!', text: 'City can only contain letters and spaces!' });
+            return;
+        }
+        if (!validateField(state.value, nameRegex)) {
+            Swal.fire({ icon: 'error', title: 'Oops !!!', text: 'State can only contain letters and spaces!' });
+            return;
+        }
+        if (!validateField(country.value, nameRegex)) {
+            Swal.fire({ icon: 'error', title: 'Oops !!!', text: 'Country can only contain letters and spaces!' });
+            return;
+        }
+        if (!validateField(pinCode.value, pinCodeRegex)) {
+            Swal.fire({ icon: 'error', title: 'Oops !!!', text: 'Pincode must be 6 digits!' });
             return;
         }
 
+        // Convert to proper case before submitting
         const formData = {
             title: title.value,
-            street,
-            city,
-            state,
-            pinCode,
-            country,
+            street: toTitleCase(street.value.trim()),
+            city: toTitleCase(city.value.trim()),
+            state: toTitleCase(state.value.trim()),
+            pinCode: pinCode.value.trim(),
+            country: toTitleCase(country.value.trim()),
         };
 
         try {
             const response = await fetch(`/editAddress/${addressId}`, {
                 method: 'PUT',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
+                headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(formData),
             });
 
             const result = await response.json();
-
             if (response.ok) {
                 Swal.fire({
                     icon: 'success',
@@ -99,26 +129,16 @@
                     toast: true,
                     position: 'top-end',
                     timer: 1000,
-                    showConfirmButton:false
-                    
-                }).then(() => {
-                    window.location.href="/address";
-                });
+                    showConfirmButton: false,
+                }).then(() => window.location.href = "/address");
             } else {
-                Swal.fire({
-                    icon: 'error',
-                    title: 'Update Failed',
-                    text: result.message || 'Failed to update address.',
-                    toast: true,
-                    position: 'top-end',
-                    timer: 1000,
-                    showConfirmButton:false
-                });
+                Swal.fire({ icon: 'error', title: 'Update Failed', text: result.message || 'Failed to update address.' });
             }
         } catch (error) {
             console.error('Error updating address:', error);
         }
     });
+});
 </script>
 
 <%- include ("../partials/user/footer") %>

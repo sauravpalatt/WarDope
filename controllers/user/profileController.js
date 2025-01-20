@@ -31,7 +31,7 @@ const userProfile = async (req, res) => {
 
     if (user) {
       if (oldPassword && newPassword) {
-        const isPasswordMatch = bcrypt.compare(
+        const isPasswordMatch = await bcrypt.compare(
 					oldPassword,
 					user.password
 				);

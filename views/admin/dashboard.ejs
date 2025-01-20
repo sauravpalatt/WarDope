@@ -104,6 +104,7 @@
           </form>
         </div>
 
+        <h2 class="text-center mt-5">Top Selling Products & Categories</h2>
         <div class="chart-container mt-10" style="width: 50%; height: 400px; display: flex; gap: 120px;">
           <canvas id="topProductsChart"></canvas>
           <canvas id="topCategoriesChart"></canvas>
@@ -169,83 +170,76 @@
       </script>
 
       <script>
-       document.getElementById("filterSelect").addEventListener("change", function () {
-        let filter = this.value;
-        let customForm = document.getElementById("customFilterForm");
-        let yearlyForm = document.getElementById("yearlyFilterForm");
-        let monthlyForm = document.getElementById("monthlyFilterForm");
-        let weeklyForm = document.getElementById("weeklyFilterForm");
+        document.addEventListener("DOMContentLoaded", function () {
+    // Get today's date in YYYY-MM-DD format
+          let today = new Date().toISOString().split("T")[0];
 
-        // Show the corresponding form based on the selected filter
-        if (filter === "custom") {
-          customForm.style.display = "block";r
-          yearlyForm.style.display = "none";
-          monthlyForm.style.display = "none";
-          weeklyForm.style.display = "none";
-        } else if (filter === "yearly") {
-          yearlyForm.style.display = "block";
-          customForm.style.display = "none";
-          monthlyForm.style.display = "none";
-          weeklyForm.style.display = "none";
-        } else if (filter === "monthly") {
-          monthlyForm.style.display = "block";
-          customForm.style.display = "none";
-          yearlyForm.style.display = "none";
-          weeklyForm.style.display = "none";
-        } else if (filter === "weekly") {
-          weeklyForm.style.display = "block";
-          customForm.style.display = "none";
-          yearlyForm.style.display = "none";
-          monthlyForm.style.display = "none";
-        }
+          // Set the max attribute for startDate and endDate inputs
+          document.getElementById("startDate").setAttribute("max", today);
+          document.getElementById("endDate").setAttribute("max", today);
+      });
+
+      // Existing event listener for filter selection
+      document.getElementById("filterSelect").addEventListener("change", function () {
+          let filter = this.value;
+          let customForm = document.getElementById("customFilterForm");
+          let yearlyForm = document.getElementById("yearlyFilterForm");
+          let monthlyForm = document.getElementById("monthlyFilterForm");
+          let weeklyForm = document.getElementById("weeklyFilterForm");
+
+          // Show the corresponding form based on the selected filter
+          customForm.style.display = filter === "custom" ? "block" : "none";
+          yearlyForm.style.display = filter === "yearly" ? "block" : "none";
+          monthlyForm.style.display = filter === "monthly" ? "block" : "none";
+          weeklyForm.style.display = filter === "weekly" ? "block" : "none";
       });
 
       // Handle custom filter form submission
       document.getElementById("customFilterForm").addEventListener("submit", function (event) {
-        event.preventDefault();
-        let startDate = document.getElementById("startDate").value;
-        let endDate = document.getElementById("endDate").value;
-        fetchData("custom", startDate, endDate);
+          event.preventDefault();
+          let startDate = document.getElementById("startDate").value;
+          let endDate = document.getElementById("endDate").value;
+          fetchData("custom", startDate, endDate);
       });
 
       // Handle other filter forms (Yearly, Monthly, Weekly) submissions
       document.getElementById("yearlyFilterForm").addEventListener("submit", function (event) {
-        event.preventDefault();
-        fetchData("yearly");
+          event.preventDefault();
+          fetchData("yearly");
       });
 
       document.getElementById("monthlyFilterForm").addEventListener("submit", function (event) {
-        event.preventDefault();
-        fetchData("monthly");
+          event.preventDefault();
+          fetchData("monthly");
       });
 
       document.getElementById("weeklyFilterForm").addEventListener("submit", function (event) {
-        event.preventDefault();
-        fetchData("weekly");
+          event.preventDefault();
+          fetchData("weekly");
       });
 
       function fetchData(filter, startDate = "", endDate = "") {
-        let url = `/admin/?filter=${filter}`;
-        if (filter === "custom") {
-          url += `&startDate=${startDate}&endDate=${endDate}`;
-        }
+          let url = `/admin/?filter=${filter}`;
+          if (filter === "custom") {
+              url += `&startDate=${startDate}&endDate=${endDate}`;
+          }
 
-        fetch(url)
-          .then(response => response.json())
-          .then(data => {
-            updateCharts(data.topProducts, data.topCategories);
-          })
-          .catch(error => console.error("Error fetching data:", error));
+          fetch(url)
+              .then(response => response.json())
+              .then(data => {
+                  updateCharts(data.topProducts, data.topCategories);
+              })
+              .catch(error => console.error("Error fetching data:", error));
       }
 
       function updateCharts(topProducts, topCategories) {
-        topProductsChart.data.labels = topProducts.map(p => p.productName);
-        topProductsChart.data.datasets[0].data = topProducts.map(p => p.totalSales);
-        topProductsChart.update();
+          topProductsChart.data.labels = topProducts.map(p => p.productName);
+          topProductsChart.data.datasets[0].data = topProducts.map(p => p.totalSales);
+          topProductsChart.update();
 
-        topCategoriesChart.data.labels = topCategories.map(c => c.categoryName);
-        topCategoriesChart.data.datasets[0].data = topCategories.map(c => c.totalSales);
-        topCategoriesChart.update();
+          topCategoriesChart.data.labels = topCategories.map(c => c.categoryName);
+          topCategoriesChart.data.datasets[0].data = topCategories.map(c => c.totalSales);
+          topCategoriesChart.update();
       }
       </script>
 

@@ -304,10 +304,76 @@ const deleteSize = async(req,res)=>{
   }
 }
 
-const orderListInfo = async(req,res)=>{
-  try {
+// const orderListInfo = async(req,res)=>{
+//   try {
     
-    const { filterType, startDate, startTime, endDate, endTime } = req.query;
+//     const { filterType, startDate, startTime, endDate, endTime } = req.query;
+//     req.session.filterType = filterType
+//     req.session.startDate = startDate || 0
+//     req.session.startTime = startTime || 0
+//     req.session.endDate = endDate || 0
+//     req.session.endTime = endTime || 0
+
+//     let filter = {};
+
+//     const now = new Date();
+
+//     if (filterType === '1-day') {
+//       const startOfDay = new Date(now.setHours(0, 0, 0, 0));
+//       const endOfDay = new Date(now.setHours(23, 59, 59, 999));
+//       filter.createdAt = { $gte: startOfDay, $lt: endOfDay };
+//     } else if (filterType === '1-week') {
+//       const lastWeek = new Date();
+//       lastWeek.setDate(now.getDate() - 7);
+//       filter.createdAt = { $gte: lastWeek, $lt: now };
+//     } else if (filterType === '1-month') {
+//       const lastMonth = new Date();
+//       lastMonth.setMonth(now.getMonth() - 1);
+//       filter.createdAt = { $gte: lastMonth, $lt: now };
+//     } else if (filterType === '1-year') {
+//       const lastYear = new Date();
+//       lastYear.setFullYear(now.getFullYear() - 1);
+//       filter.createdAt = { $gte: lastYear, $lt: now };
+//     } else if (filterType === 'custom' && startDate && endDate) {
+//       let startDateTime = new Date(startDate);
+//       let endDateTime = new Date(endDate);
+
+      
+//       if (startTime) {
+//         const [startHour, startMinute] = startTime.split(':');
+//         startDateTime.setHours(startHour, startMinute, 0, 0);
+//       }
+
+      
+//       if (endTime) {
+//         const [endHour, endMinute] = endTime.split(':');
+//         endDateTime.setHours(endHour, endMinute, 59, 999);
+//       }
+
+//       filter.createdAt = {
+//         $gte: startDateTime,
+//         $lte: endDateTime,
+//       };
+//     }
+
+//     const orders = await Order.find(filter).populate("userId").lean();
+
+//     orders.reverse().forEach(order => {
+//       const date = new Date(order.createdAt);
+//       order.formattedDate = date.toLocaleDateString('en-GB') + " " + date.toLocaleTimeString('en-GB'); // Format date and time
+//     });
+
+//     res.render("orderlistAdmin", { orders });
+
+//   } catch (error) {
+//     console.error(`ERROR FETCHING ORDER LIST INFO: ${error}`);
+//     res.status(500).send("Internal Server Error");
+//   }
+// }
+
+const orderListInfo = async(req, res) => {
+  try {
+    let { filterType, startDate, startTime, endDate, endTime, page = 1 } = req.query;
     req.session.filterType = filterType
     req.session.startDate = startDate || 0
     req.session.startTime = startTime || 0
@@ -338,13 +404,11 @@ const orderListInfo = async(req,res)=>{
       let startDateTime = new Date(startDate);
       let endDateTime = new Date(endDate);
 
-      
       if (startTime) {
         const [startHour, startMinute] = startTime.split(':');
         startDateTime.setHours(startHour, startMinute, 0, 0);
       }
 
-      
       if (endTime) {
         const [endHour, endMinute] = endTime.split(':');
         endDateTime.setHours(endHour, endMinute, 59, 999);
@@ -355,15 +419,30 @@ const orderListInfo = async(req,res)=>{
         $lte: endDateTime,
       };
     }
+    page = parseInt(page)
+    const limit = 10;
+    const skip = (page - 1) * limit;
 
-    const orders = await Order.find(filter).populate("userId").lean();
+    const orders = await Order.find(filter).populate("userId").skip(skip).limit(limit).lean();
+    const totalOrders = await Order.countDocuments(filter);  
+
+    const totalPages = Math.ceil(totalOrders / limit);  
 
     orders.reverse().forEach(order => {
       const date = new Date(order.createdAt);
-      order.formattedDate = date.toLocaleDateString('en-GB') + " " + date.toLocaleTimeString('en-GB'); // Format date and time
+      order.formattedDate = date.toLocaleDateString('en-GB') + " " + date.toLocaleTimeString('en-GB'); 
     });
 
-    res.render("orderlistAdmin", { orders });
+    res.render("orderlistAdmin", {
+      orders,
+      currentPage: page,
+      totalPages,
+      filterType,
+      startDate,
+      startTime,
+      endDate,
+      endTime
+    });
 
   } catch (error) {
     console.error(`ERROR FETCHING ORDER LIST INFO: ${error}`);

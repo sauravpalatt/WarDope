@@ -15,8 +15,14 @@ const Wallet = require("../../models/walletSchema")
                 return res.redirect('/login');
             }
 
-            const userAddresses = await Address.findOne({ userId: userId });
-            if (!userAddresses) {
+            const userAddresses = await Address.findOne(
+                { userId },
+                { addresses: 1 } 
+            );
+
+            if (userAddresses) {
+                userAddresses.addresses = userAddresses.addresses.filter(addr => !addr.deleted);
+            } else {
                 console.log("No addresses found for this user.");
             }
 
@@ -47,7 +53,9 @@ const Wallet = require("../../models/walletSchema")
 
                 const userAddresses = await Address.findOne({ userId: userId });
 
-                if (!userAddresses) {
+                if (userAddresses) {
+                    userAddresses.addresses = userAddresses.addresses.filter(addr => !addr.deleted);
+                } else {
                     console.log("No addresses found for this user.");
                 }
 
@@ -203,20 +211,41 @@ const Wallet = require("../../models/walletSchema")
         }
     }
 
+    // const deleteAddress = async (req, res) => {
+    //     try {
+    //         const user = req.session.user;
+    //         const userId = user;
+    
+    //         const { id } = req.params;
+    
+    //         const del = await Address.updateOne({ userId }, { $pull: { addresses: { _id: id } } });
+    
+    //         if (!del) {
+    //             return res.status(404).json({ success: false, message: 'Address not found' });
+    //         }
+    
+    //         res.status(200).json({ success: true, message: 'Address deleted successfully' });
+    //     } catch (error) {
+    //         console.error("ERROR IN DELETE FN", error);
+    //         res.status(500).json({ success: false, message: 'Server error. Please try again later.' });
+    //     }
+    // };
+
     const deleteAddress = async (req, res) => {
         try {
-            const user = req.session.user;
-            const userId = user;
-    
+            const userId = req.session.user;
             const { id } = req.params;
     
-            const del = await Address.updateOne({ userId }, { $pull: { addresses: { _id: id } } });
+            const del = await Address.updateOne(
+                { userId, "addresses._id": id }, 
+                { $set: { "addresses.$.deleted": true } } 
+            );
     
-            if (!del) {
+            if (!del.modifiedCount) {
                 return res.status(404).json({ success: false, message: 'Address not found' });
             }
     
-            res.status(200).json({ success: true, message: 'Address deleted successfully' });
+            res.status(200).json({ success: true, message: 'Address removed successfully' });
         } catch (error) {
             console.error("ERROR IN DELETE FN", error);
             res.status(500).json({ success: false, message: 'Server error. Please try again later.' });

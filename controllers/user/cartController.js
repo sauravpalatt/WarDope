@@ -35,8 +35,7 @@ const cartList = async (req, res) => {
     }
 
     const userData = await User.findById(userId);
-
-    const cart = await Cart.findOne({ user: userId }).populate('items.product');
+    const cart = await Cart.findOne({ user: userId }).populate("items.product");
 
     if (!cart || cart.items.length === 0) {
       return res.render("cart", {
@@ -46,24 +45,36 @@ const cartList = async (req, res) => {
       });
     }
 
-    const cartItems = cart.items.map(item => {
-      const product = item.product;
-      const variantId = item.variantId;
+    // Resolve all promises using Promise.all
+    const cartItems = await Promise.all(
+      cart.items.map(async (item) => {
+        if (!item.product) return null; // Ensure product exists
 
-      const variant = product.variants.find(variant => variant._id.toString() === variantId.toString());
+        const variant = item.product.variants.find(
+          (variant) => variant._id.toString() === item.variantId.toString()
+        );
 
-      const stockLeft = variant ? variant.stock : 0;
+        const stockLeft = variant ? variant.stock : 0;
 
-      return {
-        ...item._doc, 
-        stockLeft 
-      };
-    });
+        if (stockLeft === 0) {
+          await cart.updateOne({ user: userId }, { $pull: { items: { _id: item._id } } });
+          return null;
+        } else {
+          return { ...item._doc, stockLeft };
+        }
+      })
+    );
+
+    const filteredItems = cartItems.filter((item) => item !== null);
+
+    const totalPrice = filteredItems.reduce((total, item) => {
+      return total + (item?.product?.promotionalPrice || 0) * item.quantity;
+    }, 0);
 
     res.render("cart", {
       user: userData,
-      cartItems, 
-      totalPrice: cart.totalPrice
+      cartItems: filteredItems,
+      totalPrice
     });
 
   } catch (error) {
@@ -360,24 +371,35 @@ const verifyPayment = async (req, res) => {
   }
 }
 
-const ordersList = async(req,res)=>{
+const ordersList = async (req, res) => {
   try {
-    const userId = req.session.user
-    if(userId){
-      const orders = await Order.find({ userId }).sort({ createdAt: -1 })
+    const userId = req.session.user;
+    if (userId) {
+      const page = parseInt(req.query.page) || 1; 
+      const limit = 10; 
+      const skip = (page - 1) * limit; 
 
-      const user = await User.findById(userId)
-        
-      res.render("orderList",{
+      const totalOrders = await Order.countDocuments({ userId }); 
+      const totalPages = Math.ceil(totalOrders / limit); 
+
+      const orders = await Order.find({ userId })
+        .sort({ createdAt: -1 })
+        .skip(skip)
+        .limit(limit);
+
+      const user = await User.findById(userId);
+
+      res.render("orderList", {
         orders,
-        user
-      })
+        user,
+        currentPage: page,
+        totalPages,
+      });
     }
-
   } catch (error) {
-    console.error("ERROR IN ORDER LIST FN:",error)   
+    console.error("ERROR IN ORDER LIST FN:", error);
   }
-}
+};
 
 const orderDetail = async(req,res)=>{
     try {
@@ -619,8 +641,19 @@ const applyCoupon = async(req,res)=>{
     if(totalPrice < invalidCoupon.minPurchase){
       return res.status(404).json({success:false, message: `Coupon available only for purchase ₹${invalidCoupon.minPurchase}.00 or above`})
     }
+
+    const couponType = await Coupon.findOne({code:couponCode},{discountType:1})
+
+    const discountType = couponType.discountType
      
-    const amountDeducted = Math.round((totalPrice * discountValue) / 100);
+    let amountDeducted = null
+
+    if(discountType === "percentage"){
+      amountDeducted = Math.round((totalPrice * discountValue) / 100);
+    }else{
+      amountDeducted = parseInt(discountValue)
+    }
+    
     const discountPrice = Math.round(totalPrice - amountDeducted);
 
     req.session.amountDeducted = amountDeducted
@@ -682,10 +715,11 @@ const getWalletInfo = async (req, res) => {
   }
 };
 
-
 const downloadInvoice = async (req, res) => {
   try {
     const { orderId } = req.params;
+    console.log(`orderid: ${orderId }`)
+
     const order = await Order.findOne({ orderId }).populate("userId cartItems.productId");
 
     if (!order) {

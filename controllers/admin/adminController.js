@@ -68,7 +68,14 @@ const loadDashboard = async (req, res) => {
        
         startDate = new Date(req.query.startDate);
         endDate = new Date(req.query.endDate);
-
+    
+        const today = new Date().toISOString().split("T")[0]; 
+        const selectedStart = startDate.toISOString().split("T")[0];
+        const selectedEnd = endDate.toISOString().split("T")[0];
+    
+        if (selectedStart === today && selectedEnd === today) {
+            endDate = new Date(); 
+        }
       } else {
         startDate = moment().startOf("year").toDate();
         endDate = moment().endOf("year").toDate();
@@ -100,7 +107,7 @@ const loadDashboard = async (req, res) => {
           },
         },
         { $sort: { totalSales: -1 } },
-        { $limit: 10 },
+        { $limit: 5 },
       ]);
 
       const topCategories = await Order.aggregate([
@@ -124,7 +131,7 @@ const loadDashboard = async (req, res) => {
           },
         },
         { $sort: { totalSales: -1 } },
-        { $limit: 10 },
+        { $limit: 5 },
         {
           $lookup: {
             from: "categories",

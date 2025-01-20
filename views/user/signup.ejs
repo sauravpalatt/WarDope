@@ -289,29 +289,37 @@
           }
          }
 
-         function passValidateChecking(e){
-          const passVal=pwdid.value
-          const cPassVal=cf_pwdid.value
-          const alpha=/[A-Za-z]/
-          const digit=/\d/
+         function passValidateChecking(e) {
+          const passVal = pwdid.value;
+          const cPassVal = cf_pwdid.value;
+          const upper = /[A-Z]/;      // Checks for at least one uppercase letter
+          const lower = /[a-z]/;      // Checks for at least one lowercase letter (if needed)
+          const digit = /\d/;         // Checks for at least one digit
+          const symbol = /[!@#$%^&*(),.?":{}|<>]/; // Checks for at least one special character
 
-          if(passVal.length<8){
-            error4.style.display = "block"
-            error4.innerHTML = "Password too short (atleast 8 chars)"
-          }else if(!alpha.test(passVal) && !digit.test(passVal)){
-            error4.style.display = "block"
-            error4.innerHTML = "Password should be contain both numbers and alphabets"
-          }else{
-            error4.style.display="none"
-            error4.innerHTML=""
+          // Checking for password length
+          if (passVal.length < 6) {
+              error4.style.display = "block";
+              error4.innerHTML = "Password too short (at least 6 chars)";
+          }
+          // Checking if password contains at least one uppercase, one number, and one symbol
+          else if (!upper.test(passVal) || !digit.test(passVal) || !symbol.test(passVal)) {
+              error4.style.display = "block";
+              error4.innerHTML = "Password must contain at least one uppercase letter, one number, and one symbol";
+          } else {
+              error4.style.display = "none";
+              error4.innerHTML = "";
           }
 
-          if(passVal!==cPassVal){
-            error5.style.display = "block"
-            error5 .innerHTML = "Passwords are in mismatch"
+          // Check if passwords match
+          if (passVal !== cPassVal) {
+              error5.style.display = "block";
+              error5.innerHTML = "Passwords do not match";
+          } else {
+              error5.style.display = "none";
+              error5.innerHTML = "";
           }
-          
-         }
+       }
 
         document.addEventListener("DOMContentLoaded",function(){
           

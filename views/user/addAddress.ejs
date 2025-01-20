@@ -53,156 +53,114 @@
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
 <script>
-    const submitButton = document.getElementById("submitButton");
-
-    submitButton.addEventListener("click", async (e) => {
-        e.preventDefault();
-
-        const title = document.querySelector('input[name="title"]:checked')?.value || ""; 
-        const street = document.getElementById("street").value;
-        const city = document.getElementById("city").value;
-        const state = document.getElementById("state").value;
-        const pinCode = document.getElementById("pinCode").value;
-        const country = document.getElementById("country").value;
-
-        if (!title) {
-            Swal.fire({
-                title: "Validation Error",
-                text: "Please select an address title (Home/Office).",
-                icon: "warning",
-                toast: true,
-                position: "top-end",
-                timer: 3000,
-                timerProgressBar: true,
-                showConfirmButton: false
-            });
-            return;
-}
-    if (!street) {
-        Swal.fire({
-            title: "Validation Error",
-            text: "Street address cannot be empty.",
-            icon: "warning",
-            toast: true,
-            position: "top-end",
-            timer: 3000,
-            timerProgressBar: true,
-            showConfirmButton: false
-        });
-        return;
-    }
-    if (!city) {
-        Swal.fire({
-            title: "Validation Error",
-            text: "City cannot be empty.",
-            icon: "warning",
-            toast: true,
-            position: "top-end",
-            timer: 3000,
-            timerProgressBar: true,
-            showConfirmButton: false
-        });
-        return;
-    }
-    if (!state) {
-        Swal.fire({
-            title: "Validation Error",
-            text: "State cannot be empty.",
-            icon: "warning",
-            toast: true,
-            position: "top-end",
-            timer: 3000,
-            timerProgressBar: true,
-            showConfirmButton: false
-        });
-        return;
-    }
-    if (!pinCode || !/^\d{6}$/.test(pinCode)) {
-        Swal.fire({
-            title: "Validation Error",
-            text: "Please enter a valid 6-digit pincode.",
-            icon: "warning",
-            toast: true,
-            position: "top-end",
-            timer: 3000,
-            timerProgressBar: true,
-            showConfirmButton: false
-        });
-        return;
-    }
-    if (!country) {
-        Swal.fire({
-            title: "Validation Error",
-            text: "Country cannot be empty.",
-            icon: "warning",
-            toast: true,
-            position: "top-end",
-            timer: 3000,
-            timerProgressBar: true,
-            showConfirmButton: false
-        });
-        return;
-    }
-
-
-        const addressData = {
-            title,
-            street,
-            city,
-            state,
-            pinCode,
-            country
+    document.addEventListener("DOMContentLoaded", function () {
+        const form = document.getElementById("addressForm");
+        const fields = {
+            title: document.querySelectorAll('input[name="title"]'),
+            street: document.getElementById("street"),
+            city: document.getElementById("city"),
+            state: document.getElementById("state"),
+            pinCode: document.getElementById("pinCode"),
+            country: document.getElementById("country"),
         };
 
-        try {         
-        const response = await fetch("/addAddress", {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json"
-            },
-            body: JSON.stringify(addressData)
-        });
+        const errorMessages = {
+            street: "Street should contain only letters and spaces.",
+            city: "City should contain only letters and spaces.",
+            state: "State should contain only letters and spaces.",
+            country: "Country should contain only letters and spaces.",
+            pinCode: "Pincode must be a 6-digit number.",
+            title: "Please select an address title (Home/Office)."
+        };
 
-        const result = await response.json();
-        if (response.ok) {
-            // Success Toast
-            Swal.fire({
-                toast: true,
-                position: 'top-end',
-                icon: 'success',
-                title: 'Address added successfully!',
-                showConfirmButton: false,
-                timer: 2000
-            });
-            setTimeout(() => {
-                window.location.href="/address"
-            }, 3000);
+        const regexPatterns = {
+            text: /^[A-Za-z\s]+$/, // Only letters and spaces
+            pinCode: /^\d{6}$/ // Only 6-digit numbers
+        };
 
-            document.getElementById("addressForm").reset(); 
-        } else {
-            // Error Toast
-            Swal.fire({
-                toast: true,
-                position: 'top-end',
-                icon: 'error',
-                title: result.message || "Error adding address",
-                showConfirmButton: false,
-                timer: 2000
-            });
+        function showError(input, message) {
+            let errorElement = input.nextElementSibling;
+            if (!errorElement || !errorElement.classList.contains("error-message")) {
+                errorElement = document.createElement("small");
+                errorElement.classList.add("error-message", "text-danger");
+                input.parentNode.appendChild(errorElement);
+            }
+            errorElement.textContent = message;
         }
-    } catch (error) {
-        console.error("Error:", error);
 
-        // Error Toast for failed request
-        Swal.fire({
-            toast: true,
-            position: 'top-end',
-            icon: 'error',
-            title: "Failed to add address. Please try again.",
-            showConfirmButton: false,
-            timer: 2000
+        function clearError(input) {
+            let errorElement = input.nextElementSibling;
+            if (errorElement && errorElement.classList.contains("error-message")) {
+                errorElement.textContent = "";
+            }
+        }
+
+        function validateInput(input, type) {
+            const value = input.value.trim();
+            if (value === "") {
+                showError(input, `${input.previousElementSibling.textContent} cannot be empty.`);
+                return false;
+            }
+            if (type && !regexPatterns[type].test(value)) {
+                showError(input, errorMessages[input.id]);
+                return false;
+            }
+            clearError(input);
+            return true;
+        }
+
+        fields.street.addEventListener("input", () => validateInput(fields.street, "text"));
+        fields.city.addEventListener("input", () => validateInput(fields.city, "text"));
+        fields.state.addEventListener("input", () => validateInput(fields.state, "text"));
+        fields.country.addEventListener("input", () => validateInput(fields.country, "text"));
+        fields.pinCode.addEventListener("input", () => validateInput(fields.pinCode, "pinCode"));
+
+        document.getElementById("submitButton").addEventListener("click", async (e) => {
+            e.preventDefault();
+
+            let isValid = true;
+            let titleChecked = [...fields.title].some(radio => radio.checked);
+
+            if (!titleChecked) {
+                Swal.fire({ title: "Validation Error", text: errorMessages.title, icon: "warning" });
+                isValid = false;
+            }
+
+            isValid = validateInput(fields.street, "text") && isValid;
+            isValid = validateInput(fields.city, "text") && isValid;
+            isValid = validateInput(fields.state, "text") && isValid;
+            isValid = validateInput(fields.country, "text") && isValid;
+            isValid = validateInput(fields.pinCode, "pinCode") && isValid;
+
+            if (!isValid) return;
+
+            const addressData = {
+                title: titleChecked ? document.querySelector('input[name="title"]:checked').value : "",
+                street: fields.street.value.trim(),
+                city: fields.city.value.trim(),
+                state: fields.state.value.trim(),
+                pinCode: fields.pinCode.value.trim(),
+                country: fields.country.value.trim(),
+            };
+
+            try {
+                const response = await fetch("/addAddress", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(addressData)
+                });
+
+                const result = await response.json();
+                if (response.ok) {
+                    Swal.fire({ toast: true, position: 'top-end', icon: 'success', title: 'Address added successfully!', timer: 2000 });
+                    setTimeout(() => window.location.href = "/address", 3000);
+                    form.reset();
+                } else {
+                    Swal.fire({ toast: true, position: 'top-end', icon: 'error', title: result.message || "Error adding address", timer: 2000 });
+                }
+            } catch (error) {
+                Swal.fire({ toast: true, position: 'top-end', icon: 'error', title: "Failed to add address. Please try again.", timer: 2000 });
+            }
         });
-    }
     });
-
 </script>
