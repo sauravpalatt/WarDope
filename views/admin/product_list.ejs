@@ -12,27 +12,6 @@
     </div>
 
     <div class="card mb-4">
-        <!-- Header Section -->
-        <header class="card-header">
-            <div class="row align-items-center">
-                <!-- Checkbox -->
-                <div class="col col-check flex-grow-0">
-                    <div class="form-check ms-2">
-                        <input class="form-check-input" type="checkbox" value="" />
-                    </div>
-                </div>
-                <!-- Category Selection -->
-                <div class="col-md-3 col-12 me-auto mb-md-0 mb-3">
-                    <select class="form-select">
-                        <option selected>All category</option>
-                        <% for (let i = 0; i < cat.length; i++) { %>
-                        <option value="<%= cat[i].categoryName %>"><%= cat[i].categoryName %></option>
-                        <% } %>
-                    </select>
-                </div>
-            </div>
-        </header>
-
         <div class="card-body">
             <table class="table">
                 <thead>
@@ -65,8 +44,8 @@
                             <p class="text-muted mb-0"><%= data[i].category.categoryName %></p>
                         </td>
                         <!-- Product Prices -->
-                        <td>$<%= data[i].regularPrice %></td>
-                        <td>$<%= data[i].promotionalPrice %></td>
+                        <td>₹<%= data[i].regularPrice %></td>
+                        <td>₹<%= data[i].promotionalPrice %></td>
 
                         <!-- Product Offer -->
                         <td>
@@ -119,7 +98,7 @@
                 <% } %>
                 <% if (currentPage < totalPages) { %>
                 <li class="page-item">
-                    <a class="page-link" href="/admin/products?page=<%= currentPage + 1 %>">
+                    <a class="page-link" href="/admin/products?page=<%= Number(currentPage) + 1 %>">
                         <i class="material-icons md-chevron_right"></i>
                     </a>
                 </li>

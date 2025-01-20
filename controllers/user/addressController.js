@@ -210,8 +210,6 @@ const Wallet = require("../../models/walletSchema")
             res.status(500).json({ message: 'Error updating address', error });
         }
     }
-
-    // const deleteAddress = async (req, res) => {
     //     try {
     //         const user = req.session.user;
     //         const userId = user;

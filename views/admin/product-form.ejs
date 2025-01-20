@@ -48,18 +48,13 @@
         <div class="col-9">
             <div class="content-header">
                 <h2 class="content-title">Add New Product</h2>
-                <div>
-                    <button class="btn btn-light rounded font-sm mr-5 text-body hover-up">Save to draft</button>
-                    <button class="btn btn-md rounded font-sm hover-up">Publish</button>
-                </div>
+                
             </div>
         </div>
 
-        <div class="col-lg-6">
+        <div class="col-lg-10">
             <div class="card mb-4">
-                <div class="card-header">
-                    <h4>Basic</h4>
-                </div>
+                
                 <div class="card-body">
                     <form id="productAddForm" enctype="multipart/form-data" onsubmit="return validateForm()">
                         <div class="mb-4">
@@ -76,14 +71,14 @@
                             <div class="col-lg-4">
                                 <div class="mb-4">
                                     <label class="form-label">Regular price</label>
-                                    <input name="regularPrice" placeholder="$" type="text" class="form-control" />
+                                    <input name="regularPrice" placeholder="₹" type="text" class="form-control" />
                                     <span id="regularPrice-error" class="error-message" style="color:red; display:none;"></span>
                                 </div>
                             </div>
                             <div class="col-lg-4">
                                 <div class="mb-4">
                                     <label class="form-label">Promotional price</label>
-                                    <input name="promotionalPrice" placeholder="$" type="text" class="form-control" />
+                                    <input name="promotionalPrice" placeholder="₹" type="text" class="form-control" />
                                     <span id="salePrice-error" class="error-message" style="color:red; display:none;"></span>
                                 </div>
                             </div>
@@ -119,7 +114,7 @@
                                       <input name="variantSize" id="variantSize" type="text" placeholder="Size (e.g., S, M, L)" class="form-control" />
                                     </div>
                                     <div class="col-lg-6">
-                                      <input name="variantStock" id="variantStock" type="number" placeholder="Stock Quantity" class="form-control" />
+                                      <input name="variantStock" id="variantStock" type="number" placeholder="Stock Quantity" min="0" class="form-control" />
                                     </div>
                                   </div>
                                 </div>
@@ -383,6 +378,8 @@
             icon: "success", 
             title: "Product Added Successfully",
             confirmButtonText: 'OK'
+        }).then(()=>{
+            window.location.reload()
         })
 
     } else {

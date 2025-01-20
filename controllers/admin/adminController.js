@@ -112,7 +112,7 @@ const loadDashboard = async (req, res) => {
 
       const topCategories = await Order.aggregate([
         {
-          $match: { createdAt: { $gte: startDate, $lte: endDate } } // Filter orders based on date
+          $match: { createdAt: { $gte: startDate, $lte: endDate } } 
         },
         { $unwind: "$cartItems" },
         {

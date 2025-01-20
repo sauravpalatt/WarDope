@@ -284,7 +284,7 @@ const securePassword = async (password)=>{
     }
 }
 
-const verifyOtp= async(req,res)=>{
+const verifyOtp = async(req,res)=>{
     try {
         const {otp} = req.body
         if(otp === req.session.userOtp){
@@ -311,7 +311,7 @@ const verifyOtp= async(req,res)=>{
     }
 }
 
-const resendOtp= async(req,res)=>{
+const resendOtp = async(req,res)=>{
     try {
         const {email} = req.session.userData
         if(!email){
@@ -333,7 +333,7 @@ const resendOtp= async(req,res)=>{
     }
 }
 
-const logout=async(req,res)=>{
+const logout = async(req,res)=>{
 
     req.session.destroy((err)=>{
 
