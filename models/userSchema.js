@@ -52,14 +52,8 @@ const userSchema = new Schema({
         type:Schema.Types.ObjectId,
         ref:"Order"
     }],
-    
-    referalCode:{
+    referralCode:{
         type:String,
-        // required:true
-    },
-    redeemed:{
-        type:Boolean,
-        // required:true
     },
     redeemedUsers:[{
         type:Schema.Types.ObjectId,

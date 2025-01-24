@@ -272,12 +272,21 @@ const placeOrder = async (req, res) => {
       );
     }
 
+    const address = await Address.findOne({userId:userId,"addresses._id":addressId},{"addresses.$":1})
+
     let order = new Order({
       userId,
       cartItems,
       totalPrice,
       initialPrice,
-      addressId,
+      address:{
+        title: address.addresses[0].title,
+        street: address.addresses[0].street,
+        city: address.addresses[0].city,
+        state: address.addresses[0].state,
+        pincode: Number(address.addresses[0].pinCode),
+        country: address.addresses[0].country
+      },
       deliveryType,
       discount: req.session.amountDeducted ? req.session.amountDeducted : 0,
       coupon: req.session.couponCode ? req.session.couponCode : "null"
@@ -294,7 +303,6 @@ const placeOrder = async (req, res) => {
 
     //Razorpay
     if (deliveryType === 'razorpay') {
-      
       const options = {
         amount: totalPrice * 100, 
         currency: 'INR',
@@ -414,29 +422,19 @@ const orderDetail = async(req,res)=>{
         return console.log("No User")
       }
 
-      const addressId = order.addressId;
-      
-      if(!order){
-        return console.log("order in db not found")
+      const addressData = {
+        title: order.address.title,
+        street: order.address.street,
+        city: order.address.city,
+        state: order.address.state,
+        pincode: order.address.pincode,
+        country: order.address.country
       }
-
-      const addressDoc = await Address.findOne({
-        userId: userId,
-        "addresses._id": addressId
-      }, {
-        "addresses.$": 1  
-      });
-      
-      if (!addressDoc) {
-        return console.log('Address not found for this user');
-      }
-      
-      const address = addressDoc.addresses[0]; 
 
       res.render("orderDetail",{
         order,
         user,
-        address: address 
+        address: addressData
       })
 
     } catch (error) {

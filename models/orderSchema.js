@@ -16,7 +16,14 @@ const orderSchema = new mongoose.Schema({
     ],
     initialPrice: {type: Number},
     totalPrice: { type: Number, required: true },
-    addressId: { type: mongoose.Schema.Types.ObjectId, ref: 'Address', required: true },
+    address: { 
+    title: String,
+    street: String,
+    city: String,
+    state: String,
+    pincode: Number,
+    country: String
+    },
     deliveryType: { type: String, required: true },
     status: { type: String, enum: ['pending', 'shipped', 'delivered', 'canceled', 'return requested', 'return approved', 'return denied','paid'], default: 'pending' },
     cancelReason: {
@@ -26,7 +33,8 @@ const orderSchema = new mongoose.Schema({
     createdAt: { type: Date, default: Date.now },
     updatedAt: { type: Date, default: Date.now },
     discount: {type: Number},
-    coupon: {type: String}
+    coupon: {type: String},
+    firstPurchase: {type: Boolean, default: true}
 });
 
 const Order = mongoose.model('Order', orderSchema);

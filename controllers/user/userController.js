@@ -6,7 +6,7 @@ const env = require("dotenv").config()
 const bcrypt = require("bcrypt")
 const nodemailer = require("nodemailer")
 const mongoose = require('mongoose');
-
+const Wallet = require("../../models/walletSchema")
 
 const pageNotFound = async(req,res)=>{
     try {
@@ -58,11 +58,7 @@ const signUpLoader = async(req,res)=>{
 
 const logInLoader = async(req,res)=>{
         try {
-        // if(req.session.user){
-        //     return res.redirect("/")
-        // }else{
             return res.render("login")
-        // }    
         }catch (error) {
             console.log("Log In Error",error)
             return res.redirect("/pageNotFound")
@@ -133,9 +129,14 @@ async function sendVerificationEmail(email,otp){
     }
 }
 
+const generateReferralCode = ()=> {
+    return Math.random().toString(36).substring(2,8)
+}
+
 const signUp= async(req,res)=>{
    try {
-    const {name,phone,email,password,cPassword}=req.body
+    const {name,phone,email,password,cPassword,referralCode}=req.body
+
     if(password !== cPassword){
         return res.render("signup",{message:"Passwords do not match"})
     } 
@@ -154,7 +155,7 @@ const signUp= async(req,res)=>{
     }
 
     req.session.userOtp = otp;
-    req.session.userData = {name,phone,email,password}
+    req.session.userData = {name,phone,email,password,referralCode}
     
 
     res.render("verify-otp")
@@ -206,7 +207,7 @@ const forgPassword = async (req, res) => {
       console.error("Error in Forgot Password Function:", error);
       return res.status(500).json({ success: false, message: "Internal Server Error. Please try again later." });
     }
-  };
+};
 
 const verifyOtpPwd = async (req, res) => {
     try {
@@ -286,17 +287,55 @@ const securePassword = async (password)=>{
 
 const verifyOtp = async(req,res)=>{
     try {
+        
         const {otp} = req.body
         if(otp === req.session.userOtp){
             const user =  req.session.userData
             const passwordHash = await securePassword(user.password)
 
+            const newReferralCode = generateReferralCode()
+
             const saveUserData = new User ({
                 name:user.name,
                 email:user.email,
                 phone:user.phone,
-                password:passwordHash
+                password:passwordHash,
+                referralCode: newReferralCode
             })
+
+            const userId=saveUserData._id
+
+            if(user.referralCode){
+                const referrer = await User.findOne({referralCode:user.referralCode})
+                if(referrer){
+                    let referrerWallet = await Wallet.findOne({ userId: referrer._id})
+                    if(!referrerWallet){
+                        referrerWallet = new Wallet({
+                            userId: referrer._id,
+                            balance: 0
+                        })
+                        await referrerWallet.save()
+                    }
+                    let userWallet = await Wallet.findOne({userId:userId})
+                    if(!userWallet){
+                        userWallet = new Wallet({
+                            userId: userId,
+                            balance: 0
+                        })
+                        await userWallet.save()
+                    }
+                        await Wallet.updateOne(
+                            {userId: referrer._id},
+                            {$inc: {balance: 100}}
+                        )
+                        await Wallet.updateOne(
+                            {userId: userId},
+                            {$inc: {balance: 200}}
+                        )
+                }else{
+                    return console.log("NO REFERRER FOUND...")
+                }   
+            }
 
             await saveUserData.save()
             req.session.user = saveUserData._id;
@@ -471,5 +510,5 @@ module.exports=
     forgPassword,
     changePwdInfo,
     changePwd,
-    verifyOtpPwd
+    verifyOtpPwd,
   }

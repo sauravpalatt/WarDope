@@ -131,7 +131,7 @@ const loadDashboard = async (req, res) => {
           },
         },
         { $sort: { totalSales: -1 } },
-        { $limit: 5 },
+        { $limit: 4 },
         {
           $lookup: {
             from: "categories",
