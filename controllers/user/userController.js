@@ -300,43 +300,35 @@ const verifyOtp = async(req,res)=>{
                 email:user.email,
                 phone:user.phone,
                 password:passwordHash,
-                referralCode: newReferralCode
+                referralCode: newReferralCode,
+                redeemedBy: user.referralCode || null
             })
 
             const userId=saveUserData._id
 
-            if(user.referralCode){
-                const referrer = await User.findOne({referralCode:user.referralCode})
-                if(referrer){
-                    let referrerWallet = await Wallet.findOne({ userId: referrer._id})
-                    if(!referrerWallet){
-                        referrerWallet = new Wallet({
-                            userId: referrer._id,
-                            balance: 0
-                        })
-                        await referrerWallet.save()
-                    }
-                    let userWallet = await Wallet.findOne({userId:userId})
-                    if(!userWallet){
+            if (user.referralCode) {
+                const referrer = await User.findOne({ referralCode: user.referralCode });
+            
+                if (referrer) {
+                    let userWallet = await Wallet.findOne({ userId: userId });
+            
+                    if (!userWallet) {
                         userWallet = new Wallet({
                             userId: userId,
                             balance: 0
-                        })
-                        await userWallet.save()
+                        });
+                        await userWallet.save();
                     }
-                        await Wallet.updateOne(
-                            {userId: referrer._id},
-                            {$inc: {balance: 100}}
-                        )
-                        await Wallet.updateOne(
-                            {userId: userId},
-                            {$inc: {balance: 200}}
-                        )
-                }else{
-                    return console.log("NO REFERRER FOUND...")
-                }   
+                    
+                    await Wallet.updateOne(
+                        { userId: userId },
+                        { $inc: { balance: 100 } }
+                    );
+                } else {
+                    console.log("No valid referrer found.");
+                }
             }
-
+            
             await saveUserData.save()
             req.session.user = saveUserData._id;
 

@@ -53,12 +53,15 @@ const userSchema = new Schema({
         ref:"Order"
     }],
     referralCode:{
-        type:String,
+        type: String,
     },
-    redeemedUsers:[{
-        type:Schema.Types.ObjectId,
-        ref:"User"
-    }],
+    redeemedBy:{
+        type: String,
+    },
+    firstPurchase: {
+        type: Boolean,
+        default: true
+    },
     searchHistory:[{
         category:{
         type:Schema.Types.ObjectId,

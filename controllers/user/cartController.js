@@ -241,7 +241,7 @@ const placeOrder = async (req, res) => {
   try {
     const userId = req.session.user;
     const { cartItems, totalPrice, addressId, deliveryType, initialPrice, } = req.body;
-   
+    
     // Validations
     if (!cartItems || cartItems.length === 0) {
       return res.status(400).json({ error: 'Cart items cannot be empty' });
@@ -291,6 +291,26 @@ const placeOrder = async (req, res) => {
       discount: req.session.amountDeducted ? req.session.amountDeducted : 0,
       coupon: req.session.couponCode ? req.session.couponCode : "null"
     });
+
+    const user = await User.findOne({ _id: userId, firstPurchase: true });
+    
+    if (user) {  
+        const referrer = await User.findOne({ referralCode: user.redeemedBy });
+        
+        if (referrer) {  
+            let referrerWallet = await Wallet.findOne({ userId: referrer._id });
+            if (!referrerWallet) {
+                referrerWallet = new Wallet({
+                    userId: referrer._id,
+                    balance: 0
+                });
+                await referrerWallet.save();
+            }
+    
+            await Wallet.updateOne({ userId: referrer._id }, { $inc: { balance: 200 } });
+            await User.updateOne({ _id: userId }, { $set: { firstPurchase: false } });
+        }
+    }
 
     order = generateOrderId(order);
     await Cart.deleteOne({ user: userId });
