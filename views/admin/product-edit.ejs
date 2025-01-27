@@ -111,7 +111,7 @@
                                   <label for="inputImg1" class="form-label">Image 1</label>
                                   <input id="inputImg1" name="image1" class="form-control" type="file" onchange="openCropper(event, 'cropperModal1', 'croppingImage1', 'croppedPreview1')" />
                                   <% if (product.images[0]) { %>
-                                  <img src="/<%= product.images[0] %>"  style="max-width: 200px;" />
+                                  <img src="<%= product.images[0] %>"  style="max-width: 200px;" />
                                   <% } %>
                                   <div id="cropperModal1" style="display: none;">
                                       <div>
@@ -128,9 +128,8 @@
                                   <label for="inputImg2" class="form-label">Image 2</label>
                                   <input id="inputImg2" name="image2" class="form-control" type="file" onchange="openCropper(event, 'cropperModal2', 'croppingImage2', 'croppedPreview2')" />
                                   <% if (product.images[1]) { %>
-                                  <img src="/<%= product.images[1] %>"  style="max-width: 200px;" />
+                                  <img src="<%= product.images[1] %>"  style="max-width: 200px;" />
                                   <% } %>
-                                  <% console.log(product.images[1]) %>
                                   <div id="cropperModal2" style="display: none;">
                                       <div>
                                           <img id="croppingImage2" style="max-width: 100%; height: auto;" />
@@ -146,9 +145,8 @@
                                   <label for="inputImg3" class="form-label">Image 3</label>
                                   <input id="inputImg3" name="image3" class="form-control" type="file" onchange="openCropper(event, 'cropperModal3', 'croppingImage3', 'croppedPreview3')" />
                                   <% if (product.images[2]) { %>
-                                  <img src="/<%= product.images[2] %>"  style="max-width: 200px;" />
+                                  <img src="<%= product.images[2] %>"  style="max-width: 200px;" />
                                   <% } %>
-                                  <% console.log(product.images[2]) %>
                                   <div id="cropperModal3" style="display: none;">
                                       <div>
                                           <img id="croppingImage3" style="max-width: 100%; height: auto;" />
