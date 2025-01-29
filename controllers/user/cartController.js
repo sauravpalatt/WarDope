@@ -744,15 +744,15 @@ const downloadInvoice = async (req, res) => {
       return res.status(404).json({ message: "Order not found" });
     }
 
+   console.log(`Address of order: ${order.address}`)
+
     // Fetch the address details using the order's addressId
-    let addressVariant = await Address.findOne({ "addresses._id": order.addressId }, { "addresses.$": 1 });
+    let address = order.address
 
     // If addressVariant is not found, return a 404 error
-    if (!addressVariant) {
+    if (!address) {
       return res.status(404).json({ message: "Address not found" });
     }
-
-    const address = addressVariant.addresses[0]; 
 
     const invoicesDir = path.join(__dirname, "../invoices");
     if (!fs.existsSync(invoicesDir)) {
@@ -828,7 +828,7 @@ function generateCustomerInformation(doc, order, address) {
     .text("Address:", 300, customerInformationTop + 15)
     .font("Helvetica")
     .text(address.street, 350, customerInformationTop + 15)
-    .text(`${address.city}, ${address.state}, ${address.pinCode}, ${address.country}`, 350, customerInformationTop + 30)
+    .text(`${address.city}, ${address.state}, ${address.pincode}, ${address.country}`, 350, customerInformationTop + 30)
     .moveDown();
   generateHr(doc, 252);
 }
