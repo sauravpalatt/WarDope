@@ -12,7 +12,12 @@ const cloudinaryStorage = new CloudinaryStorage({
   },
 });
 
-const upload = multer({ storage: cloudinaryStorage }).fields([
+const upload = multer({ 
+  storage: cloudinaryStorage, 
+  limits: {
+    fileSize: 50 * 1024 * 1024
+  } 
+}).fields([
   { name: 'image1' },
   { name: 'image2' },
   { name: 'image3' }

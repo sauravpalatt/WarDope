@@ -11,8 +11,8 @@ const MongoConnect = require("connect-mongo")
 const nocache = require('nocache')
 db()
 
-app.use(express.json())
-app.use(express.urlencoded({extended:true}))
+app.use(express.json({limit: '50mb'}))
+app.use(express.urlencoded({ limit: '50mb', extended: true }))
 
 app.use(session({
     secret: process.env.SESSION_SECRET,
@@ -33,8 +33,6 @@ app.use(nocache())
 app.set("view engine","ejs")
 app.set("views",[path.join(__dirname,"views/user"),path.join(__dirname,"views/admin")])
 app.use(express.static(path.join(__dirname,"public")))
-
-
 
 app.use("/",userRouter)
 app.use("/admin",adminRouter)
