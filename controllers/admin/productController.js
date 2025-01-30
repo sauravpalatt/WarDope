@@ -808,49 +808,6 @@ const inactivateCouponStatus = async(req,res)=>{
   }
 }
 
-// const filteredList = async (req,res)=>{
-//   try {
-//     const { filterType, startDate, endDate } = req.query;
-
-//     let filter = {};
-//     const now = new Date();
-
-//     if (filterType === '1-day') {
-//         const yesterday = new Date();
-//         yesterday.setDate(now.getDate() - 1);
-//         filter.createdAt = { $gte: yesterday, $lt: now };
-//     } else if (filterType === '1-week') {
-//         const lastWeek = new Date();
-//         lastWeek.setDate(now.getDate() - 7);
-//         filter.createdAt = { $gte: lastWeek, $lt: now };
-//     } else if (filterType === '1-month') {
-//         const lastMonth = new Date();
-//         lastMonth.setMonth(now.getMonth() - 1);
-//         filter.createdAt = { $gte: lastMonth, $lt: now };
-//     } else if (filterType === '1-year') {
-//         const lastYear = new Date();
-//         lastYear.setFullYear(now.getFullYear() - 1);
-//         filter.createdAt = { $gte: lastYear, $lt: now };
-//     } else if (filterType === 'custom') {
-  
-//         if (startDate && endDate) {
-//             filter.createdAt = {
-//                 $gte: new Date(startDate),
-//                 $lte: new Date(endDate),
-//             };
-//         }
-//     }
-
-//     const orders = await Order.find(filter).populate('userId').sort({ createdAt: -1 });
-
-//     res.render('orderListAdmin', { orders });
-
-//   } catch (error) {
-//     console.error("ERROR IN FILTERED LIST FN",error);
-//   }
-// }
-
-
 module.exports = {
   addProductInfo,
   addProduct,

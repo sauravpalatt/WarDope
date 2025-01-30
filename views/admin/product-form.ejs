@@ -179,7 +179,8 @@
                             <thead>
                                 <tr>
                                     <th>Size</th>
-                                    <th>Qty</th>
+                                    <th>Quantity</th>
+                                    <th>Remove Size</th>
                                 </tr>
                             </thead>
                             <tbody id="tableBody">
@@ -325,36 +326,69 @@
         });
     }
 
-    const array =[]
-    document.getElementById("addVariantBtn").addEventListener("click",(e)=>{
-        e.preventDefault()
-    
-        console.log("BUTTON IS CLICKED !!!")
-    
-        const size = document.getElementById("variantSize").value
-        const stock = Number(document.getElementById("variantStock").value)
-        
-    
-        let variant = {size,stock}
-    
-        array.push(variant)
-    
-       //Display Table Of Size & Qty
-        const tableBody = document.getElementById("tableBody")
-        tableBody.innerHTML=''
+    const array = [];
+    document.getElementById("addVariantBtn").addEventListener("click", (e) => {
+    e.preventDefault();
 
-        array.map((val)=>{
-            const value = `
+    const size = document.getElementById("variantSize").value.toUpperCase();
+    const stock = Number(document.getElementById("variantStock").value);
+
+    const sizeArray = ["S", "M", "L", "XL", "XS", "XXL", "XXS", "XXXL", "XXXS"];
+
+    let variant = { size, stock };
+
+    if (variant.stock > 500) {
+        return Swal.fire({
+            icon: "warning",
+            text: "Stock Adding Limit Exceeded !!!"
+        });
+    }
+
+    const itemExists = array.find(item => item.size.toUpperCase() == variant.size.toUpperCase());
+
+    if (itemExists) {
+        return Swal.fire({
+            icon: "warning",
+            text: "Size Already Added"
+        });
+    } else if (!sizeArray.includes(size)) {
+        return Swal.fire({
+            icon: "warning",
+            text: "Invalid Size"
+        });
+    } else {
+        array.push(variant);
+        Swal.fire({
+            icon: "success",
+            text: "Size Added Successfully"
+        });
+    }
+
+    const tableBody = document.getElementById("tableBody");
+    tableBody.innerHTML = '';
+
+    array.map((val, index) => {
+        const value = `
             <tr>
-            <td>${val.size}</td>
-            <td>${val.stock}</td>
-            </tr>        
-            `
-            tableBody.innerHTML += value 
-        })  
-    })
+                <td>${val.size}</td>
+                <td>${val.stock}</td>
+                <td><button class="btn btn-primary removeBtn" data-index="${index}">Remove</button></td>
+            </tr>
+        `;
+        tableBody.innerHTML += value;
+    });
 
-    // Form submission handling with fetch
+    document.querySelectorAll('.removeBtn').forEach(button => {
+        button.addEventListener('click', (e) => {
+            const index = e.target.getAttribute('data-index');
+            
+            array.splice(index, 1);
+
+            e.target.closest('tr').remove(); 
+        });
+    });
+});
+
     document.getElementById("productAddForm").addEventListener("submit", async (e) => {
     e.preventDefault();
 
