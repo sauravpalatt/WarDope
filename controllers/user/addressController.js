@@ -3,6 +3,8 @@ const User = require("../../models/userSchema")
 const Cart = require("../../models/cartSchema")
 const Coupon = require("../../models/couponSchema")
 const Wallet = require("../../models/walletSchema")
+const Product = require("../../models/productSchema")
+const Category = require("../../models/categorySchema")
 
     const addressPageInfo = async (req, res) => {
         try {
@@ -40,6 +42,44 @@ const Wallet = require("../../models/walletSchema")
         }
     }
 
+    const validCheck = async (req,res)=>{
+        try {
+          const userId = req.session.user
+         const user = await User.findById(userId);
+
+         if(!user){
+            console.log("User not found.");
+            return res.redirect('/login');
+         }
+         const cart = await Cart.findOne({ user: userId }).populate("items.product");
+         if (!cart || cart.items.length === 0) return res.json({ redirect: "/" });
+
+        for(let item of cart.items){
+            if(item.product.isBlocked){
+                return res.json({message:`Product ${item.product.productName} is not available`})
+            }
+        }
+
+        const blockedCategory = await Category.find({ isActive: false });
+
+        const blockedCategoryIds = blockedCategory.map(category => category._id.toString());
+        
+        const myCategory = cart.items.map(item => item.product.category.toString());
+        
+        for (const category of myCategory) {
+            if (blockedCategoryIds.includes(category)) {
+                const blockedCat = blockedCategory.find(cat => cat._id.toString() === category);
+                return res.json({message:`Category: ${blockedCat.categoryName} unavailable`});
+            }
+        }
+
+        return res.json({ redirect: "/checkout" })
+        
+        } catch (error) {
+            console.error("ERROR IN VALID-CHECK FN",error)
+        }
+    }
+
     const checkOutInfo = async (req,res)=>{
         try {
             const userId = req.session.user;
@@ -61,13 +101,19 @@ const Wallet = require("../../models/walletSchema")
 
                 const addresses = userAddresses ? userAddresses.addresses : [];
 
-                 const cart = await Cart.findOne({ user: userId }).populate('items.product');
-
-                 if (!cart ||  !Array.isArray(cart.items) || cart.items.length === 0) {
+                 const cart = await Cart.findOne({ user: userId }).populate("items.product")
+ 
+                 if (!cart || !Array.isArray(cart.items) || cart.items.length === 0) {
                    return res.redirect("/")
                 }
 
-                const coupons = await Coupon.find({status:"active"})
+                const blockedProduct = cart.items.find(item => item.product.isBlocked === true);
+                if (blockedProduct) {
+                    console.log(`Product Name: ${blockedProduct.product.productName}`)
+                    return res.json({ message: `Product ${blockedProduct.product.productName} is not available` });
+                }
+
+                const coupons = await Coupon.find({status:"active",endDate:{$gte: new Date()}})
 
                 const wallet = await Wallet.findOne({userId:user})
 
@@ -210,25 +256,7 @@ const Wallet = require("../../models/walletSchema")
             res.status(500).json({ message: 'Error updating address', error });
         }
     }
-    //     try {
-    //         const user = req.session.user;
-    //         const userId = user;
-    
-    //         const { id } = req.params;
-    
-    //         const del = await Address.updateOne({ userId }, { $pull: { addresses: { _id: id } } });
-    
-    //         if (!del) {
-    //             return res.status(404).json({ success: false, message: 'Address not found' });
-    //         }
-    
-    //         res.status(200).json({ success: true, message: 'Address deleted successfully' });
-    //     } catch (error) {
-    //         console.error("ERROR IN DELETE FN", error);
-    //         res.status(500).json({ success: false, message: 'Server error. Please try again later.' });
-    //     }
-    // };
-
+   
     const deleteAddress = async (req, res) => {
         try {
             const userId = req.session.user;
@@ -314,6 +342,7 @@ module.exports = {
     editAddress,
     deleteAddress,
     checkOutInfo,
-    addBillingAddress
+    addBillingAddress,
+    validCheck
 };
 

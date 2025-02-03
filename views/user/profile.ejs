@@ -1,5 +1,7 @@
 <%-include ("../partials/user/header")%>
 
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+
 <form id="profileForm" class="p-4 border rounded bg-light">
     <div class="form-group">
         <label for="name">Full Name</label>
@@ -12,12 +14,27 @@
                value="<%= user.email %>" placeholder="Enter your email" required readonly>
     </div>
     <div class="form-group">
-        <label for="password">Password</label>
-        <input type="text" id="oldPassword" name="oldPassword" class="form-control" placeholder="Enter your password">
+        <label for="oldPassword">Password</label>
+        <div class="input-group">
+            <input type="password" id="oldPassword" name="oldPassword" class="form-control" placeholder="Enter your password">
+            <div class="input-group-append">
+                <button type="button" class="btn btn-outline-secondary toggle-password" data-target="oldPassword">
+                    <i class="fa-solid fa-eye-slash"></i>
+                </button>
+            </div>
+        </div>
     </div>
+
     <div class="form-group">
-        <label for="password">New Password</label>
-        <input type="text" id="newPassword" name="newPassword" class="form-control" placeholder="Enter new password">
+        <label for="newPassword">New Password</label>
+        <div class="input-group">
+            <input type="password" id="newPassword" name="newPassword" class="form-control" placeholder="Enter new password">
+            <div class="input-group-append">
+                <button type="button" class="btn btn-outline-secondary toggle-password" data-target="newPassword">
+                    <i class="fa-solid fa-eye-slash"></i>
+                </button>
+            </div>
+        </div>
     </div>
     <button type="submit" class="btn btn-primary btn-small">Save Changes</button>
 </form>
@@ -25,6 +42,20 @@
 
 
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+    const form = document.getElementById('profileForm');
+
+    // Toggle Password Visibility
+    document.querySelectorAll('.toggle-password').forEach(button => {
+        button.addEventListener('click', () => {
+            const inputField = document.getElementById(button.dataset.target);
+            inputField.type = inputField.type === "password" ? "text" : "password";
+        });
+    });
+})
+</script>
 
 <script>
 document.addEventListener('DOMContentLoaded', () => {

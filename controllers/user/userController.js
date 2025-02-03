@@ -1,4 +1,3 @@
-
 const User = require("../../models/userSchema")
 const Product = require("../../models/productSchema")
 const Category = require("../../models/categorySchema")
@@ -37,7 +36,6 @@ const loadHomePage = async (req, res) => {
             return res.render("home", { user: userData, product:productData});
 
         } else {
-            console.log("home page else case")
             return res.render("home",{ product:productData});
         }
     } catch (error) {
@@ -72,18 +70,18 @@ const login = async (req, res) => {
         const findUser = await User.findOne({ isAdmin: false, email: email });
 
         if (!findUser) {
-            console.log("User not found.");
+            // console.log("User not found.");
            return res.json({success:false,message:"User not found"})
         }
 
         if (findUser.isBlocked) {
-            console.log("User is blocked.");
+            // console.log("User is blocked.");
             return res.json({success:false,message:"User is blocked by admin"})
         }
 
         const passwordMatch = await bcrypt.compare(password, findUser.password);
         if (!passwordMatch) {
-            console.log("Incorrect password.");
+            // console.log("Incorrect password.");
             return res.json({success:false,message: "Incorrect Password" });
         }
 
@@ -113,14 +111,23 @@ async function sendVerificationEmail(email,otp){
             }
         })
 
-        const info = await transporter.sendMail({
-            from:process.env.NODEMAILER_EMAIL,
-            to:email,
-            subject:"Verify your account",
-            text: `Your otp is ${otp}`,
-            html:`<b>Your OTP: ${otp}</b>`,
-        })
+        // console.log(`New Email: ${process.env.NODEMAILER_EMAIL}`)
 
+        const info = await transporter.sendMail({
+            from: process.env.NODEMAILER_EMAIL,
+            to: email,
+            subject: "OTP TEST",
+            text: `We received a request to verify your account. Use the following OTP: ${otp}\nIf you didn't request this, please ignore this message.`,
+            html: `
+                <html>
+                    <body>
+                        <h3>OTP Verification</h3>
+                        <p>We received a request to verify your account. Use the following OTP:</p>
+                        <h2 style="color: #007bff;">${otp}</h2>
+                        <p>If you didn't request this, please ignore this message.</p>
+                    </body>
+                </html>`
+        });
         return info.accepted.length >0
 
     } catch (error) {
@@ -214,8 +221,6 @@ const verifyOtpPwd = async (req, res) => {
         const { otp } = req.body;
         const otpSession = req.session.otp;
 
-        console.log(`OTP FROM REQ.BODY ${typeof otp} & OTP FROM SESSION ${typeof otpSession}`)
-
         if (otp !== otpSession) {
             return res.status(400).json({ success: false, message: "Invalid OTP" });
         }
@@ -233,7 +238,7 @@ const changePwdInfo = async(req,res)=>{
         if(req.session.userId){
          return res.render("changePassword")
         }
-        console.log("User Not Found")
+        // console.log("User Not Found")
         
     } catch (error) {
         console.error("ERROR IN LOADING CHANGE PWD INFO",error)  
@@ -324,9 +329,7 @@ const verifyOtp = async(req,res)=>{
                         { userId: userId },
                         { $inc: { balance: 100 } }
                     );
-                } else {
-                    console.log("No valid referrer found.");
-                }
+                } 
             }
             
             await saveUserData.save()

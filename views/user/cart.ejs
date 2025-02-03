@@ -80,10 +80,40 @@
         </div>
     </div>
       <div class="card-footer border-secondary bg-transparent">
-          <a href="/checkout" class="btn btn-block btn-primary my-3 py-3">Proceed To Checkout</a>
+        <button id="checkoutBtn" class="btn btn-block btn-primary">Proceed To Checkout</button>
       </div>
     </div>
     </div>
+
+<script>
+  document.getElementById("checkoutBtn").addEventListener("click",async(e)=>{
+    e.preventDefault()
+
+    const response = await fetch("/validCheck",{method: "GET"})
+    const result = await response.json()
+    try {
+      if(result.message){
+      return Swal.fire({
+        icon: "warning",
+        title: "Sorry",
+        text: result.message,
+        toast:true,
+        position:"top-end",
+        showConfirmButton:false,
+        timer:1500
+      })
+      .then(()=>{
+       return window.location.reload()
+      })
+    }else{
+      window.location.href = result.redirect
+    }
+    } catch (error) {
+      console.error("ERROR IN FRONTEND CHECKOUT:",error)
+    }
+   
+  })
+</script>
 
 <script>
   document.addEventListener('DOMContentLoaded', function() {

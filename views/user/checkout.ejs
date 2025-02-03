@@ -56,7 +56,7 @@
                     </select>
                     <div class="mt-3">
                         <button id="applyCouponBtn" class="btn btn-primary btn-sm">Apply Coupon</button>
-                        <button id="removeCouponBtn" class="btn btn-primary btn-sm">Remove Coupon</button>
+                        <button id="removeCouponBtn" class="btn btn-danger btn-sm" style="display: none;">Remove Coupon</button>
                     </div>
                 </div>
                 
@@ -450,72 +450,107 @@
 
 <script>
     document.getElementById("placeOrderIdBtn").addEventListener("click", async function () {
-        const cartItems = [];
-        const cartItemsElements = document.querySelectorAll(".cartItemsElements tr");
+  try {
+    // Step 1: Check validity before proceeding with checkout
+    const response = await fetch("/validCheck", { method: "GET" });
+    const result = await response.json();
 
-        // Fetching cart items
-        if (cartItemsElements.length > 0) {
-            cartItemsElements.forEach(item => {
-                const productNameElement = item.querySelector("[name='itemName']");
-                const priceElement = item.querySelector("[name='itemPrice']");
-                const quantityElement = item.querySelector("[name='itemQty']");
-                const sizeElement = item.querySelector("[name='itemSize']");
-                const productIdElement = item.querySelector("[name='itemPrdId']");
+    if (result.message) {
+      return Swal.fire({
+        icon: "warning",
+        title: "Sorry",
+        text: result.message,
+        toast: true,
+        position: "top-end",
+        showConfirmButton: false,
+        timer: 1500,
+      }).then(() => {
+        window.location.href="/cart";
+      });
+    }
 
-                const productName = productNameElement ? productNameElement.innerText : '';
-                const size = sizeElement ? sizeElement.innerText : '';
-                const price = priceElement ? Number(priceElement.innerText.replace('₹', '').trim()) : 0;
-                const quantity = quantityElement ? Number(quantityElement.innerText.trim()) : 0;
-                const productId = productIdElement ? productIdElement.innerText : '';
+    // Step 2: Fetch cart items from the table
+    const cartItems = [];
+    const cartItemsElements = document.querySelectorAll(".cartItemsElements tr");
 
-                cartItems.push({ productName, price, quantity, size, productId });
-            });
-        } else {
-            Swal.fire("Error", "No cart items found!", "error");
-            return;
-        }
-        
-        // Fetching Dynamic Total price
-        const totalPriceElement = document.getElementById('dynamicTotalPrice');
-        let totalPrice = 0;
-        if (totalPriceElement) {
-            totalPrice = parseFloat(totalPriceElement.innerText.replace('₹', '').replace('.00', ''));
-        } else {
-            Swal.fire("Error", "Total price element not found!", "error");
-            return;
-        }
+    if (cartItemsElements.length === 0) {
+      return Swal.fire("Error", "No cart items found!", "error");
+    }
 
-        // Fetching Initial Price:
-        const initialPriceElement = document.getElementById("totalPrice")
-        let initialPrice = 0;
-        if (initialPriceElement) {
-            initialPrice = parseFloat(initialPriceElement.innerText.replace("₹","").replace(".00",""))
-        }else {
-            Swal.fire("Error", "Initial Price not found", "error")
-            return
-        }
+    cartItemsElements.forEach(item => {
+      const productNameElement = item.querySelector("[name='itemName']");
+      const priceElement = item.querySelector("[name='itemPrice']");
+      const quantityElement = item.querySelector("[name='itemQty']");
+      const sizeElement = item.querySelector("[name='itemSize']");
+      const productIdElement = item.querySelector("[name='itemPrdId']");
 
-        // Fetching address ID
-        const selectedAddressElement = document.querySelector('input[name="primaryAddress"]:checked');
-        const addressId = selectedAddressElement ? selectedAddressElement.value : null;
-        if (!addressId) {
-            Swal.fire("Oops!!", "Please select a delivery address!", "warning");
-            return;
-        }
+      const productName = productNameElement ? productNameElement.innerText : '';
+      const size = sizeElement ? sizeElement.innerText : '';
+      const price = priceElement ? Number(priceElement.innerText.replace('₹', '').trim()) : 0;
+      const quantity = quantityElement ? Number(quantityElement.innerText.trim()) : 0;
+      const productId = productIdElement ? productIdElement.innerText : '';
 
-        // Fetching payment method
-        let deliveryType = '';
-        const paymentMethods = document.querySelectorAll('input[name="payment"]:checked');
-        if (paymentMethods.length > 0) {
-            deliveryType = paymentMethods[0].id; // Assuming single selection
-        } else {
-            Swal.fire("Sorry", "Please select a payment method!", "warning");
-            return;
-        }
+      cartItems.push({ productName, price, quantity, size, productId });
+    });
 
-        const cartData = { cartItems, totalPrice, addressId, deliveryType, initialPrice };
+    // Step 3: Get total price from the DOM
+    const totalPriceElement = document.getElementById('dynamicTotalPrice');
+    let totalPrice = 0;
+    if (totalPriceElement) {
+      totalPrice = parseFloat(totalPriceElement.innerText.replace('₹', '').replace('.00', ''));
+    } else {
+      return Swal.fire("Error", "Total price element not found!", "error");
+    }
 
-  async function handleCheckout() {
+    // Step 4: Get initial price
+    const initialPriceElement = document.getElementById("totalPrice");
+    let initialPrice = 0;
+    if (initialPriceElement) {
+      initialPrice = parseFloat(initialPriceElement.innerText.replace("₹", "").replace(".00", ""));
+    } else {
+      return Swal.fire("Error", "Initial Price not found", "error");
+    }
+
+    // Step 5: Get selected delivery address
+    const selectedAddressElement = document.querySelector('input[name="primaryAddress"]:checked');
+    const addressId = selectedAddressElement ? selectedAddressElement.value : null;
+    if (!addressId) {
+      return Swal.fire("Oops!!", "Please select a delivery address!", "warning");
+    }
+
+    // Step 6: Get selected payment method
+    const paymentMethods = document.querySelectorAll('input[name="payment"]:checked');
+    let deliveryType = '';
+    if (paymentMethods.length > 0) {
+      deliveryType = paymentMethods[0].id; // Assuming single selection
+    } else {
+      return Swal.fire("Sorry", "Please select a payment method!", "warning");
+    }
+
+    const cartData = { cartItems, totalPrice, addressId, deliveryType, initialPrice };
+
+    // Step 7: Confirmation before proceeding with checkout
+    Swal.fire({
+      title: 'Confirm Order',
+      text: 'Do you want to place this order?',
+      icon: 'question',
+      showCancelButton: true,
+      confirmButtonText: 'Yes, place order!',
+      cancelButtonText: 'Cancel',
+    }).then((result) => {
+      if (result.isConfirmed) {
+        handleCheckout(cartData, deliveryType, totalPrice);
+      }
+    });
+
+  } catch (error) {
+    console.error('Error during checkout preparation:', error);
+    Swal.fire("Error", "Something went wrong. Please try again!", "error");
+  }
+});
+
+// Function to handle checkout process based on payment method
+async function handleCheckout(cartData, deliveryType, totalPrice) {
   if (deliveryType === 'razorpay') {
     try {
       const orderResponse = await fetch('/placeOrder', {
@@ -544,13 +579,12 @@
           });
 
           const verifyResult = await verifyResponse.json();
-
           if (verifyResult.success) {
             Swal.fire('Success', 'Payment verified successfully!', 'success').then(() => {
               window.location.href = '/orders';
             });
           } else {
-            Swal.fire('Error', 'Payment verification failed!', 'error');
+            Swal.fire('Error', 'Payment verification failed!', 'error')
           }
         },
         theme: { color: '#3399cc' },
@@ -560,32 +594,36 @@
       razorpayInstance.open();
 
       razorpayInstance.on('payment.failed', function (response) {
-        Swal.fire('Error', `Payment failed: ${response.error.description}`, 'error');
+        Swal.fire({
+            icon: 'error',
+            title: 'Sorry',
+            text: "Payment Failed",
+        }).then(() => {
+            window.location.href = '/'; 
+        });
       });
+
     } catch (error) {
       console.error('Error during Razorpay payment process:', error);
       Swal.fire('Error', 'Payment initiation failed!', 'error');
     }
-  } else if(deliveryType === "wallet") {
-
-    const walletBalanceText = document.getElementById('walletBalance')?.innerText;
-    const walletBalance = parseFloat(walletBalanceText.replace(/[^0-9.]/g, ''));
-
-    console.log(`totalPrice: ${totalPrice}`)
-    
-    if(walletBalance < totalPrice){
-    return Swal.fire({
-            icon: "warning",
-            title: "Oops...",
-            text: "Insufficient fund !!",
-            timer: 1000,
-            toast: true,
-            position: "top-end",
-            showConfirmButton: false
-        })
-    }
-
+  } else if (deliveryType === "wallet") {
     try {
+      const walletBalanceText = document.getElementById('walletBalance')?.innerText;
+      const walletBalance = parseFloat(walletBalanceText.replace(/[^0-9.]/g, ''));
+
+      if (walletBalance < totalPrice) {
+        return Swal.fire({
+          icon: "warning",
+          title: "Oops...",
+          text: "Insufficient fund!!",
+          timer: 1000,
+          toast: true,
+          position: "top-end",
+          showConfirmButton: false
+        });
+      }
+
       const response = await fetch('/placeOrder', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -603,7 +641,6 @@
       console.error('Error placing order:', error);
       Swal.fire('Error', error.message || 'Something went wrong!', 'error');
     }
-
   } else {
     try {
       const response = await fetch('/placeOrder', {
@@ -625,123 +662,123 @@
     }
   }
 }
-        Swal.fire({
-            title: 'Confirm Order',
-            text: 'Do you want to place this order?',
-            icon: 'question',
-            showCancelButton: true,
-            confirmButtonText: 'Yes, place order!',
-            cancelButtonText: 'Cancel',
-        }).then((result) => {
-            if (result.isConfirmed) {
-                handleCheckout();
-            }
-        });
-    });
 </script>
 
 <script>
-   document.getElementById("applyCouponBtn").addEventListener("click", async (e) => {
-    e.preventDefault();
+document.addEventListener("DOMContentLoaded", () => {
+    const applyBtn = document.getElementById("applyCouponBtn");
+    const removeBtn = document.getElementById("removeCouponBtn");
 
-    const couponSelectId = document.getElementById("couponSelect");
-    const totalPriceId = document.getElementById("totalPrice");
-    const totalPrice = parseFloat(totalPriceId.innerText.replace(/[^0-9.]/g, ''));
-    const discountValue = parseFloat(couponSelectId.value);
-    const couponCode = couponSelectId.options[couponSelectId.selectedIndex].text;
+    applyBtn.addEventListener("click", async (e) => {
+        e.preventDefault();
 
-    // Show confirmation dialog before sending the fetch request
-    Swal.fire({
-        icon: "question",
-        title: "Are you sure?",
-        text: "Coupon once redeemed will expire. Do you want to proceed?",
-        showCancelButton: true,
-        confirmButtonText: "Yes, Apply Coupon",
-        cancelButtonText: "No, Cancel",
-    }).then(async (result) => {
-        if (result.isConfirmed) {
-            try {
-                const couponData = {
-                    totalPrice,
-                    discountValue,
-                    couponCode
-                };
+        const couponSelectId = document.getElementById("couponSelect");
+        const totalPriceId = document.getElementById("totalPrice");
+        const totalPrice = parseFloat(totalPriceId.innerText.replace(/[^0-9.]/g, ''));
+        const discountValue = parseFloat(couponSelectId.value);
+        const couponCode = couponSelectId.options[couponSelectId.selectedIndex].text;
 
-                const response = await fetch("/applyCoupon", {
-                    method: "POST",
-                    headers: {
-                        "Content-Type": "application/json"
-                    },
-                    body: JSON.stringify(couponData)
-                });
+        Swal.fire({
+            icon: "question",
+            title: "Are you sure?",
+            text: "Coupon once redeemed will expire. Do you want to proceed?",
+            showCancelButton: true,
+            confirmButtonText: "Yes, Apply Coupon",
+            cancelButtonText: "No, Cancel",
+        }).then(async (result) => {
+            if (result.isConfirmed) {
+                try {
+                    const couponData = {
+                        totalPrice,
+                        discountValue,
+                        couponCode
+                    };
 
-                if (!response.ok) {
-                    const { message } = await response.json();
-                    Swal.fire({
-                        icon: "warning",
-                        title: "Oops !!",
-                        text: message || "Something went wrong while applying the coupon.",
+                    const response = await fetch("/applyCoupon", {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/json"
+                        },
+                        body: JSON.stringify(couponData)
                     });
-                    return;
+
+                    if (!response.ok) {
+                        const { message } = await response.json();
+                        Swal.fire({
+                            icon: "warning",
+                            title: "Oops !!",
+                            text: message || "Something went wrong while applying the coupon.",
+                        });
+                        return;
+                    }
+
+                    const { discountPrice, amountDeducted } = await response.json();
+
+                    document.getElementById("discount").innerText = `- ₹${amountDeducted.toFixed(2)}`;
+                    document.getElementById("dynamicTotalPrice").innerText = `₹${discountPrice.toFixed(2)}`;
+
+                    Swal.fire({
+                        icon: "success",
+                        title: "Coupon Applied!",
+                        text: `Your coupon "${couponCode}" was successfully applied.`,
+                    });
+
+                    // Toggle buttons
+                    applyBtn.style.display = "none";
+                    removeBtn.style.display = "inline-block";
+
+                } catch (error) {
+                    console.error("ERROR IN FETCHING COUPON IN FRONT END", error);
+                    Swal.fire({
+                        icon: "error",
+                        title: "Error",
+                        text: "Failed to apply the coupon. Please try again later.",
+                    });
                 }
-
-                const { discountPrice, amountDeducted } = await response.json();
-
-                document.getElementById("discount").innerText = `- ₹${amountDeducted.toFixed(2)}`;
-                document.getElementById("dynamicTotalPrice").innerText = `₹${discountPrice.toFixed(2)}`;
-
-                Swal.fire({
-                    icon: "success",
-                    title: "Coupon Applied!",
-                    text: `Your coupon "${couponCode}" was successfully applied.`,
-                });
-            } catch (error) {
-                console.error("ERROR IN FETCHING COUPON IN FRONT END", error);
-                Swal.fire({
-                    icon: "error",
-                    title: "Error",
-                    text: "Failed to apply the coupon. Please try again later.",
-                });
             }
+        });
+    });
+
+    removeBtn.addEventListener("click", async (e) => {
+        e.preventDefault();
+
+        try {
+            const response = await fetch("/removeCoupon", {
+                method: "GET"
+            });
+
+            const data = await response.json();
+
+            Swal.fire({
+                icon: response.ok ? "success" : "error",
+                text: data.message || "Coupon removed",
+                toast: true,
+                position: "top-end",
+                showConfirmButton: false,
+                timer: 1000
+            }).then(() => {
+                if (response.ok) {
+                    applyBtn.style.display = "inline-block";
+                    removeBtn.style.display = "none";
+                    window.location.reload();
+                }
+            });
+
+        } catch (error) {
+            console.error("Error in removing coupon:", error);
+            Swal.fire({
+                icon: "error",
+                text: "An error occurred while removing the coupon.",
+                toast: true,
+                position: "top-end",
+                showConfirmButton: false,
+                timer: 1000,
+            });
         }
     });
 });
-
-document.getElementById("removeCouponBtn").addEventListener("click",async (e)=>{
-    e.preventDefault()
-
-    const response = await fetch("/removeCoupon",({
-        method : "GET"  
-    }))
-    try {
-        const data = await response.json()
-            Swal.fire({
-            icon: response.ok ? "no icon" : "error",
-            text: data.message || "Coupon removed",
-            toast: true,
-            position: "top-end",
-            showConfirmButton: false,
-            timer: 1000
-        })
-        .then(()=>{
-        if(response.ok) window.location.reload()
-        })
-
-    } catch (error) {
-        console.error("Error in removing coupon:", error)
-        Swal.fire({
-            icon: "error",
-            text: "An error occurred while removing the coupon.",
-            toast: true,
-            position: "top-end",
-            showConfirmButton: false,
-            timer: 1000,
-        });
-    }
-   
-})
-
 </script>
+
 
 
 

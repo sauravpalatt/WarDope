@@ -41,6 +41,7 @@ router.post("/userProfile",userAuth,profileController.userProfile)
 //address
 router.get("/address",addressController.addressPageInfo)
 router.get("/checkout",userAuth,addressController.checkOutInfo)
+router.get("/validCheck",userAuth,addressController.validCheck)
 router.post("/addBillingAddress",userAuth,addressController.addBillingAddress)
 router.get("/addAddress",userAuth,addressController.addAddressInfo)
 router.post("/addAddress",userAuth,addressController.addAddress)

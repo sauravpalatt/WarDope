@@ -73,128 +73,75 @@ const addProduct = async (req, res) => {
   }
 };
 
-// const productEdit = async (req, res) => {
-//   try {
-//     const productId = req.params.id;
-
-//     const product = await Product.findById(productId);
-//     if (!product) return res.status(404).json({ success: false, message: "Product not found" });
-
-//     const data = req.body;
-
-    
-//     const existingProduct = await Product.findOne({
-//       productName: data.productName,
-//       _id: { $ne: productId }
-//     });
-    
-//     if (existingProduct) {
-//       return res.status(400).json({ success: false, message: "Another product with the same name already exists!" });
-//     }
-
-//     const allowedTypes = ['image/jpeg', 'image/png', 'image/jpg'];
-//     const imagePaths = [];
-
-    
-//     const productImages = [
-//       req.files.image1 ? req.files.image1[0] : product.images[0], 
-//       req.files.image2 ? req.files.image2[0] : product.images[1], 
-//       req.files.image3 ? req.files.image3[0] : product.images[2]
-//     ];
-
-   
-//     for (let image of productImages) {
-//       if (typeof image === 'object' && !allowedTypes.includes(image.mimetype)) {
-//         return res.status(400).json({ message: "Invalid image type. Only JPG and PNG are allowed." });
-//       }
-
-      
-//       if (req.files[`image${productImages.indexOf(image) + 1}`]) {
-//         const fileName = image.filename;
-//         const filePath = path.join("images", "products", fileName);
-        
-        
-//         await sharp(image.path)
-//           .resize(500, 500)
-//           .toFile(path.join(__dirname, "../../public", filePath));
-
-//         imagePaths.push(filePath);  
-//       } else {
-       
-//         imagePaths.push(image);
-//       }
-//     }
-
-//     const updateFields = {
-//       productName: data.productName,
-//       category: data.category,
-//       regularPrice: data.regularPrice,
-//       promotionalPrice: data.promotionalPrice,
-//       variants:data.variant,
-//       images: imagePaths
-//     };
-
-//     const updatedProduct = await Product.findByIdAndUpdate(productId, updateFields, { new: true });
-
-//   res.status(200).json({ success: true, message: "Product updated successfully!" });
-
-//   } catch (error) {
-//     console.error("Error in productEdit function:", error);
-//     res.status(500).json({ success: false, message: "An error occurred while updating the product." });
-//   }
-// };
-
 const productEdit = async (req, res) => {
   try {
     const productId = req.params.id;
+
     const product = await Product.findById(productId);
     if (!product) return res.status(404).json({ success: false, message: "Product not found" });
 
     const data = req.body;
 
+    
     const existingProduct = await Product.findOne({
       productName: data.productName,
       _id: { $ne: productId }
     });
-
+    
     if (existingProduct) {
       return res.status(400).json({ success: false, message: "Another product with the same name already exists!" });
     }
 
     const allowedTypes = ['image/jpeg', 'image/png', 'image/jpg'];
-    const imagePaths = [...product.images];
+    const imagePaths = [];
 
-    ['image1', 'image2', 'image3'].forEach((key, index) => {
-      if (req.files && req.files[key]) {
-        req.files[key].forEach((image) => {
-          if (!allowedTypes.includes(image.mimetype)) {
-            return res.status(400).json({ message: "Invalid image type. Only JPG and PNG are allowed." });
-          }
-          imagePaths[index] = image.path;
-        });
+    
+    const productImages = [
+      req.files.image1 ? req.files.image1[0] : product.images[0], 
+      req.files.image2 ? req.files.image2[0] : product.images[1], 
+      req.files.image3 ? req.files.image3[0] : product.images[2]
+    ];
+
+   
+    for (let image of productImages) {
+      if (typeof image === 'object' && !allowedTypes.includes(image.mimetype)) {
+        return res.status(400).json({ message: "Invalid image type. Only JPG and PNG are allowed." });
       }
-    });
 
-    const parsedVariants = data.variant ? JSON.parse(data.variant) : [];
+      
+      if (req.files[`image${productImages.indexOf(image) + 1}`]) {
+        const fileName = image.filename;
+        const filePath = path.join("images", "products", fileName);
+        
+        
+        await sharp(image.path)
+          .resize(500, 500)
+          .toFile(path.join(__dirname, "../../public", filePath));
+
+        imagePaths.push(filePath);  
+      } else {
+       
+        imagePaths.push(image);
+      }
+    }
 
     const updateFields = {
       productName: data.productName,
       category: data.category,
       regularPrice: data.regularPrice,
       promotionalPrice: data.promotionalPrice,
-      variants: parsedVariants,
       images: imagePaths
     };
 
     const updatedProduct = await Product.findByIdAndUpdate(productId, updateFields, { new: true });
 
-    res.status(200).json({ success: true, message: "Product updated successfully!", product: updatedProduct });
+  res.status(200).json({ success: true, message: "Product updated successfully!",product: updatedProduct });
+
   } catch (error) {
     console.error("Error in productEdit function:", error);
     res.status(500).json({ success: false, message: "An error occurred while updating the product." });
   }
-}
-
+};
 
 const productsInfo = async(req,res)=>{
   try {

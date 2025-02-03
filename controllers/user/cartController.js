@@ -45,10 +45,11 @@ const cartList = async (req, res) => {
       });
     }
 
-    // Resolve all promises using Promise.all
     const cartItems = await Promise.all(
       cart.items.map(async (item) => {
-        if (!item.product) return null; // Ensure product exists
+        if (!item.product) { 
+          return null;
+        }
 
         const variant = item.product.variants.find(
           (variant) => variant._id.toString() === item.variantId.toString()
@@ -56,7 +57,7 @@ const cartList = async (req, res) => {
 
         const stockLeft = variant ? variant.stock : 0;
 
-        if (stockLeft === 0) {
+        if (stockLeft === 0 ) {
           await cart.updateOne({ user: userId }, { $pull: { items: { _id: item._id } } });
           return null;
         } else {
@@ -651,10 +652,6 @@ const applyCoupon = async(req,res)=>{
     }
 
     const invalidCoupon = await Coupon.findOne({code:couponCode})
-
-    if(dateToday > invalidCoupon.endDate){
-      return res.status(404).json({success:false,message: "This coupon has been expired"})
-    }
 
     if(totalPrice < invalidCoupon.minPurchase){
       return res.status(404).json({success:false, message: `Coupon available only for purchase ₹${invalidCoupon.minPurchase}.00 or above`})

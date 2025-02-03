@@ -148,6 +148,7 @@
                             <a href="/wallet" class="nav-item nav-link">Wallet</a>
                             <a href="/orders" class="nav-item nav-link">Orders</a>
                             <a href="/address" class="nav-item nav-link">Address</a>
+                            
                         </div>
                         <div class="navbar-nav mr-0">
                             <% if (locals.user){ %>
@@ -156,6 +157,7 @@
                                 <div class="dropdown-menu rounded-0 m-0">
                                     <a href="/userProfile" class="dropdown-item">Profile</a>
                                     <a href="/logout" class="dropdown-item">Log Out</a>
+                                    <a href="#" class="dropdown-item" data-toggle="modal" data-target="#referralModal">Referred Anyone?</a>
                                 </div>
                               <% } else { %>
                                 <a href="/login" class="nav-item nav-link">Login</a>
@@ -165,6 +167,25 @@
                         </div>
                     </div>
                 </nav>
+
+                <div class="modal fade" id="referralModal" tabindex="-1" role="dialog" aria-labelledby="referralModalLabel" aria-hidden="true">
+                    <div class="modal-dialog" role="document">
+                      <div class="modal-content">
+                        <div class="modal-header">
+                          <h5 class="modal-title" id="referralModalLabel">Your Referral Code</h5>
+                          </button>
+                        </div>
+                        <div class="modal-body">
+                          <p style="font-family: cursive;">Share This Code To Your Friend, Reward Him/Her & Yourself On Your Buddy's First Purchase 😊 </p>
+                          <h4 class="font-weight-bold text-center" id="referralCode"></h4> 
+                        </div>
+                        <div class="modal-footer">
+                          <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                        </div>
+                      </div>
+                    </div>
+                </div>
+                <span id="referralCodeElement" data-referral-code="<%= locals.user ? locals.user.referralCode : 'No Referral For This User' %>"></span>
             </div>
         </div>
     </div>

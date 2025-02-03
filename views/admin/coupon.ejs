@@ -147,18 +147,30 @@
     }
 
     function validateDiscountValue() {
-        const value = parseFloat(discountValue.value);
-        if (isNaN(value) || value <= 0) {
-            errors.discountValue.textContent = "Discount must be greater than 0.";
-            return false;
-        }
-        if (discountType.value === "percentage" && (value < 1 || value > 100)) {
-            errors.discountValue.textContent = "Percentage must be between 1 and 100.";
-            return false;
-        }
-        errors.discountValue.textContent = "";
-        return true;
+    const value = parseFloat(discountValue.value);
+    const minValue = parseFloat(minPurchase.value);
+
+    if (isNaN(value) || value <= 0) {
+        errors.discountValue.textContent = "Discount must be greater than 0.";
+        return false;
     }
+
+    if (discountType.value === "percentage" && (value < 1 || value > 100)) {
+        errors.discountValue.textContent = "Percentage must be between 1 and 100.";
+        return false;
+    }
+
+    if (!isNaN(minValue) && value >= minValue) {
+        errors.discountValue.textContent = "Discount must be less than minimum purchase amount.";
+        return false;
+    }
+
+    errors.discountValue.textContent = "";
+    return true;
+    }
+
+
+  minPurchase.addEventListener("input", validateDiscountValue);
 
     function validateMinPurchase() {
         if (isNaN(parseFloat(minPurchase.value)) || parseFloat(minPurchase.value) <= 0) {

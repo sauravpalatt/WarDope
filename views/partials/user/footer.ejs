@@ -97,7 +97,24 @@
         return magnifier;
     }
 
-   
+</script>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+    // Retrieve the referral code from the data attribute
+    const referralCode = document.getElementById('referralCodeElement').getAttribute('data-referral-code');
+
+    // Display the referral code in the modal
+    if (referralCode) {
+      document.getElementById('referralCode').textContent = referralCode;
+    }
+
+    // Trigger the modal when button is clicked
+    const referralBtn = document.getElementById('referralBtn');
+    referralBtn.addEventListener('click', function() {
+      $('#referralModal').modal('show'); // Open modal using jQuery
+    });
+  });
 </script>
 
 </body>

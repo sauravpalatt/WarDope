@@ -106,6 +106,8 @@
                     </div>
                 <% } %>
             </div>
+
+            <span id="userLoggedIn" data-logged-in="<%= locals.user ? 'true' : 'false' %>"></span>
             
             <!-- Pagination -->
             <div class="col-12 text-center">
@@ -132,6 +134,12 @@
     document.querySelectorAll(".addToWishlist").forEach((button)=>{
         button.addEventListener("click", function (){
             const productId = this.getAttribute("data-id")
+
+            const loggedIn = document.getElementById("userLoggedIn").getAttribute("data-logged-in") === "true";
+
+            if (!loggedIn) {
+                return window.location.href = '/login';
+            }
 
             fetch("/add/wishlist",{
                 method : "POST",

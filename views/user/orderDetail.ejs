@@ -71,11 +71,7 @@
      <% if(order.status === 'delivered') { %>
         <button id="downloadInvoiceBtn" class="btn btn-primary mt-3">Download Invoice</button>
      <% } %>  
-
-     <% if(order.status === 'paid') { %>
-        <button id="downloadInvoiceBtn" class="btn btn-primary mt-3">Download Invoice</button>
-     <% } %>  
-
+ 
      <% if(order.status === 'pending' && order.deliveryType === "razorpay") { %>
         <button class="btn btn-secondary mt-3" onclick="razorPay(event,'<%= order.totalPrice %>','<%= order._id %>')" >Retry Payment</button>
      <% } %>  

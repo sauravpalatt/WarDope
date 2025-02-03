@@ -37,6 +37,10 @@ app.use(express.static(path.join(__dirname,"public")))
 app.use("/",userRouter)
 app.use("/admin",adminRouter)
 
+app.use((req,res)=>{
+    res.status(404).render("page_404")
+})
+
 app.use(passport.initialize())
 app.use(passport.session())
 

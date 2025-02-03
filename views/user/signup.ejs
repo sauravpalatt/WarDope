@@ -293,6 +293,9 @@
           }else if(phoneVal.length!=10){
             error3.style.display = "block"
             error3.innerHTML = "Digit count mismatch"
+          }else if(isNaN(phoneVal)){
+             error3.style.display = "block"
+             error3.innerHTML = "Please provide numbers only"
           }else{
             error3.style.display="none"
             error3.innerHTML=""
